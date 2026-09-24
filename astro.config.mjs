@@ -12,6 +12,10 @@ export default defineConfig({
   // Cloudflare Pages serves /oferta/ from oferta/index.html and redirects
   // /oferta there, so every address ends with a slash.
   trailingSlash: "always",
+  // Astro 7 defaults to "jsx", which drops the line break between text and a
+  // tag the way React does: "09-320\n{city}" came out as "09-320Bieżuń".
+  // `true` keeps HTML's own rule, that a line break is a space.
+  compressHTML: true,
   vite: {
     plugins: [tailwindcss()],
   },
