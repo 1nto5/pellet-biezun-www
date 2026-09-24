@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.astro/
+.wrangler/
+.env
+.dev.vars
+.DS_Store
+CLAUDE.local.md
+.claude/worktrees/
+.claude/settings.local.json
