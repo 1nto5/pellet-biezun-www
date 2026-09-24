@@ -1,0 +1,33 @@
+---
+import Base from "../layouts/Base.astro";
+import PageShell from "../components/PageShell.astro";
+import PageHeader from "../components/PageHeader.astro";
+import { firma } from "../data/firma";
+import { home, mainNav, orderLink } from "../data/nav";
+---
+
+<Base title="Nie znaleziono strony" description="Pod tym adresem nie ma strony.">
+  <PageShell>
+    <PageHeader
+      slot="header"
+      title="Nie znaleziono tej strony"
+      lead="Adres mógł się zmienić albo zawiera literówkę. Poniżej znajdziesz drogę dalej."
+    />
+    <div class="max-w-prose">
+      <ul role="list" class="rows">
+        {
+          [home, orderLink, ...mainNav].map((item) => (
+            <li>
+              <a href={item.href}>
+                <span>{item.label}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <p class="mt-8 text-ink-soft">
+        Możesz też zadzwonić: <a href={firma.phone.href} class="link-strong">{firma.phone.label}</a>.
+      </p>
+    </div>
+  </PageShell>
+</Base>

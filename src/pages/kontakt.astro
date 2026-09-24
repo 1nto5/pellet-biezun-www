@@ -1,0 +1,80 @@
+---
+import Base from "../layouts/Base.astro";
+import PageShell from "../components/PageShell.astro";
+import PageHeader from "../components/PageHeader.astro";
+import Formularz from "../components/Formularz.astro";
+import Mapa from "../components/Mapa.astro";
+import { firma, hoursRange } from "../data/firma";
+import { miejsca } from "../data/miejsca";
+
+// The yard's own pin: the place that shares the company's coordinates.
+const sklad = miejsca.filter((m) => m.geo.lat === firma.geo.lat && m.geo.lng === firma.geo.lng);
+---
+
+<Base
+  title="Kontakt"
+  description={`Adres składu, telefon, e-mail i godziny otwarcia ${firma.name}. Formularz kontaktowy.`}
+>
+  <PageShell>
+    <PageHeader slot="header" title="Kontakt" lead="Zadzwoń, napisz albo przyjedź do składu." />
+
+    <div class="grid gap-12 lg:grid-cols-2">
+      <div class="space-y-8">
+        <section aria-labelledby="dane">
+          <h2 id="dane" class="text-2xl">{firma.name}</h2>
+          <address class="mt-3">
+            {firma.address.street}<br />
+            {firma.address.postalCode}
+            {firma.address.city}<br />
+            tel. <a href={firma.phone.href} class="link-strong">{firma.phone.label}</a><br />
+            e-mail: <a href={`mailto:${firma.email}`}>{firma.email}</a>
+          </address>
+          <p class="mt-2 text-sm text-ink-soft">{firma.legalName}, NIP {firma.nip}</p>
+        </section>
+
+        <section aria-labelledby="godziny">
+          <h2 id="godziny" class="text-2xl">Godziny otwarcia</h2>
+          <table class="table mt-3 max-w-md">
+            <tbody>
+              {
+                firma.hours.map((h) => (
+                  <tr>
+                    <th scope="row">{h.label}</th>
+                    <td>{hoursRange(h)}</td>
+                  </tr>
+                ))
+              }
+            </tbody>
+          </table>
+          <p class="mt-2 text-sm text-ink-soft">{firma.closedNote}</p>
+        </section>
+
+        <Mapa miejsca={sklad} zoom={14} label={`Mapa: skład ${firma.name}`} />
+      </div>
+
+      <section aria-labelledby="napisz">
+        <h2 id="napisz" class="mb-6 text-2xl">Napisz do nas</h2>
+        <Formularz action="/api/kontakt" submitLabel="Wyślij wiadomość" purpose="odpowiedzi na wiadomość">
+          <div class="field">
+            <label for="imie">Imię <span class="req">*</span></label>
+            <input id="imie" name="imie" type="text" class="input" autocomplete="given-name" required />
+          </div>
+          <div class="grid gap-5 sm:grid-cols-2">
+            <div class="field">
+              <label for="email">E-mail <span class="req">*</span></label>
+              <input id="email" name="email" type="email" class="input" autocomplete="email" required />
+            </div>
+            <div class="field">
+              <label for="telefon">Telefon</label>
+              <input id="telefon" name="telefon" type="tel" class="input" autocomplete="tel" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="wiadomosc">Wiadomość <span class="req">*</span></label>
+            <textarea id="wiadomosc" name="wiadomosc" class="input" rows="6" required></textarea>
+          </div>
+        </Formularz>
+      </section>
+    </div>
+  </PageShell>
+</Base>

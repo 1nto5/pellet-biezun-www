@@ -1,0 +1,15 @@
+---
+/**
+ * `primary` is the one action of a page; `secondary` the alternative beside it.
+ */
+interface Props {
+  href: string;
+  variant?: "primary" | "secondary";
+}
+
+const { href, variant = "primary" } = Astro.props;
+---
+
+<a href={href} class:list={["btn", `btn-${variant}`]}>
+  <slot />
+</a>

@@ -1,0 +1,80 @@
+---
+/**
+ * The frame both forms share: the fields come in the slot, this adds what
+ * every form needs around them.
+ *
+ * - The trap field (honeypot): hidden from people, filled in by bots. The
+ *   Pages Function in stage 3 drops any submission that has it filled.
+ * - The consent checkbox, linking the privacy policy.
+ * - The place for the Cloudflare Turnstile widget (stage 3).
+ * - The submit button and a status line for the reply.
+ *
+ * `action` is the Pages Function that will receive the form. Until
+ * `formularzeWlaczone` is on, the script below stops the submit once the
+ * browser has checked the fields, and says the form does not send yet.
+ */
+import { formularzeWlaczone } from "../data/strona";
+
+interface Props {
+  action: string;
+  submitLabel: string;
+  /** For the consent sentence: "złożenia zamówienia", "odpowiedzi na wiadomość". */
+  purpose: string;
+}
+
+const { action, submitLabel, purpose } = Astro.props;
+---
+
+<form method="post" action={action} class="space-y-6" data-form data-live={String(formularzeWlaczone)}>
+  <slot />
+
+  <div class="hp" aria-hidden="true">
+    <label>
+      Nie wypełniaj tego pola
+      <input type="text" name="strona_www" tabindex="-1" autocomplete="off" />
+    </label>
+  </div>
+
+  <label class="check">
+    <input type="checkbox" name="zgoda" value="tak" required />
+    <span>
+      Zgadzam się na przetwarzanie moich danych w celu {purpose}. Szczegóły w
+      <a href="/polityka-prywatnosci/">polityce prywatności</a>. <span class="req">*</span>
+    </span>
+  </label>
+
+  {/* Stage 3: the Turnstile widget renders here. */}
+  <div data-turnstile></div>
+
+  {
+    !formularzeWlaczone && (
+      <p class="form-note text-sm">
+        Wersja robocza: formularz jeszcze nie wysyła danych. Możesz sprawdzić pola, ale nic nie
+        zostanie wysłane.
+      </p>
+    )
+  }
+
+  <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
+    <button type="submit" class="btn btn-primary">{submitLabel}</button>
+    <p class="text-sm text-ink-soft"><span class="req">*</span> pole wymagane</p>
+  </div>
+
+  <p class="form-status font-semibold" role="status" data-form-status></p>
+</form>
+
+<script>
+  for (const form of document.querySelectorAll<HTMLFormElement>("[data-form]")) {
+    if (form.dataset.live === "true") continue;
+    // `submit` only fires once the browser's own checks have passed, so the
+    // reader sees every required field and format error first.
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const status = form.querySelector("[data-form-status]");
+      if (status) {
+        status.textContent =
+          "Formularz wypełniony poprawnie. W wersji roboczej nie jest jeszcze wysyłany.";
+      }
+    });
+  }
+</script>

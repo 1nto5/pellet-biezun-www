@@ -1,0 +1,89 @@
+---
+/**
+ * A grid of photographs. Each one is a button that opens the full picture in a
+ * native <dialog>; Escape and a click on the backdrop close it.
+ *
+ * Without JavaScript the buttons do nothing and the grid is simply a grid of
+ * photographs, which is most of what it is for.
+ */
+import { Image, getImage } from "astro:assets";
+import type { ImageMetadata } from "astro";
+
+interface Props {
+  photos: readonly { src: ImageMetadata; alt: string }[];
+}
+
+const { photos } = Astro.props;
+
+/** The grid is four columns from `lg`, three from `sm`, two below that. */
+const sizes = "(min-width: 64rem) 15rem, (min-width: 40rem) 33vw, 50vw";
+
+const items = await Promise.all(
+  photos.map(async (photo) => ({
+    ...photo,
+    full: await getImage({ src: photo.src, width: 1600, format: "webp" }),
+  })),
+);
+---
+
+<div data-gallery>
+  <ul class="gallery" role="list" data-reveal-group>
+    {
+      items.map((photo) => (
+        <li>
+          <button type="button" data-full={photo.full.src} data-alt={photo.alt}>
+            <span class="gallery-media">
+              <Image src={photo.src} alt={photo.alt} widths={[400, 700]} sizes={sizes} loading="lazy" />
+            </span>
+            <span class="sr-only">Powiększ zdjęcie</span>
+          </button>
+        </li>
+      ))
+    }
+  </ul>
+
+  <dialog class="lightbox" aria-label="Powiększone zdjęcie">
+    {/* The <img> is built by the script on the first open: an image element
+        with nothing to show yet would have to ship without a `src`. */}
+    <div class="lightbox-bar">
+      <!-- The same words as the picture's alt text; read once, by the image. -->
+      <p class="lightbox-caption" aria-hidden="true"></p>
+      <button type="button" class="tool" data-lightbox-close>Zamknij</button>
+    </div>
+  </dialog>
+</div>
+
+<script>
+  document.addEventListener("click", (event) => {
+    const target = event.target instanceof Element ? event.target : null;
+    if (!target) return;
+
+    // A click on the backdrop lands on the dialog itself, never on its contents.
+    if (target instanceof HTMLDialogElement && target.closest("[data-gallery]")) {
+      target.close();
+      return;
+    }
+
+    const close = target.closest("[data-lightbox-close]");
+    if (close) {
+      close.closest("dialog")?.close();
+      return;
+    }
+
+    const thumb = target.closest<HTMLButtonElement>("[data-gallery] button[data-full]");
+    if (!thumb) return;
+
+    const dialog = thumb.closest("[data-gallery]")?.querySelector("dialog");
+    if (!dialog) return;
+
+    let image = dialog.querySelector("img");
+    if (!image) {
+      image = document.createElement("img");
+      dialog.prepend(image);
+    }
+    image.src = thumb.dataset.full!;
+    image.alt = thumb.dataset.alt ?? "";
+    dialog.querySelector(".lightbox-caption")!.textContent = thumb.dataset.alt ?? "";
+    dialog.showModal();
+  });
+</script>

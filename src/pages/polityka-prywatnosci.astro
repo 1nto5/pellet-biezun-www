@@ -1,0 +1,84 @@
+---
+/**
+ * PRZYKŁAD: a draft built from how the site works (forms sent by e-mail
+ * through Resend, hosting and Turnstile at Cloudflare, map tiles from
+ * OpenStreetMap, no cookies, no analytics). The client must confirm it,
+ * and it must change if any of those change.
+ */
+import Base from "../layouts/Base.astro";
+import PageShell from "../components/PageShell.astro";
+import PageHeader from "../components/PageHeader.astro";
+import { firma, addressLine } from "../data/firma";
+---
+
+<Base
+  title="Polityka prywatności"
+  description={`Jak ${firma.name} przetwarza dane osobowe z formularzy zamówienia i kontaktu.`}
+>
+  <PageShell>
+    <PageHeader slot="header" title="Polityka prywatności" />
+
+    <div class="prose">
+      <p class="form-note">Szkic do sprawdzenia przez właściciela firmy przed publikacją strony.</p>
+
+      <h2>Administrator danych</h2>
+      <p>
+        Administratorem danych osobowych jest {firma.legalName}, {addressLine()}, NIP {firma.nip}.
+        Kontakt w sprawie danych: <a href={`mailto:${firma.email}`}>{firma.email}</a>, tel.
+        {firma.phone.label}.
+      </p>
+
+      <h2>Jakie dane i po co</h2>
+      <ul>
+        <li>
+          <strong>Formularz zamówienia</strong>: imię i nazwisko, adres dostawy, telefon, e-mail,
+          szczegóły zamówienia. Używamy ich, żeby przygotować ofertę, potwierdzić i zrealizować
+          dostawę (art. 6 ust. 1 lit. b RODO) oraz wystawić fakturę (art. 6 ust. 1 lit. c RODO).
+        </li>
+        <li>
+          <strong>Formularz kontaktowy</strong>: imię, e-mail, opcjonalnie telefon i treść
+          wiadomości. Używamy ich tylko do odpowiedzi, na podstawie Twojej zgody (art. 6 ust. 1 lit.
+          a RODO).
+        </li>
+      </ul>
+      <p>
+        Dane z formularzy trafiają do nas wyłącznie jako wiadomość e-mail. Strona nie zapisuje ich w
+        żadnej bazie danych.
+      </p>
+
+      <h2>Komu przekazujemy dane</h2>
+      <ul>
+        <li>Cloudflare, Inc.: utrzymanie strony i ochrona formularzy przed spamem (Turnstile).</li>
+        <li>Resend (Plus Five Five, Inc.): wysyłka wiadomości z formularzy i potwierdzeń e-mail.</li>
+        <li>Dostawca naszej skrzynki pocztowej.</li>
+        <li>Biuro rachunkowe, jeśli wystawiamy fakturę.</li>
+      </ul>
+      <p>
+        Cloudflare i Resend mają siedziby w USA. Przekazanie danych odbywa się na podstawie
+        standardowych klauzul umownych Komisji Europejskiej lub programu EU-US Data Privacy
+        Framework.
+      </p>
+
+      <h2>Jak długo</h2>
+      <p>
+        Wiadomości z formularza kontaktowego przechowujemy do zakończenia sprawy, nie dłużej niż rok.
+        Dane zamówień przez czas potrzebny do realizacji, a dane z faktur przez 5 lat, jak wymagają
+        przepisy podatkowe.
+      </p>
+
+      <h2>Twoje prawa</h2>
+      <p>
+        Masz prawo do dostępu do swoich danych, ich sprostowania, usunięcia, ograniczenia
+        przetwarzania, przeniesienia oraz sprzeciwu. Zgodę możesz wycofać w każdej chwili, pisząc na
+        adres powyżej. Możesz też złożyć skargę do Prezesa Urzędu Ochrony Danych Osobowych.
+      </p>
+
+      <h2>Ciasteczka i mapa</h2>
+      <p>
+        Strona nie używa ciasteczek ani narzędzi analitycznych. Mapy pochodzą z serwisu
+        OpenStreetMap: przy ich wyświetleniu przeglądarka pobiera fragmenty mapy z serwerów
+        OpenStreetMap Foundation, które widzą przy tym adres IP odwiedzającego.
+      </p>
+    </div>
+  </PageShell>
+</Base>

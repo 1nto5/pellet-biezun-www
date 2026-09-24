@@ -1,0 +1,43 @@
+---
+import Base from "../layouts/Base.astro";
+import PageShell from "../components/PageShell.astro";
+import PageHeader from "../components/PageHeader.astro";
+import { faq } from "../data/faq";
+import { firma } from "../data/firma";
+
+const faqPage = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faq.map((item) => ({
+    "@type": "Question",
+    name: item.q,
+    acceptedAnswer: { "@type": "Answer", text: item.a },
+  })),
+};
+---
+
+<Base
+  title="Częste pytania"
+  description="Odpowiedzi na częste pytania o pellet: minimalne zamówienie, koszt i czas dostawy, certyfikat, płatność, przechowywanie."
+  jsonLd={[faqPage]}
+>
+  <PageShell>
+    <PageHeader slot="header" title="Częste pytania" />
+
+    <div class="faq max-w-prose">
+      {
+        faq.map((item, i) => (
+          <details open={i === 0}>
+            <summary>{item.q}</summary>
+            <p>{item.a}</p>
+          </details>
+        ))
+      }
+    </div>
+
+    <p class="mt-10 max-w-prose text-ink-soft">
+      Nie ma tu Twojego pytania? Zadzwoń pod <a href={firma.phone.href}>{firma.phone.label}</a> albo
+      <a href="/kontakt/">napisz do nas</a>.
+    </p>
+  </PageShell>
+</Base>

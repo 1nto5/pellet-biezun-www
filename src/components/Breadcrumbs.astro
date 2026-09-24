@@ -1,0 +1,32 @@
+---
+/**
+ * The trail from the home page down to the page being read. The separators are
+ * drawn but never read out; the last crumb is the current page and is not a link.
+ */
+import { breadcrumbsFor } from "../data/nav";
+
+const items = breadcrumbsFor(Astro.url.pathname);
+const trail = items.slice(0, -1);
+const last = items[items.length - 1]!;
+---
+
+{
+  items.length > 1 && (
+    <nav aria-label="Okruszki" class="breadcrumbs mb-5 text-sm text-ink-soft">
+      <ol role="list" class="flex flex-wrap items-center gap-x-1">
+        {trail.map((crumb) => (
+          <li>
+            <a href={crumb.href} class="inline-block py-1 underline">
+              {crumb.label}
+            </a>
+          </li>
+        ))}
+        <li>
+          <span aria-current="page" class="inline-block py-1">
+            {last.label}
+          </span>
+        </li>
+      </ol>
+    </nav>
+  )
+}

@@ -1,0 +1,75 @@
+---
+/**
+ * One page per place in `miejsca.ts`: what a buyer from that town needs to
+ * know, in sentences a search engine or an AI answer can quote.
+ */
+import type { GetStaticPaths } from "astro";
+import Base from "../../layouts/Base.astro";
+import PageShell from "../../components/PageShell.astro";
+import PageHeader from "../../components/PageHeader.astro";
+import Button from "../../components/Button.astro";
+import Mapa from "../../components/Mapa.astro";
+import { firma, addressLine } from "../../data/firma";
+import { miejsca, type Miejsce } from "../../data/miejsca";
+import { produkty, cenaLabel } from "../../data/oferta";
+import { distanceKm } from "../../lib/geo";
+
+export const getStaticPaths = (() =>
+  miejsca.map((miejsce) => ({ params: { slug: miejsce.slug }, props: { miejsce } }))) satisfies GetStaticPaths;
+
+interface Props {
+  miejsce: Miejsce;
+}
+
+const { miejsce } = Astro.props;
+const km = distanceKm(firma.geo, miejsce.geo);
+// The town of the yard itself gets a different first sentence.
+const isHome = km <= 1;
+const lead = isHome
+  ? `Nasz skład jest ${miejsce.wMiejscowosci}. Pellet kupisz na miejscu albo zamówisz z dostawą.`
+  : `Dowozimy pellet drzewny ${miejsce.wMiejscowosci} i okolicy. Nasz skład w Bieżuniu jest około ${km} km stąd.`;
+---
+
+<Base
+  title={`Pellet ${miejsce.wMiejscowosci}`}
+  description={`Pellet drzewny ${miejsce.wMiejscowosci}: ceny, dostawa i odbiór. ${miejsce.dostawa}`}
+>
+  <PageShell>
+    <PageHeader slot="header" title={`Pellet ${miejsce.wMiejscowosci}`} lead={lead} />
+
+    <div class="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <div class="prose">
+        <h2>Dostawa</h2>
+        <p>{miejsce.dostawa}</p>
+        {miejsce.adres && (
+          <>
+            <h2>Punkt sprzedaży</h2>
+            <p>
+              {miejsce.adres}, {miejsce.nazwa}.
+              {miejsce.opis}
+            </p>
+          </>
+        )}
+        <h2>Ceny</h2>
+        <ul>
+          {produkty.map((p) => (
+            <li>
+              {p.nazwa}: <strong>{cenaLabel(p)}</strong>
+            </li>
+          ))}
+        </ul>
+        <p>
+          Skład: {addressLine()}, tel. <a href={firma.phone.href}>{firma.phone.label}</a>.
+        </p>
+      </div>
+      <div>
+        <Mapa miejsca={[miejsce]} label={`Mapa: ${miejsce.nazwa}`} class="!aspect-square" />
+      </div>
+    </div>
+
+    <div class="mt-12 flex flex-wrap gap-3">
+      <Button href="/zamowienie/">Zamów z dostawą</Button>
+      <Button href="/mapa-dystrybucji/" variant="secondary">Wszystkie miejscowości</Button>
+    </div>
+  </PageShell>
+</Base>

@@ -1,0 +1,73 @@
+---
+/**
+ * Three columns of facts, all from `data/firma.ts`, and a bottom line with the
+ * registered name, the tax number and the privacy policy.
+ */
+import { firma, hoursRange } from "../data/firma";
+import { home, mainNav, otherPages } from "../data/nav";
+
+const year = new Date().getFullYear();
+---
+
+<footer class="mt-auto border-t border-line bg-sand">
+  <div class="page-wrap grid gap-10 py-12 md:grid-cols-3 md:py-16">
+    <div>
+      <p id="footer-firma" class="font-display text-lg font-semibold">{firma.name}</p>
+      <address class="mt-3 text-ink-soft" aria-labelledby="footer-firma">
+        {firma.address.street}<br />
+        {firma.address.postalCode}
+        {firma.address.city}<br />
+        tel. <a href={firma.phone.href}>{firma.phone.label}</a><br />
+        <a href={`mailto:${firma.email}`}>{firma.email}</a>
+      </address>
+    </div>
+
+    <div>
+      <p id="footer-godziny" class="font-display text-lg font-semibold">Godziny otwarcia</p>
+      <dl class="mt-3 text-ink-soft" aria-labelledby="footer-godziny">
+        {
+          firma.hours.map((h) => (
+            <div class="flex justify-between gap-4 sm:max-w-72">
+              <dt>{h.label}</dt>
+              <dd>{hoursRange(h)}</dd>
+            </div>
+          ))
+        }
+      </dl>
+      <p class="mt-2 text-sm text-ink-soft">{firma.closedNote}</p>
+    </div>
+
+    <div>
+      <p id="footer-strony" class="font-display text-lg font-semibold">Strony</p>
+      <nav aria-labelledby="footer-strony">
+        <ul role="list" class="mt-3 grid grid-cols-2 gap-x-6 gap-y-1">
+          {
+            [home, ...mainNav, otherPages[0]!].map((item) => (
+              <li>
+                <a href={item.href} class="inline-block py-0.5">
+                  {item.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+    </div>
+  </div>
+
+  <div class="border-t border-line">
+    <div
+      class="page-wrap flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2 py-4 text-sm text-ink-soft"
+    >
+      <p>© {year} {firma.legalName}, NIP {firma.nip}</p>
+      <p class="flex flex-wrap gap-x-6">
+        <a href="/polityka-prywatnosci/">Polityka prywatności</a>
+        <span>
+          Strona: <a href="https://adrianantosiak.pl" rel="author noopener noreferrer" target="_blank"
+            >Adrian Antosiak<span class="sr-only"> (otwiera się w nowej karcie)</span></a
+          >
+        </span>
+      </p>
+    </div>
+  </div>
+</footer>

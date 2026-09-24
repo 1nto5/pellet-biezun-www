@@ -1,0 +1,22 @@
+---
+/**
+ * The one `h1` of a page, with the breadcrumbs above it and an optional lead
+ * below. Anything passed as a child sits under the lead. It goes into the
+ * `header` slot of `PageShell`.
+ */
+import Breadcrumbs from "./Breadcrumbs.astro";
+
+interface Props {
+  title: string;
+  lead?: string;
+}
+
+const { title, lead } = Astro.props;
+---
+
+<header class="intro">
+  <Breadcrumbs />
+  <h1 class="max-w-[22ch] text-4xl md:text-5xl">{title}</h1>
+  {lead && <p class="mt-5 max-w-prose text-lg text-ink-soft">{lead}</p>}
+  <slot />
+</header>

@@ -1,0 +1,139 @@
+---
+/**
+ * The only layout. Every page renders through it: the head with the meta tags,
+ * the sample-data strip, the skip link, the header, one <main id="tresc"> and
+ * the footer.
+ *
+ * The Content-Security-Policy is not here but in `public/_headers`, which
+ * Cloudflare Pages sends as real HTTP headers (a <meta> cannot set
+ * `frame-ancestors`).
+ */
+import "../styles/global.css";
+import { getImage } from "astro:assets";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { firma, addressLine } from "../data/firma";
+import { miejsca } from "../data/miejsca";
+import { daneprzykladowe } from "../data/strona";
+import { isPreview } from "../lib/env";
+import ogSource from "../assets/og.jpg";
+
+interface Props {
+  /** Left out on the home page, whose title is the company name alone. */
+  title?: string;
+  description?: string;
+  /** Extra JSON-LD objects for this page, e.g. FAQPage. */
+  jsonLd?: Record<string, unknown>[];
+}
+
+const { title, description, jsonLd = [] } = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const fullTitle = title ? `${title} | ${firma.name}` : `${firma.name}: pellet drzewny z dostawą`;
+const desc = description ?? firma.description;
+const noindex = daneprzykladowe || isPreview;
+
+const og = await getImage({ src: ogSource, width: 1200, height: 630, format: "jpg" });
+const ogUrl = new URL(og.src, Astro.site);
+
+const home = new URL("/", Astro.site).toString();
+const localBusiness = {
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "@id": `${home}#firma`,
+  name: firma.name,
+  legalName: firma.legalName,
+  description: firma.description,
+  url: home,
+  image: ogUrl.toString(),
+  telephone: firma.phone.href.replace("tel:", ""),
+  email: firma.email,
+  taxID: firma.nip,
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: firma.address.street,
+    postalCode: firma.address.postalCode,
+    addressLocality: firma.address.city,
+    addressCountry: "PL",
+  },
+  geo: { "@type": "GeoCoordinates", latitude: firma.geo.lat, longitude: firma.geo.lng },
+  openingHoursSpecification: firma.hours.map((h) => ({
+    "@type": "OpeningHoursSpecification",
+    dayOfWeek: h.days,
+    opens: h.opens,
+    closes: h.closes,
+  })),
+  areaServed: miejsca.map((m) => ({ "@type": "City", name: m.nazwa })),
+};
+---
+
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={desc} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={desc} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content="pl_PL" />
+    <meta property="og:site_name" content={firma.name} />
+    <meta property="og:image" content={ogUrl} />
+    <meta property="og:image:width" content={String(og.options.width)} />
+    <meta property="og:image:height" content={String(og.options.height)} />
+    <meta property="og:image:alt" content={`${firma.name}, ${addressLine()}`} />
+    <meta name="twitter:card" content="summary_large_image" />
+    {
+      [localBusiness, ...jsonLd].map((data) => (
+        <script type="application/ld+json" is:inline set:html={JSON.stringify(data)} />
+      ))
+    }
+    <!-- Lets the CSS hide scroll-reveal blocks only when the script that shows them can run. -->
+    <script is:inline>document.documentElement.setAttribute("data-js", "");</script>
+  </head>
+  <body class="flex min-h-svh flex-col">
+    <a href="#tresc" class="skip-link">Przejdź do treści</a>
+    {
+      daneprzykladowe && (
+        <div class="probka">
+          <p class="page-wrap">
+            <strong>Wersja robocza.</strong> Dane firmy, ceny, zdjęcia i miejsca dostaw na tej
+            stronie są przykładowe.
+          </p>
+        </div>
+      )
+    }
+    <Header />
+    <main id="tresc" tabindex="-1" class="flex-1">
+      <slot />
+    </main>
+    <Footer />
+    <script>
+      // Scroll reveal: a block marked `data-reveal` (or `data-reveal-group`,
+      // whose children come in one after another) gets `is-visible` the first
+      // time it enters the view.
+      const blocks = document.querySelectorAll("[data-reveal], [data-reveal-group]");
+      if ("IntersectionObserver" in window) {
+        const seen = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (!entry.isIntersecting) continue;
+              entry.target.classList.add("is-visible");
+              seen.unobserve(entry.target);
+            }
+          },
+          { rootMargin: "0px 0px -8% 0px" },
+        );
+        for (const block of blocks) seen.observe(block);
+      } else {
+        for (const block of blocks) block.classList.add("is-visible");
+      }
+    </script>
+  </body>
+</html>

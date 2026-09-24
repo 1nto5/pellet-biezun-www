@@ -1,0 +1,45 @@
+---
+import Base from "../layouts/Base.astro";
+import PageShell from "../components/PageShell.astro";
+import PageHeader from "../components/PageHeader.astro";
+import Gallery from "../components/Gallery.astro";
+
+// Every image in src/assets/galeria/, in file-name order. A new photo only
+// needs a file there and its alt text below.
+const files = import.meta.glob<{ default: ImageMetadata }>("../assets/galeria/*.{jpg,jpeg,png,webp}", {
+  eager: true,
+});
+
+/** Alt text by file name. PRZYKŁAD: the photos are placeholders. */
+const alts: Record<string, string> = {
+  "01-worki": "Zdjęcie przykładowe: worki pelletu 15 kg na palecie",
+  "02-big-bag": "Zdjęcie przykładowe: big bag z pelletem",
+  "03-sklad": "Zdjęcie przykładowe: skład w Bieżuniu",
+  "04-rozladunek": "Zdjęcie przykładowe: rozładunek palety u klienta",
+  "05-z-bliska": "Zdjęcie przykładowe: pellet z bliska",
+  "06-samochod": "Zdjęcie przykładowe: samochód dostawczy z windą",
+  "07-magazyn": "Zdjęcie przykładowe: magazyn z paletami",
+  "08-paleta": "Zdjęcie przykładowe: paleta pod folią",
+};
+
+const photos = Object.entries(files)
+  .sort(([a], [b]) => a.localeCompare(b))
+  .map(([path, mod]) => {
+    const name = path.split("/").pop()!.replace(/\.\w+$/, "");
+    return { src: mod.default, alt: alts[name] ?? "Zdjęcie ze składu Pellet Bieżuń" };
+  });
+---
+
+<Base
+  title="Galeria"
+  description="Zdjęcia pelletu, składu w Bieżuniu i dostaw do klientów."
+>
+  <PageShell>
+    <PageHeader
+      slot="header"
+      title="Galeria"
+      lead="Nasz skład, pellet w różnych opakowaniach i dostawy. Kliknij zdjęcie, aby je powiększyć."
+    />
+    <Gallery photos={photos} />
+  </PageShell>
+</Base>

@@ -1,0 +1,144 @@
+---
+/**
+ * Pinned to the top of the page: one row with the company name, the sections
+ * in a flat row from `lg` up and the „Zamów pellet" button. Below `lg` the
+ * sections live behind a menu button, in a native <dialog> that slides in from
+ * the left as a drawer under the header. A tap outside, a swipe to the left or
+ * Escape closes it.
+ */
+import { mainNav, orderLink, activeSection } from "../data/nav";
+import { firma } from "../data/firma";
+
+const section = activeSection(Astro.url.pathname);
+const current = (href: string) =>
+  href === section?.href || href === Astro.url.pathname ? "page" : undefined;
+---
+
+<header class="site-header">
+  <div class="header-surface border-b border-line" data-surface>
+    <div class="pinned-row page-wrap flex items-center justify-between gap-x-6">
+      <a href="/" class="no-underline hover:no-underline">
+        <span class="brand-name block font-display leading-tight font-semibold text-ink">{firma.name}</span>
+        <span class="brand-sub text-ink-soft">Pellet drzewny z dostawą</span>
+      </a>
+
+      <div class="flex items-center gap-x-6">
+        <nav aria-label="Menu główne" class="hidden lg:block">
+          <ul role="list" class="flex gap-x-6">
+            {
+              mainNav.map((item) => (
+                <li>
+                  <a href={item.href} class="nav-link" aria-current={current(item.href)}>
+                    {item.label}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
+
+        <div class="flex items-center gap-2">
+          <a
+            href={orderLink.href}
+            class="btn btn-primary btn-sm"
+            aria-current={current(orderLink.href)}>{orderLink.label}</a
+          >
+          <button type="button" class="tool" data-menu-open aria-haspopup="dialog" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+              <path d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+            <span class="sr-only">Menu</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="menu-backdrop" data-menu-backdrop hidden></div>
+  <dialog class="menu" data-menu aria-label="Menu" tabindex="-1">
+    <p class="py-3">
+      <span class="text-sm text-ink-soft">Telefon:</span>
+      <a href={firma.phone.href} class="font-semibold">{firma.phone.label}</a>
+    </p>
+    <nav aria-label="Menu główne" class="mt-2">
+      <ul role="list">
+        <li><a href="/" aria-current={current("/")}>Strona główna</a></li>
+        {
+          mainNav.map((item) => (
+            <li>
+              <a href={item.href} aria-current={current(item.href)}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </dialog>
+</header>
+
+<script>
+  const doc = document.documentElement;
+  const menu = document.querySelector<HTMLDialogElement>("[data-menu]");
+  const backdrop = document.querySelector<HTMLElement>("[data-menu-backdrop]");
+  const open = document.querySelector<HTMLButtonElement>("[data-menu-open]");
+  const surface = document.querySelector<HTMLElement>("[data-surface]");
+
+  // `--header-height` is the pinned row's height: same-page links and the
+  // drawer sit below it. It changes with the window as lines wrap.
+  if (surface) {
+    const measure = () => doc.style.setProperty("--header-height", `${surface.offsetHeight}px`);
+    new ResizeObserver(measure).observe(surface);
+    measure();
+  }
+
+  if (menu && backdrop && open && surface) {
+    const close = () => menu.open && menu.close();
+    // The page behind the drawer is inert while it is open, so the Tab key
+    // stays inside; the pinned row above stays live.
+    const behind = [...document.querySelectorAll<HTMLElement>("main, footer")];
+
+    open.addEventListener("click", () => {
+      const top = Math.max(0, surface.getBoundingClientRect().bottom);
+      menu.style.setProperty("--drawer-top", `${top}px`);
+      backdrop.style.setProperty("--drawer-top", `${top}px`);
+      backdrop.hidden = false;
+      menu.show();
+      for (const el of behind) el.inert = true;
+      doc.style.overflow = "hidden";
+      open.setAttribute("aria-expanded", "true");
+      menu.focus();
+    });
+    menu.addEventListener("close", () => {
+      backdrop.hidden = true;
+      for (const el of behind) el.inert = false;
+      doc.style.overflow = "";
+      open.setAttribute("aria-expanded", "false");
+      // Not when the drawer closed because the window grew past `lg` and
+      // the button went with it.
+      if (open.offsetParent !== null) open.focus();
+    });
+
+    backdrop.addEventListener("click", close);
+    window.matchMedia("(min-width: 64rem)").addEventListener("change", (e) => e.matches && close());
+    document.addEventListener("keydown", (e) => e.key === "Escape" && close());
+
+    // A finger swipe to the left closes the drawer. A mostly vertical move is
+    // a scroll, and a mouse drag is a text selection; neither counts.
+    let start: { x: number; y: number } | null = null;
+    for (const el of [menu, backdrop]) {
+      el.addEventListener("pointerdown", (e) => {
+        start = e.pointerType === "touch" ? { x: e.clientX, y: e.clientY } : null;
+      });
+      el.addEventListener("pointerup", (e) => {
+        if (start) {
+          const dx = start.x - e.clientX;
+          const dy = Math.abs(start.y - e.clientY);
+          if (dx > 40 && dx > dy) close();
+        }
+        start = null;
+      });
+      el.addEventListener("pointercancel", () => (start = null));
+    }
+  }
+</script>

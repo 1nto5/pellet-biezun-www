@@ -1,0 +1,75 @@
+---
+import Base from "../layouts/Base.astro";
+import PageShell from "../components/PageShell.astro";
+import PageHeader from "../components/PageHeader.astro";
+import Button from "../components/Button.astro";
+import { produkty, cenaLabel, parametry } from "../data/oferta";
+---
+
+<Base
+  title="Oferta i ceny pelletu"
+  description="Pellet drzewny 6 mm klasy ENplus A1 w workach 15 kg, big bagach i luzem. Ceny za tonę, parametry i warunki dostawy."
+>
+  <PageShell>
+    <PageHeader
+      slot="header"
+      title="Oferta i ceny"
+      lead="Pellet drzewny 6 mm z trocin iglastych, bez dodatków klejących. Trzy formy, ta sama jakość."
+    />
+
+    <section aria-labelledby="produkty">
+      <h2 id="produkty" class="sr-only">Produkty</h2>
+      <ul role="list" class="grid gap-6 md:grid-cols-3">
+        {
+          produkty.map((p) => (
+            <li class="card">
+              <h3 class="text-xl">{p.nazwa}</h3>
+              <p class="mt-1 text-sm text-ink-soft">{p.forma}</p>
+              <p class="mt-3 flex-1">{p.opis}</p>
+              <p class="price mt-4 text-2xl">{cenaLabel(p)}</p>
+            </li>
+          ))
+        }
+      </ul>
+      <p class="mt-4 text-sm text-ink-soft">
+        Ceny brutto (z VAT), bez kosztu dostawy. Przy większych zamówieniach cenę ustalamy
+        indywidualnie.
+      </p>
+    </section>
+
+    <div class="mt-14 grid gap-12 lg:grid-cols-2">
+      <section aria-labelledby="parametry">
+        <h2 id="parametry" class="text-2xl md:text-3xl">Parametry pelletu</h2>
+        <table class="table mt-5">
+          <tbody>
+            {
+              parametry.map((p) => (
+                <tr>
+                  <th scope="row">{p.nazwa}</th>
+                  <td>{p.wartosc}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </section>
+
+      <section aria-labelledby="dostawa">
+        <h2 id="dostawa" class="text-2xl md:text-3xl">Dostawa i odbiór</h2>
+        <div class="prose mt-5">
+          <p>
+            Dowozimy własnym samochodem z windą i wózkiem paletowym, pod dom albo do garażu. Koszt
+            zależy od miejscowości i liczby palet; przy każdej miejscowości podajemy go na
+            <a href="/mapa-dystrybucji/">mapie dystrybucji</a>.
+          </p>
+          <p>Odbiór osobisty w składzie w Bieżuniu w godzinach otwarcia, bez wcześniejszego zamawiania.</p>
+        </div>
+      </section>
+    </div>
+
+    <div class="mt-14 flex flex-wrap gap-3">
+      <Button href="/zamowienie/">Zamów pellet</Button>
+      <Button href="/faq/" variant="secondary">Częste pytania</Button>
+    </div>
+  </PageShell>
+</Base>

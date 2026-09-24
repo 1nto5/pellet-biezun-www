@@ -1,0 +1,116 @@
+---
+import Base from "../layouts/Base.astro";
+import Button from "../components/Button.astro";
+import Figure from "../components/Figure.astro";
+import { firma, addressLine, hoursRange } from "../data/firma";
+import { produkty, cenaLabel } from "../data/oferta";
+import { miejsca, miejsceHref } from "../data/miejsca";
+import hero from "../assets/hero.jpg";
+
+/** Three facts a buyer asks about first. PRZYKŁAD until the client confirms them. */
+const zalety = [
+  { tytul: "Certyfikat ENplus A1", tekst: "Niska zawartość popiołu i stała wartość opałowa, sprawdzone w laboratorium." },
+  { tytul: "Dostawa pod dom", tekst: "Własny transport z windą. W gminie Bieżuń dowozimy gratis." },
+  { tytul: "Odbiór na miejscu", tekst: "Skład w Bieżuniu: worki i big bagi od ręki, załadunek wózkiem widłowym." },
+];
+---
+
+<Base>
+  <section class="page-wrap py-12 md:py-16" aria-labelledby="hero-title">
+    <div class="grid items-center gap-10 md:grid-cols-2 md:gap-14">
+      <div class="intro">
+        <h1 id="hero-title" class="text-4xl md:text-5xl">
+          Pellet drzewny<br />
+          z dostawą pod dom
+        </h1>
+        <p class="mt-6 max-w-[44ch] text-lg text-ink-soft">
+          Worki 15 kg, big bagi i luz. Skład w Bieżuniu, dowozimy w promieniu około 50 km.
+        </p>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <Button href="/zamowienie/">Zamów pellet</Button>
+          <Button href="/oferta/" variant="secondary">Oferta i ceny</Button>
+        </div>
+      </div>
+      <Figure
+        src={hero}
+        alt="Zdjęcie przykładowe: pellet drzewny"
+        loading="eager"
+        sizes="(min-width: 48rem) 32rem, 100vw"
+        class="intro-figure"
+      />
+    </div>
+  </section>
+
+  <section class="border-y border-line bg-sand" aria-labelledby="dlaczego">
+    <div class="page-wrap py-12 md:py-16">
+      <h2 id="dlaczego" class="text-2xl md:text-3xl" data-reveal>Dlaczego u nas</h2>
+      <ul role="list" class="mt-8 grid gap-6 md:grid-cols-3" data-reveal-group>
+        {
+          zalety.map((z) => (
+            <li class="card">
+              <h3 class="text-xl">{z.tytul}</h3>
+              <p class="mt-2 text-ink-soft">{z.tekst}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section class="page-wrap py-12 md:py-16" aria-labelledby="oferta-skrot">
+    <div class="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2" data-reveal>
+      <h2 id="oferta-skrot" class="text-2xl md:text-3xl">Oferta</h2>
+      <a href="/oferta/" class="link-strong">Parametry i szczegóły</a>
+    </div>
+    <ul role="list" class="mt-8 grid gap-6 md:grid-cols-3" data-reveal-group>
+      {
+        produkty.map((p) => (
+          <li class="card">
+            <h3 class="text-xl">{p.nazwa}</h3>
+            <p class="mt-1 text-sm text-ink-soft">{p.forma}</p>
+            <p class="price mt-4 text-2xl">{cenaLabel(p)}</p>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="mt-4 text-sm text-ink-soft" data-reveal>Ceny brutto, bez kosztu dostawy.</p>
+  </section>
+
+  <section class="page-wrap pb-12 md:pb-16" aria-labelledby="dostawy-skrot" data-reveal>
+    <div class="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2">
+      <h2 id="dostawy-skrot" class="text-2xl md:text-3xl">Gdzie dowozimy</h2>
+      <a href="/mapa-dystrybucji/" class="link-strong">Mapa dystrybucji</a>
+    </div>
+    <ul role="list" class="mt-6 flex flex-wrap gap-x-5 gap-y-2">
+      {
+        miejsca.map((m) => (
+          <li>
+            <a href={miejsceHref(m)}>{m.nazwa}</a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="border-t border-line bg-sand" aria-labelledby="kontakt-skrot">
+    <div
+      class="page-wrap grid gap-8 py-12 md:grid-cols-[1fr_auto] md:items-center md:py-16"
+      data-reveal
+    >
+      <div>
+        <h2 id="kontakt-skrot" class="text-2xl">Skład i kontakt</h2>
+        <address class="mt-3 text-ink-soft">
+          {addressLine()}<br />
+          tel. <a href={firma.phone.href}>{firma.phone.label}</a>
+        </address>
+        <p class="mt-2 text-ink-soft">
+          {firma.hours.map((h) => `${h.label} ${hoursRange(h)}`).join(", ")}
+        </p>
+      </div>
+      <div class="flex flex-wrap gap-3">
+        <Button href="/kontakt/">Kontakt</Button>
+        <Button href={firma.phone.href} variant="secondary">Zadzwoń</Button>
+      </div>
+    </div>
+  </section>
+</Base>
