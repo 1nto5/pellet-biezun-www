@@ -3,22 +3,24 @@
  * A Leaflet map with OpenStreetMap tiles: no API key, no fee, no cookies.
  * Leaflet is bundled with the site, not loaded from a CDN; only the map
  * tiles come from tile.openstreetmap.org (allowed in `public/_headers`).
+ * The drawing itself is in `mapa.ts`, loaded only when the map comes near
+ * the screen.
  *
  * The warehouse is always on the map, as a pin drawn in CSS (`divIcon`).
  * Leaflet's default pin is a PNG whose path breaks once the build moves it,
  * so it is never used. Towns are small dots (`circleMarker`), one look inside
  * the free-delivery zone and another outside it; the zone itself is an
  * optional circle. Dots and circle get a class, and their colours come from
- * the tokens in `global.css`, so dark mode repaints them.
+ * the tokens in `global.css`.
  *
  * The map is decoration on top of the facts: every page that shows one also
  * lists the same places as text, which is what works without JavaScript.
  */
-import "leaflet/dist/leaflet.css";
 import { firma, addressLine } from "../data/firma";
 import type { Miejsce } from "../data/miejsca";
 import { DARMOWA_DOSTAWA_KM, miejsceHref, odlegloscKm, wStrefieDarmowej } from "../data/miejsca";
 import { maPodstrone, pelnaNazwa } from "../lib/miejsce";
+import type { DaneMapy } from "./mapa";
 
 interface Props {
   /** Towns drawn as dots. None: the map shows the warehouse alone. */
@@ -36,7 +38,7 @@ interface Props {
 
 const { miejsca = [], strefa = false, wyroznione, zoom = 13, label, class: className } = Astro.props;
 
-const dane = {
+const dane: DaneMapy = {
   magazyn: {
     nazwa: firma.name,
     adres: addressLine(),
@@ -61,110 +63,17 @@ const dane = {
 <section class:list={["mapa", className]} data-mapa={JSON.stringify(dane)} data-zoom={zoom} aria-label={label}></section>
 
 <script>
-  import L from "leaflet";
-
-  interface Dane {
-    magazyn: { nazwa: string; adres: string; tel: string; telHref: string; lat: number; lng: number };
-    promienKm: number | null;
-    miejsca: {
-      nazwa: string;
-      lat: number;
-      lng: number;
-      km: number;
-      wStrefie: boolean;
-      href: string | null;
-      wyroznione: boolean;
-    }[];
-  }
-
-  // Popups are built from DOM nodes, not an HTML string, so a name with an
-  // odd character cannot break the markup.
-  function popup(...lines: (string | Node)[]): HTMLElement {
-    const box = document.createElement("div");
-    lines.forEach((line, i) => {
-      if (i > 0) box.append(document.createElement("br"));
-      box.append(line);
-    });
-    return box;
-  }
-  function strong(text: string): HTMLElement {
-    const el = document.createElement("strong");
-    el.textContent = text;
-    return el;
-  }
-  function link(href: string, text: string): HTMLAnchorElement {
-    const a = document.createElement("a");
-    a.href = href;
-    a.textContent = text;
-    return a;
-  }
-
-  for (const el of document.querySelectorAll<HTMLElement>("[data-mapa]")) {
-    const dane: Dane = JSON.parse(el.dataset.mapa ?? "{}");
-    const { magazyn } = dane;
-
-    // A page scrolling past the map must not get caught by it: no
-    // scroll-wheel zoom, and on a touch screen one finger scrolls the page
-    // instead of dragging the map. The +/- buttons zoom, and two fingers
-    // still move and zoom the map.
-    const map = L.map(el, { scrollWheelZoom: false, dragging: !L.Browser.mobile });
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 18,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    }).addTo(map);
-
-    const bounds = L.latLngBounds([[magazyn.lat, magazyn.lng]]);
-
-    // The zone first, so the dots sit on top of it. Not interactive: it would
-    // otherwise catch clicks meant for the map. Its extent comes from the
-    // coordinates: the circle's own getBounds() needs a map that already has
-    // a view, and this one gets its view only at the end.
-    if (dane.promienKm !== null) {
-      L.circle([magazyn.lat, magazyn.lng], {
-        radius: dane.promienKm * 1000,
-        className: "mapa-strefa",
-        interactive: false,
-      }).addTo(map);
-      bounds.extend(L.latLng(magazyn.lat, magazyn.lng).toBounds(dane.promienKm * 2000));
-    }
-
-    for (const m of dane.miejsca) {
-      const lines: (string | Node)[] = [
-        strong(m.nazwa),
-        `ok. ${m.km} km od magazynu w linii prostej`,
-        m.wStrefie ? "dostawa gratis" : "dostawa po uzgodnieniu",
-      ];
-      if (m.href) lines.push(link(m.href, "Dostawa i ceny"));
-
-      L.circleMarker([m.lat, m.lng], {
-        radius: m.wyroznione ? 9 : 5,
-        className: [
-          "mapa-miejsce",
-          m.wStrefie ? "mapa-miejsce-strefa" : "mapa-miejsce-poza",
-          m.wyroznione ? "mapa-miejsce-wyroznione" : "",
-        ].join(" "),
-      })
-        .addTo(map)
-        .bindPopup(popup(...lines));
-      bounds.extend([m.lat, m.lng]);
-    }
-
-    // The warehouse last, so its pin is above every dot.
-    const icon = L.divIcon({
-      className: "",
-      html: '<div class="pin pin-punkt"></div>',
-      iconSize: [28, 28],
-      iconAnchor: [4, 30],
-      popupAnchor: [10, -26],
-    });
-    L.marker([magazyn.lat, magazyn.lng], { icon, title: `Magazyn ${magazyn.nazwa}`, alt: `Magazyn ${magazyn.nazwa}` })
-      .addTo(map)
-      .bindPopup(popup(strong(`Magazyn ${magazyn.nazwa}`), magazyn.adres, link(magazyn.telHref, `tel. ${magazyn.tel}`)));
-
-    if (dane.miejsca.length === 0 && dane.promienKm === null) {
-      map.setView([magazyn.lat, magazyn.lng], Number(el.dataset.zoom));
-    } else {
-      map.fitBounds(bounds, { padding: [24, 24] });
-    }
-  }
+  // Leaflet (about 150 KB) and its stylesheet load only when a map comes
+  // within half a screen of view.
+  const obserwator = new IntersectionObserver(
+    (wpisy) => {
+      for (const wpis of wpisy) {
+        if (!wpis.isIntersecting) continue;
+        obserwator.unobserve(wpis.target);
+        import("./mapa").then(({ narysujMape }) => narysujMape(wpis.target as HTMLElement));
+      }
+    },
+    { rootMargin: "50% 0px" },
+  );
+  for (const el of document.querySelectorAll<HTMLElement>("[data-mapa]")) obserwator.observe(el);
 </script>

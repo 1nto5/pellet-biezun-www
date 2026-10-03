@@ -836,15 +836,18 @@ textarea.input {
   width: 1.7rem;
   height: 1.7rem;
 }
-.leaflet-container {
+/* Leaflet's own stylesheet arrives with the map (mapa.ts), after this one;
+   these win over it by being more specific. */
+.mapa.leaflet-container {
   font: inherit;
+  background: var(--color-sand);
 }
-.leaflet-popup-content {
+.mapa .leaflet-popup-content {
   font-size: 0.95rem;
   line-height: 1.45;
 }
-.leaflet-popup-content-wrapper,
-.leaflet-popup-tip {
+.mapa .leaflet-popup-content-wrapper,
+.mapa .leaflet-popup-tip {
   border-radius: var(--radius-sign);
   box-shadow: 0 0 0 2px var(--color-black);
 }
