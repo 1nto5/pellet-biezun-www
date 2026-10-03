@@ -12,6 +12,7 @@ import Button from "../../components/Button.astro";
 import Mapa from "../../components/Mapa.astro";
 import NazwaMiejsca from "../../components/NazwaMiejsca.astro";
 import { firma, addressLine } from "../../data/firma";
+import { strony } from "../../data/nav";
 import {
   DARMOWA_DOSTAWA_KM,
   miejsca,
@@ -70,7 +71,7 @@ const lead = gratis
 
     <div class="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <div class="prose">
-        <h2 data-ruch="mijanie">Dostawa</h2>
+        <h2>Dostawa</h2>
         <p>
           {miejsce.nazwa} leży ok. {km} km od magazynu w linii prostej.
           {
@@ -91,7 +92,7 @@ const lead = gratis
           )
         }
 
-        <h2 data-ruch="mijanie">Ceny</h2>
+        <h2>Ceny</h2>
         <ul>
           {
             produkty.map((p) => (
@@ -103,7 +104,7 @@ const lead = gratis
         </ul>
         <p>Ceny z {cenyZDnia}. Przy większych zamówieniach cena do negocjacji.</p>
 
-        <h2 data-ruch="mijanie">Odbiór w magazynie</h2>
+        <h2>Odbiór w magazynie</h2>
         <p>
           Pellet możesz też odebrać sam: {addressLine()}. Przed przyjazdem zadzwoń pod{" "}
           <a href={firma.phone.href}>{firma.phone.label}</a>.
@@ -139,8 +140,8 @@ const lead = gratis
     </div>
 
     <div class="mt-12 flex flex-wrap gap-3">
-      <Button href="/zamowienie/">Zamów z dostawą</Button>
-      <Button href="/mapa-dystrybucji/" variant="secondary">Wszystkie miejscowości</Button>
+      <Button href={strony.zamowienie.href}>Zamów z dostawą</Button>
+      <Button href={strony.mapa.href} variant="secondary">Wszystkie miejscowości</Button>
     </div>
   </PageShell>
 </Base>

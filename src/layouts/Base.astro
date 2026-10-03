@@ -1,8 +1,9 @@
 ---
 /**
- * The only layout. Every page renders through it: the head with the meta tags,
- * the sample-data strip, the skip link, the header, one <main id="tresc"> and
- * the footer.
+ * The only layout. Every page renders through it: the head with the meta tags
+ * and the JSON-LD (the company on every page, the breadcrumb trail where there
+ * is one), the sample-data strip, the skip link, the header, one
+ * <main id="tresc"> and the footer.
  *
  * The Content-Security-Policy is not here but in `public/_headers`, which
  * Cloudflare Pages sends as real HTTP headers (a <meta> cannot set
@@ -13,12 +14,19 @@ import "../components/ruch/ruch.css";
 import { getImage } from "astro:assets";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
-import { firma, addressLine } from "../data/firma";
+import { firma, firmaId, addressLine } from "../data/firma";
 import { miejsca, DARMOWA_DOSTAWA_KM } from "../data/miejsca";
+import { breadcrumbsFor } from "../data/nav";
 import { daneprzykladowe } from "../data/strona";
 import { cenyZDnia } from "../data/oferta";
 import { isPreview } from "../lib/env";
+import { nazwaWlasna } from "../lib/miejsce";
+import { href, absoluteUrl } from "../lib/url";
 import ogSource from "../assets/og.jpg";
+// Preloaded, so the text does not wait for the stylesheet to ask for them.
+// The same files global.css declares; Polish text needs both subsets.
+import fontLatin from "@fontsource-variable/league-spartan/files/league-spartan-latin-wght-normal.woff2?url";
+import fontLatinExt from "@fontsource-variable/league-spartan/files/league-spartan-latin-ext-wght-normal.woff2?url";
 
 interface Props {
   /** Left out on the home page, whose title is the company name alone. */
@@ -26,23 +34,25 @@ interface Props {
   description?: string;
   /** Extra JSON-LD objects for this page, e.g. FAQPage. */
   jsonLd?: Record<string, unknown>[];
+  /** A page that is not a page of the site, like the 404: no canonical address, never indexed. */
+  noindex?: boolean;
 }
 
-const { title, description, jsonLd = [] } = Astro.props;
+const { title, description, jsonLd = [], noindex: pageNoindex = false } = Astro.props;
 
-const canonical = new URL(Astro.url.pathname, Astro.site);
+const canonical = pageNoindex ? undefined : new URL(Astro.url.pathname, Astro.site);
 const fullTitle = title ? `${title} | ${firma.name}` : `Pellet drzewny z dostawą gratis do ${DARMOWA_DOSTAWA_KM} km – ${firma.name}`;
 const desc = description ?? firma.description;
-const noindex = daneprzykladowe || isPreview;
+const noindex = pageNoindex || daneprzykladowe || isPreview;
 
 const og = await getImage({ src: ogSource, width: 1200, height: 630, format: "jpg" });
 const ogUrl = new URL(og.src, Astro.site);
 
-const home = new URL("/", Astro.site).toString();
+const home = absoluteUrl("/");
 const localBusiness = {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
-  "@id": `${home}#firma`,
+  "@id": firmaId,
   name: firma.name,
   legalName: firma.legalName,
   description: firma.description,
@@ -65,9 +75,23 @@ const localBusiness = {
     opens: h.opens,
     closes: h.closes,
   })),
-  areaServed: miejsca.map((m) => ({ "@type": "City", name: m.nazwa })),
+  areaServed: miejsca.map((m) => ({ "@type": "City", name: nazwaWlasna(m) })),
+  hasMap: firma.googleMaps,
   sameAs: [firma.googleMaps],
 };
+
+const trail = breadcrumbsFor(Astro.url.pathname);
+const breadcrumbList = trail.length > 1 && {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: trail.map((crumb, i) => ({
+    "@type": "ListItem",
+    position: i + 1,
+    name: crumb.label,
+    item: new URL(crumb.href, Astro.site).toString(),
+  })),
+};
+const structuredData = [localBusiness, ...(breadcrumbList ? [breadcrumbList] : []), ...jsonLd];
 ---
 
 <!doctype html>
@@ -77,14 +101,18 @@ const localBusiness = {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
     <meta name="description" content={desc} />
-    <link rel="canonical" href={canonical} />
+    {canonical && <link rel="canonical" href={canonical} />}
     {noindex && <meta name="robots" content="noindex" />}
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="preload" href={fontLatin} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={fontLatinExt} as="font" type="font/woff2" crossorigin />
+    <link rel="icon" href={href("/favicon.svg")} type="image/svg+xml" />
+    <link rel="apple-touch-icon" href={href("/apple-touch-icon.png")} />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="sitemap" href={href("/sitemap-index.xml")} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={desc} />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content={canonical} />
+    {canonical && <meta property="og:url" content={canonical} />}
     <meta property="og:locale" content="pl_PL" />
     <meta property="og:site_name" content={firma.name} />
     <meta property="og:image" content={ogUrl} />
@@ -93,7 +121,7 @@ const localBusiness = {
     <meta property="og:image:alt" content={`${firma.name}, ${addressLine()}`} />
     <meta name="twitter:card" content="summary_large_image" />
     {
-      [localBusiness, ...jsonLd].map((data) => (
+      structuredData.map((data) => (
         <script type="application/ld+json" is:inline set:html={JSON.stringify(data)} />
       ))
     }
@@ -120,12 +148,12 @@ const localBusiness = {
     <a href="#tresc" class="skip-link">Przejdź do treści</a>
     {
       daneprzykladowe && (
-        <div class="probka">
+        <aside class="probka" aria-label="Wersja robocza">
           <p class="page-wrap">
             <strong>Wersja robocza.</strong> Nazwa rejestrowa, NIP i e-mail są
             jeszcze przykładowe. Ceny pochodzą z ogłoszeń z {cenyZDnia}.
           </p>
-        </div>
+        </aside>
       )
     }
     {

@@ -50,8 +50,8 @@
    White on asphalt 13:1. Brand green is never behind white text, truck red
    only in the drawings.
 
-   The old names (paper, sand, pine, wood, line) stay, pointing at the new
-   colours, because pages and components already use them as classes.
+   `ink`, `sand` and `line` are the text, panel and hairline colours the
+   pages use as classes.
    ------------------------------------------------------------------------ */
 @theme static {
   --color-*: initial;
@@ -69,15 +69,10 @@
   --color-asphalt: #2e3134;
   --color-red: #d8231f;
 
-  --color-paper: #ffffff;
   --color-sand: #f2f2f0;
   --color-ink: #000000;
   --color-ink-soft: #45484b;
-  --color-pine: var(--color-sign);
-  --color-pine-deep: var(--color-sign-deep);
-  --color-wood: #000000;
   --color-line: #cfd0cc;
-  --color-on-pine: #ffffff;
   --color-danger: #b3140f;
   --color-scrim: color-mix(in srgb, #000 55%, transparent);
 
@@ -338,6 +333,11 @@ body {
   width: 1.15rem;
   height: 1.15rem;
 }
+/* The menu button shows a cross while the drawer is open. */
+.menu-toggle[aria-expanded="true"] .menu-ikona-otworz,
+.menu-toggle[aria-expanded="false"] .menu-ikona-zamknij {
+  display: none;
+}
 
 /* ---------------------------------------------------------------------------
    Header. The company's name set like its sign, then the sections on one
@@ -483,40 +483,6 @@ body {
 }
 
 /* ---------------------------------------------------------------------------
-   Rows: a list with a hairline between entries, the whole row one link.
-   ------------------------------------------------------------------------ */
-.rows {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-.rows li {
-  border-top: 1px solid var(--color-line);
-}
-.rows li:last-child {
-  border-bottom: 1px solid var(--color-line);
-}
-.rows a {
-  display: block;
-  padding: 0.8rem 0;
-  text-decoration: none;
-}
-.rows a > span {
-  font-weight: 600;
-  text-decoration-line: underline;
-  text-decoration-color: transparent;
-  text-decoration-thickness: 2px;
-}
-.rows a:hover > span {
-  color: var(--color-pine-deep);
-  text-decoration-color: currentColor;
-}
-.rows p {
-  margin-top: 0.15rem;
-  color: var(--color-ink-soft);
-}
-
-/* ---------------------------------------------------------------------------
    Long-form text: the privacy policy, the local pages.
    ------------------------------------------------------------------------ */
 .prose {
@@ -591,15 +557,7 @@ body {
   font-weight: 600;
 }
 
-/* A product or a fact in a box. */
-.card {
-  display: flex;
-  flex-direction: column;
-  padding: 1.25rem 1.4rem 1.4rem;
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-sign);
-  background: var(--color-white);
-}
+/* A price in a product's summary. */
 .price {
   color: var(--color-black);
   font-family: var(--font-display);
@@ -636,13 +594,6 @@ body {
   font-size: 0.8rem;
   font-weight: 800;
   line-height: 1.4;
-}
-
-figcaption {
-  margin-top: 0.5rem;
-  font-size: var(--text-sm);
-  line-height: 1.5;
-  color: var(--color-ink-soft);
 }
 
 /* ---------------------------------------------------------------------------
@@ -1029,8 +980,7 @@ textarea.input {
   outline: 0.3rem solid var(--color-yellow);
   outline-offset: -0.3rem;
 }
-.gallery-media,
-.card-media {
+.gallery-media {
   display: block;
   height: 100%;
   overflow: hidden;
@@ -1187,8 +1137,7 @@ textarea.input {
   .btn::before,
   .tool,
   .nav-link,
-  .menu nav a,
-  .rows a > span {
+  .menu nav a {
     transition:
       color 150ms ease,
       background-color 200ms ease,
@@ -1368,9 +1317,17 @@ html[data-galeria] .lightbox img {
   }
 }
 
-/* The rail beside wide pages sticks just under the pinned row. */
-.aside-sticky {
-  top: calc(var(--header-height, 0px) + 1.5rem);
+/* A rail beside the content (the FAQ's contact, the order form's steps):
+   from `lg` up it stays in view just under the pinned header while the
+   content scrolls. */
+.rail {
+  align-self: start;
+}
+@media (min-width: 64rem) {
+  .rail {
+    position: sticky;
+    top: calc(var(--header-height) + 1.5rem);
+  }
 }
 
 /* The page title under the breadcrumbs: heavy and tight, like the lettering

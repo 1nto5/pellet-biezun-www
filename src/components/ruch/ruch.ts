@@ -1,14 +1,14 @@
 /**
  * Scroll motion for the whole site: content arrives like traffic on the road
  * and a small truck (the real Volvo FM, facing left) drives right to left
- * along the road band under the header as the page scrolls. The home page's big drive has its own script; this is the rest.
+ * along the road band under the header as the page scrolls. The home page's
+ * big drive has its own script; this is the rest.
  *
  * Markup API (the CSS in ruch.css draws each kind from `--r`):
  *
  *   data-ruch                  the element arrives from the right, slanted
  *                              like the livery stripes, and settles.
  *   data-ruch="tablica"        a green board: it rises on its posts.
- *   data-ruch="mijanie"        a heading: a km post passes in beside it.
  *   data-ruch-grupa[="…"]      on a container: each child element arrives on
  *                              its own; children on one line come one after
  *                              another. The value is the kind for the
@@ -24,8 +24,13 @@
  * Rules, the same as the drive's: every element's state is a pure function of
  * the scroll position (the same position gives the same frame both ways);
  * positions are measured only on load, resize and layout changes, never in
- * the scroll handler; a frame writes only custom properties. An element has
- * settled by the time its top is 40% of the window height from the top.
+ * the scroll handler; a frame writes only custom properties.
+ *
+ * An element arrives while it travels the bottom part of the window and has
+ * settled once it is about a third of the way up. Two exceptions keep every
+ * word readable: what is on the first screen when the page opens stands
+ * still, and what sits too near the end of the page to get that far up
+ * settles by the time the page is scrolled to the bottom.
  *
  * Nothing runs without motion allowed; the page is complete before this runs
  * and `html.ruch` (set here) is what lets the CSS move anything.
@@ -82,7 +87,7 @@ export function initRuch(): void {
     koniec = Math.max(1, doc.scrollHeight - wysokoscOkna);
     poczatek = start ? Math.min(koniec - 1, gornaKrawedz(start) + start.offsetHeight - wysokoscOkna) : 0;
 
-    const nowe: Jednostka[] = pojedyncze.map((el) => ({ el, gora: gornaKrawedz(el), opoznienie: 0, r: -1 }));
+    const wszystkie: Omit<Jednostka, "r">[] = pojedyncze.map((el) => ({ el, gora: gornaKrawedz(el), opoznienie: 0 }));
     for (const grupa of grupy) {
       // Children whose tops line up share a line: each waits for the one
       // before it, and the last on the longest line waits MAKS_OPOZNIENIE.
@@ -98,9 +103,20 @@ export function initRuch(): void {
         najdluzsza = Math.max(najdluzsza, n + 1);
       }
       const krok = Math.min(KROK, MAKS_OPOZNIENIE / Math.max(1, najdluzsza - 1));
-      for (const d of dzieci) nowe.push({ el: d.el, gora: d.gora, opoznienie: d.wLinii * krok, r: -1 });
+      for (const d of dzieci) wszystkie.push({ el: d.el, gora: d.gora, opoznienie: d.wLinii * krok });
     }
-    jednostki = nowe;
+
+    jednostki = [];
+    for (const j of wszystkie) {
+      // On the first screen: standing still, the CSS default.
+      if (j.gora < wysokoscOkna) {
+        j.el.style.removeProperty("--r");
+        continue;
+      }
+      // The lowest top that still settles at the bottom of the page.
+      const najnizej = koniec + wysokoscOkna * (1 - DROGA * (1 + j.opoznienie));
+      jednostki.push({ ...j, gora: Math.min(j.gora, najnizej), r: -1 });
+    }
   };
 
   const klatka = () => {
@@ -129,7 +145,6 @@ export function initRuch(): void {
 
   const odswiez = () => {
     zmierz();
-    for (const j of jednostki) j.r = -1;
     pasekP = -1;
     pasekWidac = -1;
     klatka();

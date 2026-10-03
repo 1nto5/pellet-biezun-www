@@ -3,6 +3,7 @@ import { firma, addressLine, hoursRange } from "../data/firma";
 import { produkty, cenyLabel, paletaLabel, cenyZDnia } from "../data/oferta";
 import { DARMOWA_DOSTAWA_KM, miejsca, podstrony, wojewodztwa, miejsceHref } from "../data/miejsca";
 import { faq } from "../data/faq";
+import { strony } from "../data/nav";
 import { pelnaNazwa } from "../lib/miejsce";
 
 /**
@@ -12,6 +13,7 @@ import { pelnaNazwa } from "../lib/miejsce";
  * it cannot drift from them.
  */
 export const GET: APIRoute = ({ site }) => {
+  // Every link below already carries the site's base (src/lib/url.ts).
   const url = (path: string) => new URL(path, site).toString();
   const body = [
     `# ${firma.name}`,
@@ -52,12 +54,12 @@ export const GET: APIRoute = ({ site }) => {
     "",
     "## Strony",
     "",
-    `- [Oferta i ceny](${url("/oferta/")})`,
-    `- [Mapa dystrybucji](${url("/mapa-dystrybucji/")})`,
-    `- [Galeria](${url("/galeria/")})`,
-    `- [Zamówienie](${url("/zamowienie/")})`,
-    `- [Kontakt](${url("/kontakt/")})`,
-    `- [Częste pytania](${url("/faq/")}): ${faq.length} pytań i odpowiedzi`,
+    `- [Oferta i ceny](${url(strony.oferta.href)})`,
+    `- [Mapa dystrybucji](${url(strony.mapa.href)})`,
+    `- [Galeria](${url(strony.galeria.href)})`,
+    `- [Zamówienie](${url(strony.zamowienie.href)})`,
+    `- [Kontakt](${url(strony.kontakt.href)})`,
+    `- [Częste pytania](${url(strony.faq.href)}): ${faq.length} pytań i odpowiedzi`,
     "",
   ].join("\n");
 

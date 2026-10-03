@@ -1,3 +1,0 @@
-# Cloudflare Pages redirects (https://developers.cloudflare.com/pages/configuration/redirects/).
-# The local pages live under /dostawa/<town>/; the folder itself has no page.
-/dostawa/  /mapa-dystrybucji/  301

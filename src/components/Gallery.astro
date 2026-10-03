@@ -35,7 +35,7 @@ const items = await Promise.all(
         <li>
           <button type="button" data-full={photo.full.src} data-alt={photo.alt}>
             <span class="gallery-media">
-              <Image src={photo.src} alt={photo.alt} widths={[400, 700]} sizes={sizes} loading="lazy" />
+              <Image src={photo.src} alt={photo.alt} width={700} widths={[400, 700]} sizes={sizes} loading="lazy" />
             </span>
             <span class="sr-only">Powiększ zdjęcie</span>
           </button>

@@ -17,3 +17,6 @@ work; record progress and decisions there, not here.
 - Stack: Astro 5 + Tailwind 4, hosted on Cloudflare Pages; forms through
   Pages Functions and Resend. Secrets (Resend API key, Turnstile secret)
   live only in Cloudflare, never in the repo.
+- A preview copy is deployed to GitHub Pages under a sub-path
+  (`.github/workflows/pages.yml`), so internal links are never typed as
+  "/path/": use `strony` in `src/data/nav.ts` or `href()` in `src/lib/url.ts`.

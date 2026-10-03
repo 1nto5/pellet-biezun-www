@@ -14,6 +14,7 @@
  */
 import type { Geo } from "../lib/geo";
 import { distanceKm } from "../lib/geo";
+import { href } from "../lib/url";
 import { firma } from "./firma";
 
 export type Wojewodztwo = "mazowieckie" | "łódzkie" | "podlaskie" | "kujawsko-pomorskie" | "warmińsko-mazurskie";
@@ -137,6 +138,15 @@ export const miejsca: Miejsce[] = [
 ];
 
 export const podstrony: MiejsceZPodstrona[] = miejsca.filter((m): m is MiejsceZPodstrona => m.podstrona !== undefined);
-export const miejsceHref = (m: MiejsceZPodstrona) => `/dostawa/${m.podstrona.slug}/`;
+export const miejsceHref = (m: MiejsceZPodstrona) => href(`/dostawa/${m.podstrona.slug}/`);
 export const odlegloscKm = (m: Miejsce) => distanceKm(firma.geo, m.geo);
 export const wStrefieDarmowej = (m: Miejsce) => odlegloscKm(m) <= DARMOWA_DOSTAWA_KM;
+
+/** The towns with their own page, nearest first, split by whether delivery is free; an empty group is left out. */
+export const grupyPodstron = (() => {
+  const poOdleglosci = [...podstrony].sort((a, b) => odlegloscKm(a) - odlegloscKm(b));
+  return [
+    { id: "gratis", tytul: "Dostawa gratis", miasta: poOdleglosci.filter(wStrefieDarmowej) },
+    { id: "po-uzgodnieniu", tytul: "Dostawa po uzgodnieniu", miasta: poOdleglosci.filter((m) => !wStrefieDarmowej(m)) },
+  ].filter((g) => g.miasta.length > 0);
+})();

@@ -17,7 +17,6 @@ import wielbarkZdjecie from "../assets/produkty/wielbark.jpg";
 /** The date of the ads the prices come from. */
 export const cenyZDnia = "30.09.2026";
 
-
 export interface Parametr {
   nazwa: string;
   wartosc: string;
@@ -100,10 +99,15 @@ export const produkty: Produkt[] = [
   },
 ];
 
-/** "2200 zł / paleta" and, where set, "2260 zł / t" (Polish leaves four-digit numbers ungrouped). */
+/**
+ * "2200 zł / paleta" and, where set, "2260 zł / t" (Polish leaves four-digit
+ * numbers ungrouped). The unit stays with its slash, so a narrow column breaks
+ * the price as "2200 zł" over "/ paleta", never after the slash.
+ */
 export function cenyLabel(p: Produkt): string[] {
   const zl = (n: number) => `${n.toLocaleString("pl-PL")} zł`;
-  return [`${zl(p.cenaPaleta)} / paleta`, ...(p.cenaTona ? [`${zl(p.cenaTona)} / t`] : [])];
+  const za = (unit: string) => `/\u00a0${unit}`;
+  return [`${zl(p.cenaPaleta)} ${za("paleta")}`, ...(p.cenaTona ? [`${zl(p.cenaTona)} ${za("t")}`] : [])];
 }
 
 /** "2200 zł / paleta": the one price every product has. */

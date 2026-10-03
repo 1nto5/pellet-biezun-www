@@ -12,4 +12,4 @@ interface Props {
 const { eager = false } = Astro.props;
 ---
 
-<Image src={ladowarka} width={520} format="webp" alt="" loading={eager ? "eager" : "lazy"} />
+<Image src={ladowarka} width={520} widths={[160, 320, 520]} sizes="20vw" format="webp" alt="" loading={eager ? "eager" : "lazy"} />

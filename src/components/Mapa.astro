@@ -58,14 +58,7 @@ const dane = {
 };
 ---
 
-<div
-  class:list={["mapa", className]}
-  data-mapa={JSON.stringify(dane)}
-  data-zoom={zoom}
-  role="region"
-  aria-label={label}
->
-</div>
+<section class:list={["mapa", className]} data-mapa={JSON.stringify(dane)} data-zoom={zoom} aria-label={label}></section>
 
 <script>
   import L from "leaflet";

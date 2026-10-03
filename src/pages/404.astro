@@ -3,10 +3,10 @@ import Base from "../layouts/Base.astro";
 import PageShell from "../components/PageShell.astro";
 import PageHeader from "../components/PageHeader.astro";
 import { firma } from "../data/firma";
-import { home, mainNav, orderLink } from "../data/nav";
+import { mainNav, orderLink, strony } from "../data/nav";
 ---
 
-<Base title="Nie znaleziono strony" description="Pod tym adresem nie ma strony.">
+<Base title="Nie znaleziono strony" description="Pod tym adresem nie ma strony." noindex>
   <PageShell>
     <PageHeader
       slot="header"
@@ -18,7 +18,7 @@ import { home, mainNav, orderLink } from "../data/nav";
       <nav class="sign zjazd" aria-label="Dokąd dalej" data-ruch="tablica">
         <ul role="list">
           {
-            [home, orderLink, ...mainNav].map((item) => (
+            [strony.home, orderLink, ...mainNav].map((item) => (
               <li>
                 <a href={item.href}>{item.label}</a>
               </li>

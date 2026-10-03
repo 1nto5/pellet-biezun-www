@@ -116,8 +116,6 @@ const stopy: Stop[] = [
 </div>
 
 <script>
-  import { ScrollTrigger } from "gsap/ScrollTrigger";
-  import { gsap } from "gsap";
   import { stanAt, stanVars } from "./trasa";
 
   const podroz = document.querySelector<HTMLElement>("[data-podroz]");
@@ -131,12 +129,13 @@ const stopy: Stop[] = [
   const moving = window.matchMedia("(prefers-reduced-motion: no-preference)").matches;
 
   if (podroz && hero && droga && scena && rig && dystans && licznik && moving) {
-    gsap.registerPlugin(ScrollTrigger);
-
     const clamp = (x: number) => Math.min(1, Math.max(0, x));
     const od = stopy.map((s) => Number(s.dataset.od));
 
-    // Measured by ScrollTrigger on every refresh (load, fonts, resize).
+    // The stage is sticky in CSS; the drive runs over the spacer after it,
+    // from the spacer's top reaching the bottom of the window (the stage has
+    // then come fully under the header) to its bottom reaching it. Measured
+    // on load, resize and layout changes, never while scrolling.
     let driveStart = 1;
     let driveEnd = 2;
     // While the hero is on screen the scene is drawn smaller (`--z`), so the
@@ -145,6 +144,10 @@ const stopy: Stop[] = [
     let z0 = 1;
 
     const measure = () => {
+      const top = dystans.getBoundingClientRect().top + window.scrollY;
+      driveStart = Math.max(1, top - window.innerHeight);
+      driveEnd = Math.max(driveStart + 1, top + dystans.offsetHeight - window.innerHeight);
+
       scena.style.setProperty("--z", "1");
       const u1 = rig.getBoundingClientRect().width / 60;
       // The tallest thing at the start, the hall, reaches 34 units up.
@@ -178,26 +181,16 @@ const stopy: Stop[] = [
       }
     };
 
-    // The stage is sticky in CSS; the drive runs over the spacer after it.
-    // Its top reaches the bottom of the window when the stage has come fully
-    // under the header, and the drive ends with its bottom.
-    ScrollTrigger.create({
-      trigger: dystans,
-      start: "top bottom",
-      end: "bottom bottom",
-      onUpdate: render,
-      onRefresh: (self) => {
-        driveStart = Math.max(1, self.start);
-        driveEnd = Math.max(driveStart + 1, self.end);
-        measure();
-        render();
-      },
-    });
-    // Also straight from the scroll event, so a frame never waits for the
-    // next animation frame.
+    const refresh = () => {
+      measure();
+      render();
+    };
+    refresh();
     window.addEventListener("scroll", render, { passive: true });
+    window.addEventListener("resize", refresh);
     // Heights change when the font and the images arrive.
-    document.fonts?.ready.then(() => ScrollTrigger.refresh());
-    window.addEventListener("load", () => ScrollTrigger.refresh());
+    window.addEventListener("load", refresh);
+    document.fonts?.ready.then(refresh);
+    new ResizeObserver(refresh).observe(podroz);
   }
 </script>
