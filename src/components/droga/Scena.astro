@@ -28,7 +28,12 @@ interface Props {
 const { stan, live = false } = Astro.props;
 
 /** The two bands behind the road, as CSS backgrounds (droga.css). */
-const pasy = `--las:url(${obrazy.las});--pobocze:url(${obrazy.pobocze})`;
+const pasy = [
+  `--las:url(${obrazy.las.duzy})`,
+  `--las-maly:url(${obrazy.las.maly})`,
+  `--pobocze:url(${obrazy.pobocze.duzy})`,
+  `--pobocze-male:url(${obrazy.pobocze.maly})`,
+].join(";");
 ---
 
 <div class="scena" aria-hidden="true" style={pasy}>
@@ -57,7 +62,7 @@ const pasy = `--las:url(${obrazy.las});--pobocze:url(${obrazy.pobocze})`;
     <div class="swiat">
       <div class="w-widlak"><Ladowarka eager={live} /></div>
     </div>
-    <div class="rig"><Ciezarowka /></div>
+    <div class="rig"><Ciezarowka eager={live} /></div>
     <div class="swiat">
       <div class="w-dom" style={`--at:${KM_DOJAZD}`}><Dom eager={live} /></div>
     </div>

@@ -11,12 +11,23 @@
  * properties (see `trasa.ts`): the tail lift, drawn over the photo at the
  * back of the box, rides on `--lift` and folds on
  * `--fold`; the pallet moves on `--pal-x`/`--pal-y`. The pallet is drawn
- * before the photo, so it disappears inside the box; once it is on the
+ * under the photo, so it disappears inside the box; once it is on the
  * ground and the electric pallet truck takes it (`--jack`), a copy in front
  * of the house takes over (see Scena.astro).
+ *
+ * Three layers in the same 240 × 108 units: the pallet's drawing, the photo
+ * as an <img> whose size fits the screen (a phone gets a far smaller file
+ * than the drawing's own <image> could offer), and the tail lift's drawing.
  */
+import { Image } from "astro:assets";
 import Paleta from "./Paleta.astro";
-import { obrazy } from "./obrazy";
+import auto from "../../assets/droga/auto-fm.png";
+
+interface Props {
+  /** Loads at once in the live scene, after the headline's font (as Hala.astro). */
+  eager?: boolean;
+}
+const { eager = false } = Astro.props;
 
 /**
  * Master photo: 2149 × 764 px, straightened so the box is level and all
@@ -25,16 +36,28 @@ import { obrazy } from "./obrazy";
  */
 const S = 240 / 2149;
 const Y0 = 108 - 761 * S;
-const r2 = (x: number) => Math.round(x * 100) / 100;
+/** The photo's top edge, as a share of the drawing's height. */
+const gora = `${Math.round((Y0 / 108) * 10000) / 100}%`;
 ---
 
 <!-- The truck's shadow on the road (droga.css). -->
 <div class="auto-cien"></div>
 <svg class="auto" viewBox="0 0 240 108" overflow="visible" aria-hidden="true" focusable="false">
   <Paleta class="paleta-w-aucie" />
-
-  <image href={obrazy.auto} x="0" y={r2(Y0)} width="240" height={r2(764 * S)} />
-
+</svg>
+<Image
+  src={auto}
+  width={1800}
+  widths={[600, 1100, 1800]}
+  sizes="50vw"
+  format="webp"
+  alt=""
+  class="auto-foto"
+  style={`top:${gora}`}
+  loading={eager ? "eager" : "lazy"}
+  fetchpriority={eager ? "low" : undefined}
+/>
+<svg class="auto auto-winda" viewBox="0 0 240 108" overflow="visible" aria-hidden="true" focusable="false">
   <!-- Tail lift, hinged at the box's back bottom corner (239, 82.6). The
        post grows as the plate goes down, so the plate never floats. -->
   <rect class="winda-ramie" x="237.4" y="82.6" width="2.6" height="22.4" fill="#1d1f21" />
