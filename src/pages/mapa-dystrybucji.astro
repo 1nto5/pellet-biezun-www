@@ -26,7 +26,7 @@ const grupy = wojewodztwa
 ---
 
 <Base
-  title="Mapa dystrybucji"
+  title="Mapa dystrybucji – dokąd dowozimy pellet"
   description={`Dokąd dowozimy pellet z magazynu we Władysławowie pod Bieżuniem: gratis w promieniu ok. ${DARMOWA_DOSTAWA_KM} km, dalej po uzgodnieniu. ${miejsca.length} miejscowości w ${wojewodztwa.length} województwach.`}
 >
   <PageShell>
@@ -95,9 +95,9 @@ const grupy = wojewodztwa
     </section>
 
     <p class="mt-12 max-w-prose text-ink-soft">
-      Dowozimy też do okolicznych wsi, a na Mazury praktycznie wszędzie. Nie ma Twojej miejscowości?
-      Wszystko jest kwestią dogadania: zadzwoń pod{" "}
-      <a href={firma.phone.href} class="link-strong">{firma.phone.label}</a>.
+      Dowozimy też do okolicznych wsi, a na Mazurach praktycznie wszędzie. Nie ma Twojej miejscowości?
+      Zadzwoń pod <a href={firma.phone.href} class="link-strong">{firma.phone.label}</a>, ustalimy
+      szczegóły.
     </p>
   </PageShell>
 </Base>

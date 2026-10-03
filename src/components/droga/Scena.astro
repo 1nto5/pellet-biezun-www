@@ -7,7 +7,10 @@
  * where everything stands (see `trasa.ts`); the live drive changes the same
  * custom properties as the reader scrolls, the static frames keep them fixed.
  *
- * Only a picture: the story it shows is told in text next to it.
+ * Only a picture: the story it shows is told in text next to it. Its few
+ * words (the km posts, the towns on the boards) are drawn by CSS from data
+ * attributes, so they are not part of the page's text: the scene is there
+ * four times, and its words would be read out of context.
  */
 import Ciezarowka from "./Ciezarowka.astro";
 import Hala from "./Hala.astro";
@@ -16,7 +19,8 @@ import Ladowarka from "./Ladowarka.astro";
 import KoniecStrefy from "./KoniecStrefy.astro";
 import Paleta from "./Paleta.astro";
 import { obrazy } from "./obrazy";
-import { tablice, slupki, KM_DOJAZD, stanStyle, type Stan } from "./trasa";
+import { KM_DOJAZD, stanStyle, type Stan } from "./trasa";
+import { tablice, slupki } from "./tablice";
 import { DARMOWA_DOSTAWA_KM } from "../../data/miejsca";
 
 interface Props {
@@ -42,15 +46,13 @@ const pasy = [
     <div class="pola"></div>
     <div class="swiat">
       <div class="w-hala"><Hala eager={live} /></div>
-      {slupki.map((km) => <div class="w-slupek" style={`--at:${km}`}>{km}</div>)}
+      {slupki.map((km) => <div class="w-slupek" style={`--at:${km}`} data-km={km} />)}
       {
         tablice.map((t) => (
           <div class="w-tablica" style={`--at:${t.naDrodze}`}>
             <div class="sign">
               {t.miasta.map((m) => (
-                <p>
-                  <span>{m.nazwa}</span> <span>{m.km}</span>
-                </p>
+                <p data-nazwa={m.nazwa} data-km={m.km} />
               ))}
             </div>
           </div>

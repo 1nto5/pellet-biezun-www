@@ -13,6 +13,8 @@ const productionSite = "https://pelletbiezun.pl/";
 // `SITE=https://1nto5.github.io/pellet-biezun-www/ bun run build`.
 // Such a build is a preview and carries `noindex` (src/lib/env.ts).
 const site = new URL(process.env.SITE ?? productionSite);
+// The base must end with a slash, whether or not SITE did.
+site.pathname = site.pathname.replace(/\/?$/, "/");
 
 export default defineConfig({
   site: site.origin,

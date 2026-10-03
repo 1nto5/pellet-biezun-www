@@ -17,13 +17,19 @@ interface Props {
 
 const { photos } = Astro.props;
 
-/** The grid is four columns from `lg`, three from `sm`, two below that. */
+/**
+ * The grid is four columns from `lg`, three from `sm`, two below that; the
+ * first photo takes two by two.
+ */
 const sizes = "(min-width: 64rem) 15rem, (min-width: 40rem) 33vw, 50vw";
+const sizesPierwsze = "(min-width: 64rem) 31rem, (min-width: 40rem) 66vw, 100vw";
+/** About as many photos as the first screen shows; they load at once. */
+const OD_RAZU = 3;
 
 const items = await Promise.all(
   photos.map(async (photo) => ({
     ...photo,
-    full: await getImage({ src: photo.src, width: 1600, format: "webp" }),
+    full: await getImage({ src: photo.src, width: 1600, format: "webp", quality: 75 }),
   })),
 );
 ---
@@ -31,11 +37,30 @@ const items = await Promise.all(
 <div data-gallery>
   <ul class="gallery" role="list" data-ruch-grupa>
     {
-      items.map((photo) => (
+      items.map((photo, i) => (
         <li>
           <button type="button" data-full={photo.full.src} data-alt={photo.alt}>
             <span class="gallery-media">
-              <Image src={photo.src} alt={photo.alt} width={700} widths={[400, 700]} sizes={sizes} loading="lazy" />
+              {i === 0 ? (
+                <Image
+                  src={photo.src}
+                  alt={photo.alt}
+                  width={1400}
+                  widths={[700, 1000, 1400]}
+                  sizes={sizesPierwsze}
+                  loading="eager"
+                  fetchpriority="high"
+                />
+              ) : (
+                <Image
+                  src={photo.src}
+                  alt={photo.alt}
+                  width={700}
+                  widths={[400, 700]}
+                  sizes={sizes}
+                  loading={i < OD_RAZU ? "eager" : "lazy"}
+                />
+              )}
             </span>
             <span class="sr-only">Powiększ zdjęcie</span>
           </button>
@@ -78,7 +103,7 @@ const items = await Promise.all(
     const thumbs = thumbsOf(dialog);
     const n = thumbs.length;
     index = ((index % n) + n) % n;
-    const thumb = thumbs[index];
+    const thumb = thumbs[index]!;
     dialog.dataset.index = String(index);
 
     let image = dialog.querySelector("img");
@@ -91,7 +116,7 @@ const items = await Promise.all(
     dialog.querySelector(".lightbox-count")!.textContent = `${index + 1} / ${n}`;
 
     // The neighbours load in the background, so a step to either is instant.
-    for (const near of [index - 1, index + 1]) new Image().src = thumbs[(near + n) % n].dataset.full!;
+    for (const near of [index - 1, index + 1]) new Image().src = thumbs[(near + n) % n]!.dataset.full!;
     return image;
   }
 

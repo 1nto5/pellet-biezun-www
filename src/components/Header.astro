@@ -14,7 +14,7 @@ import { firma } from "../data/firma";
 
 const section = activeSection(Astro.url.pathname);
 /** "Pellet Bieżuń" → the two lines of the sign. */
-const wordmark = firma.name.split(" ") as [string, string];
+const wordmark = firma.znak;
 const current = (href: string) =>
   href === section?.href || href === Astro.url.pathname ? "page" : undefined;
 ---

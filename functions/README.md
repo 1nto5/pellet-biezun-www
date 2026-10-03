@@ -18,3 +18,7 @@ they go in `.dev.vars`, which git ignores.
 
 Until then `formularzeWlaczone` in `src/data/strona.ts` is false and the forms
 do not send.
+
+The functions run on Cloudflare's runtime, not in a browser, so the site's
+`tsconfig.json` leaves this folder out; it gets its own `tsconfig.json` with
+`@cloudflare/workers-types` when the first function lands.

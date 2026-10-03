@@ -1,20 +1,16 @@
 /**
- * The drive on the home page: where things stand along the road and what the
- * scene looks like at each moment. The drawings, the static frames and the
- * scroll script all read this file, so the road is described once.
+ * The drive on the home page: what the scene looks like at each moment. The
+ * drawings, the still frames and the scripts all read this file, so the
+ * timeline is described once. It runs in the browser too, so it imports
+ * nothing that brings the company data along; what stands by the road is in
+ * `tablice.ts`.
  *
  * The scene is a pure function of one number, the time `t` from 0 to 100:
  * `stanAt(t)` gives every moving part's place. The scroll script maps the
  * scroll position to `t`; the still frames are `stanAt` at fixed moments.
  * The same scroll position therefore always shows the same frame.
- *
- * Distances on the boards are the straight-line km from `miejsca.ts`. The
- * boards stand evenly along the first part of the road, high on their posts
- * so the truck never covers them, and the last one is gone before the
- * customer's house comes into view.
  */
-import { podstrony, odlegloscKm, wStrefieDarmowej, DARMOWA_DOSTAWA_KM } from "../../data/miejsca";
-import type { MiejsceZPodstrona } from "../../data/miejsca";
+import { DARMOWA_DOSTAWA_KM } from "../../data/dostawa";
 
 /** Road length of one km, in scene units (`--u`). */
 export const KM_U = 8;
@@ -25,41 +21,6 @@ export const KM_U = 8;
  * truck.
  */
 export const KM_DOJAZD = DARMOWA_DOSTAWA_KM - 6;
-
-/** Towns on one direction board. */
-const NA_TABLICY = 3;
-
-export interface Tablica {
-  /** The odometer reading at which the board stands. */
-  naDrodze: number;
-  miasta: { nazwa: string; km: number }[];
-}
-
-/**
- * The boards along the road: the local-page towns inside the free zone,
- * nearest first, three to a board, spread evenly from km 16 to 34 km before
- * the house (the house comes into view about 20 km before the truck stops).
- * The road ahead lies left of the truck, under the hero's text on the first
- * screen; starting at km 16 keeps the first board out of it on most
- * windows, and on short ones the boards stay hidden until the truck moves
- * (droga.css).
- */
-export const miastaWStrefie = podstrony
-  .filter(wStrefieDarmowej)
-  .map((m: MiejsceZPodstrona) => ({ nazwa: m.nazwa, km: odlegloscKm(m) }))
-  .sort((a, b) => a.km - b.km);
-
-export const tablice: Tablica[] = (() => {
-  const rzedy: Tablica["miasta"][] = [];
-  for (let i = 0; i < miastaWStrefie.length; i += NA_TABLICY) rzedy.push(miastaWStrefie.slice(i, i + NA_TABLICY));
-  const od = 16;
-  const doKm = KM_DOJAZD - 34;
-  const krok = rzedy.length > 1 ? (doKm - od) / (rzedy.length - 1) : 0;
-  return rzedy.map((miasta, i) => ({ naDrodze: Math.round(od + i * krok), miasta }));
-})();
-
-/** Km posts, every 10 km, leaving the customer's driveway clear. */
-export const slupki: number[] = Array.from({ length: Math.floor((KM_DOJAZD - 14) / 10) + 1 }, (_, i) => i * 10);
 
 /**
  * The scene's state. The truck faces left and drives left, so its back and
@@ -205,13 +166,6 @@ export function czasKm(km: number): number {
 
 /** The start: truck at the hall, lift down, pallet on the loader. */
 export const start = stanAt(0);
-
-/** The frames shown when the drive does not move (reduced motion, no script). */
-export const kadry = {
-  zaladunek: stanAt(5),
-  tablice: stanAt(czasKm((tablice[1] ?? tablice[0])!.naDrodze - 4)),
-  naMiejscu: stanAt(CZAS.postoj + 18),
-};
 
 /** CSS custom properties for a state, for a `style` attribute or the script. */
 export function stanVars(s: Stan): Record<string, string> {

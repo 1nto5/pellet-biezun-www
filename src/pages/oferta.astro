@@ -77,6 +77,7 @@ const produktyLd = await Promise.all(
       priceCurrency: "PLN",
       eligibleQuantity: { "@type": "QuantitativeValue", value: 1, unitText: "paleta" },
       itemCondition: "https://schema.org/NewCondition",
+      // TODO(produkcja): availability (schema.org/InStock) once the client says how stock is kept.
       seller: { "@id": firmaId },
     },
   })),
@@ -109,6 +110,7 @@ const produktyLd = await Promise.all(
                 width={800}
                 widths={[480, 800]}
                 sizes="(min-width: 64rem) 26rem, 100vw"
+                loading={i === 0 ? "eager" : "lazy"}
                 class="w-full"
               />
             </span>

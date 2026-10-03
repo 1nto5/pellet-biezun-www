@@ -2,7 +2,8 @@
 /**
  * One page per town in `podstrony`: what a buyer from that town needs to
  * know, in sentences a search engine or an AI answer can quote. What makes
- * each page its own is the distance, the zone and the towns around it.
+ * each page its own is the distance, the zone, the towns around it and the
+ * client's own words about the town (`podstrona.opis`).
  */
 import type { GetStaticPaths } from "astro";
 import Base from "../../layouts/Base.astro";
@@ -17,13 +18,14 @@ import {
   DARMOWA_DOSTAWA_KM,
   miejsca,
   podstrony,
+  miejsceHref,
   odlegloscKm,
   wStrefieDarmowej,
   type MiejsceZPodstrona,
 } from "../../data/miejsca";
 import { produkty, cenyLabel, paletaLabel, cenyZDnia } from "../../data/oferta";
 import { distanceKm } from "../../lib/geo";
-import { pelnaNazwa } from "../../lib/miejsce";
+import { maPodstrone, pelnaNazwa } from "../../lib/miejsce";
 
 export const getStaticPaths = (() =>
   podstrony.map((miejsce) => ({ params: { slug: miejsce.podstrona.slug }, props: { miejsce } }))) satisfies GetStaticPaths;
@@ -36,34 +38,31 @@ interface Props {
 const OKOLICA_KM = 25;
 
 const { miejsce } = Astro.props;
-const w = miejsce.podstrona.wMiejscowosci;
+const { wMiejscowosci: w, doMiejscowosci: doM, opis } = miejsce.podstrona;
 const km = odlegloscKm(miejsce);
 const gratis = wStrefieDarmowej(miejsce);
+const warunki = gratis ? "dostawa gratis" : "dostawa po uzgodnieniu";
 
+// Nearest to the warehouse first, as the board shows their distance from it.
 const okolica = miejsca
-  .filter((m) => m.nazwa !== miejsce.nazwa)
-  .map((m) => ({ m, km: distanceKm(miejsce.geo, m.geo) }))
-  .filter((o) => o.km <= OKOLICA_KM)
-  .sort((a, b) => a.km - b.km)
-  .map((o) => o.m);
+  .filter((m) => m.nazwa !== miejsce.nazwa && distanceKm(miejsce.geo, m.geo) <= OKOLICA_KM)
+  .sort((a, b) => odlegloscKm(a) - odlegloscKm(b));
 
-const lead = gratis
-  ? `Dowozimy pellet ${w} i okolicy. Do naszego magazynu we Władysławowie pod Bieżuniem jest stąd ok. ${km} km, więc dostawa jest gratis.`
-  : `Dowozimy pellet ${w} i okolicy. Do naszego magazynu we Władysławowie pod Bieżuniem jest stąd ok. ${km} km, warunki dostawy ustalamy indywidualnie.`;
+const lead = `Dowozimy pellet ${doM} i okolic. Z naszego magazynu we Władysławowie pod Bieżuniem to ok. ${km} km w linii prostej, więc ${gratis ? "dostawa jest gratis" : "warunki dostawy ustalamy indywidualnie"}.`;
 ---
 
 <Base
-  title={`Pellet ${w}`}
-  description={`Pellet drzewny w workach 15 kg z dostawą ${w}: ok. ${km} km od magazynu, ${gratis ? "dostawa gratis" : "dostawa po uzgodnieniu"}. Ceny, rozładunek windą, odbiór w magazynie.`}
+  title={`Pellet ${w} – ${warunki}`}
+  description={`Pellet drzewny w workach 15 kg z dostawą ${doM}: ok. ${km} km od magazynu, ${warunki}. Ceny, rozładunek windą, odbiór w magazynie.`}
 >
   <PageShell>
     <PageHeader slot="header" title={`Pellet ${w}`} lead={lead}>
-      <div class="drogowskaz mt-8" role="img" aria-label={`${miejsce.nazwa}: ${km} km od magazynu, ${gratis ? "dostawa gratis" : "dostawa po uzgodnieniu"}`}>
+      <div class="drogowskaz mt-8" role="img" aria-label={`${miejsce.nazwa}: ${km} km od magazynu, ${warunki}`}>
         <div>
           <div>
             <span class="drogowskaz-nazwa">{miejsce.nazwa}</span>
             <span class="drogowskaz-km">{km} km</span>
-            <span class="drogowskaz-uwaga">{gratis ? "dostawa gratis" : "dostawa po uzgodnieniu"}</span>
+            <span class="drogowskaz-uwaga">{warunki}</span>
           </div>
         </div>
       </div>
@@ -72,12 +71,12 @@ const lead = gratis
     <div class="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <div class="prose">
         <h2>Dostawa</h2>
+        {opis && <p>{opis}</p>}
         <p>
-          {miejsce.nazwa} leży ok. {km} km od magazynu w linii prostej.
           {
             gratis
-              ? ` To w strefie darmowej dostawy (ok. ${DARMOWA_DOSTAWA_KM} km od magazynu), więc za dowóz nie płacisz.`
-              : ` To poza strefą darmowej dostawy (ok. ${DARMOWA_DOSTAWA_KM} km od magazynu). Dowozimy i tutaj, warunki ustalamy indywidualnie przez telefon.`
+              ? `${miejsce.nazwa} jest w strefie darmowej dostawy (do ok. ${DARMOWA_DOSTAWA_KM} km od magazynu w linii prostej), więc za dowóz nie płacisz.`
+              : `${miejsce.nazwa} jest poza strefą darmowej dostawy (do ok. ${DARMOWA_DOSTAWA_KM} km od magazynu w linii prostej). Dowozimy i tutaj, warunki ustalamy indywidualnie przez telefon.`
           }
         </p>
         <p>
@@ -86,9 +85,7 @@ const lead = gratis
         </p>
         {
           okolica.length > 0 && (
-            <p>
-              W okolicy dowozimy też do: {okolica.map(pelnaNazwa).join(", ")}.
-            </p>
+            <p>Inne miejscowości w okolicy, do których dowozimy: {okolica.map(pelnaNazwa).join(", ")}.</p>
           )
         }
 
@@ -102,7 +99,10 @@ const lead = gratis
             ))
           }
         </ul>
-        <p>Ceny z {cenyZDnia}. Przy większych zamówieniach cena do negocjacji.</p>
+        <p>
+          Ceny z {cenyZDnia}. Przy większych zamówieniach cena do negocjacji.{" "}
+          <a href={strony.oferta.href}>Parametry i certyfikaty pelletu</a>.
+        </p>
 
         <h2>Odbiór w magazynie</h2>
         <p>
@@ -119,7 +119,13 @@ const lead = gratis
                 {okolica.map((m) => (
                   <li>
                     <span>
-                      <NazwaMiejsca miejsce={m} />
+                      {maPodstrone(m) ? (
+                        <a href={miejsceHref(m)}>
+                          <NazwaMiejsca miejsce={m} />
+                        </a>
+                      ) : (
+                        <NazwaMiejsca miejsce={m} />
+                      )}
                     </span>
                     <span class="font-extrabold">{odlegloscKm(m)} km</span>
                   </li>
@@ -140,7 +146,7 @@ const lead = gratis
     </div>
 
     <div class="mt-12 flex flex-wrap gap-3">
-      <Button href={strony.zamowienie.href}>Zamów z dostawą</Button>
+      <Button href={`${strony.zamowienie.href}?miejscowosc=${encodeURIComponent(miejsce.nazwa)}`}>Zamów dostawę {doM}</Button>
       <Button href={strony.mapa.href} variant="secondary">Wszystkie miejscowości</Button>
     </div>
   </PageShell>
@@ -161,5 +167,13 @@ const lead = gratis
   }
   .okolica :global(.text-ink-soft) {
     color: var(--color-white);
+  }
+  .okolica a {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.15em;
+  }
+  .okolica a:hover {
+    text-decoration-thickness: 2px;
   }
 </style>

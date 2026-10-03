@@ -202,6 +202,9 @@
   line-height: 1;
   text-align: center;
 }
+.w-slupek::before {
+  content: attr(data-km);
+}
 /* A direction board on two posts. */
 .w-tablica {
   left: calc((30 - 17 - var(--at) * 8) * var(--u));
@@ -234,7 +237,11 @@
   justify-content: space-between;
   gap: 1em;
 }
-.w-tablica p span:last-child {
+.w-tablica p::before {
+  content: attr(data-nazwa);
+}
+.w-tablica p::after {
+  content: attr(data-km);
   font-weight: 800;
 }
 

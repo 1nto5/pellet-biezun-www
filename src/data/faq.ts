@@ -17,7 +17,7 @@ export const faq: { q: string; a: string }[] = [
   },
   {
     q: "Ile kosztuje dostawa?",
-    a: `W promieniu ok. ${DARMOWA_DOSTAWA_KM} km od magazynu dostawa jest gratis. Dalej warunki ustalamy indywidualnie, zadzwoń: ${firma.phone.label}.`,
+    a: `W promieniu ok. ${DARMOWA_DOSTAWA_KM} km od magazynu (w linii prostej) dostawa jest gratis. Dalej warunki ustalamy indywidualnie, zadzwoń: ${firma.phone.label}.`,
   },
   {
     q: "Jak wygląda rozładunek?",
@@ -33,7 +33,7 @@ export const faq: { q: string; a: string }[] = [
   },
   {
     q: "Do jakich kotłów nadaje się ten pellet?",
-    a: "Oba rodzaje pelletu, które sprzedajemy, to wysokiej jakości certyfikowany pellet drzewny, doskonały do kotłów 5 generacji.",
+    a: "Oba rodzaje pelletu, które sprzedajemy, to wysokiej jakości certyfikowany pellet drzewny, doskonały do kotłów 5. generacji.",
   },
   {
     q: "Czy mogę odebrać pellet sam?",

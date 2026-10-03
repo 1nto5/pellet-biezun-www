@@ -26,6 +26,8 @@ export interface PostalAddress {
   street: string;
   postalCode: string;
   city: string;
+  /** The voivodeship, for the JSON-LD. */
+  region: string;
 }
 
 /** Schema.org day names; the JSON-LD needs these, the pages use `label`. */
@@ -41,6 +43,8 @@ export interface OpeningHours {
 export const firma = {
   /** The name as customers know it: header, titles, map pin. */
   name: "Pellet Bieżuń",
+  /** The name's two words, set one under the other in the logo and on the signs. */
+  znak: ["Pellet", "Bieżuń"] as const,
   /** The registered name, for the privacy policy and the footer. */
   // TODO(produkcja): the name on OLX; confirm it is the registered one.
   legalName: "Anna Bruzda Sprzedaż Hurtowa i Detaliczna",
@@ -53,6 +57,7 @@ export const firma = {
     street: "Władysławowo 10",
     postalCode: "09-320",
     city: "Bieżuń",
+    region: "mazowieckie",
   } satisfies PostalAddress,
   /** "od Bieżunia": the town in the genitive, for sentences about distance. */
   odMiasta: "od Bieżunia",
@@ -82,7 +87,7 @@ export function addressLine(a: PostalAddress = firma.address): string {
   return `${a.street}, ${a.postalCode} ${a.city}`;
 }
 
-/** "8:00–16:00", from the 24-hour strings above. */
+/** "7:00–17:00", from the 24-hour strings above. */
 export function hoursRange(h: OpeningHours): string {
   const short = (t: string) => t.replace(/^0/, "");
   return `${short(h.opens)}–${short(h.closes)}`;
