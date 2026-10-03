@@ -1,6 +1,6 @@
 ---
 /**
- * Three columns of facts, all from `data/firma.ts`, and a bottom line with the
+ * Three columns of facts (two, then the third under them, on a tablet), all from `data/firma.ts`, and a bottom line with the
  * registered name, the tax number and the privacy policy. White on asphalt,
  * with the road's centre line along the top.
  */
@@ -11,7 +11,7 @@ const year = new Date().getFullYear();
 ---
 
 <footer class="site-footer mt-auto">
-  <div class="page-wrap grid gap-10 py-12 md:grid-cols-3 md:py-16">
+  <div class="page-wrap grid gap-10 py-12 md:grid-cols-2 md:py-16 lg:grid-cols-3">
     <div>
       <p class="text-lg font-extrabold">{firma.name}</p>
       <address class="mt-3 soft">
@@ -37,7 +37,7 @@ const year = new Date().getFullYear();
           firma.hours.map((h) => (
             <div class="flex justify-between gap-4 sm:max-w-72">
               <dt>{h.label}</dt>
-              <dd>{hoursRange(h)}</dd>
+              <dd class="whitespace-nowrap">{hoursRange(h)}</dd>
             </div>
           ))
         }

@@ -140,7 +140,7 @@ const lead = `Dowozimy pellet ${doM} i okolic. Z naszego magazynu we Władysław
           strefa
           wyroznione={miejsce}
           label={`Mapa: magazyn, strefa darmowej dostawy i ${miejsce.nazwa} z okolicą`}
-          class="!aspect-square"
+          class="mapa-kwadrat"
         />
       </div>
     </div>
@@ -164,9 +164,6 @@ const lead = `Dowozimy pellet ${doM} i okolic. Z naszego magazynu we Władysław
     padding: 0.3rem 0 0.2rem;
     border-top: 1px solid color-mix(in srgb, var(--color-white) 40%, transparent);
     font-weight: 700;
-  }
-  .okolica :global(.text-ink-soft) {
-    color: var(--color-white);
   }
   .okolica a {
     text-decoration: underline;

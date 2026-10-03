@@ -124,7 +124,7 @@ const produktyLd = await Promise.all(
 
             <div class="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
               {cenyLabel(p).map((c, j) => (
-                <p class:list={["cena-tag", j === 0 ? "text-3xl" : "text-xl"]}>{c}</p>
+                <p class:list={["cena-tag", j === 0 ? "text-2xl sm:text-3xl" : "text-xl"]}>{c}</p>
               ))}
             </div>
             <p class="mt-4 font-semibold">Paleta: {paletaLabel(p)}</p>
@@ -154,7 +154,7 @@ const produktyLd = await Promise.all(
                     <tr>
                       <th scope="row">{x.nazwa}</th>
                       <td>{x.wartosc}</td>
-                      {p.parametry.some((y) => y.wymaganie) && <td class="!font-normal">{x.wymaganie}</td>}
+                      {p.parametry.some((y) => y.wymaganie) && <td class="wymaganie">{x.wymaganie}</td>}
                     </tr>
                   ))}
                 </tbody>
@@ -221,6 +221,7 @@ const produktyLd = await Promise.all(
 <style>
   .produkt-sekcja {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 2.5rem;
   }
   @media (min-width: 64rem) {

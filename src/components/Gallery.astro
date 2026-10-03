@@ -39,7 +39,12 @@ const items = await Promise.all(
     {
       items.map((photo, i) => (
         <li>
-          <button type="button" data-full={photo.full.src} data-alt={photo.alt}>
+          <button
+            type="button"
+            data-full={photo.full.src}
+            data-alt={photo.alt}
+            data-proporcja={(Number(photo.full.attributes.width) / Number(photo.full.attributes.height)).toFixed(4)}
+          >
             <span class="gallery-media">
               {i === 0 ? (
                 <Image
@@ -111,6 +116,7 @@ const items = await Promise.all(
       image = document.createElement("img");
       dialog.prepend(image);
     }
+    image.style.setProperty("--proporcja", thumb.dataset.proporcja ?? "");
     image.src = thumb.dataset.full!;
     image.alt = thumb.dataset.alt ?? "";
     dialog.querySelector(".lightbox-count")!.textContent = `${index + 1} / ${n}`;

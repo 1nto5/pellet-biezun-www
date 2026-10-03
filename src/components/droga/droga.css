@@ -426,7 +426,7 @@
 
 /* ---- On its own: one scene that plays the drive by itself --------------- */
 
-@media (prefers-reduced-motion: no-preference) and ((width < 64rem) or (orientation: portrait)) {
+@media screen and (prefers-reduced-motion: no-preference) and ((width < 64rem) or (orientation: portrait)) {
   html[data-js] .droga {
     padding-top: 1.5rem;
   }
@@ -469,7 +469,7 @@
 
 /* ---- Live: one sticky stage, scrubbed by the scroll ---------------------- */
 
-@media (prefers-reduced-motion: no-preference) and (min-width: 64rem) and (orientation: landscape) {
+@media screen and (prefers-reduced-motion: no-preference) and (min-width: 64rem) and (orientation: landscape) {
   html[data-js] .podroz {
     position: relative;
   }

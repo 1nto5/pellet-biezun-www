@@ -113,7 +113,7 @@ export async function narysujMape(el: HTMLElement): Promise<void> {
   // The warehouse last, so its pin is above every dot.
   const icon = L.divIcon({
     className: "",
-    html: '<div class="pin pin-punkt"></div>',
+    html: '<div class="pin"></div>',
     iconSize: [28, 28],
     iconAnchor: [4, 30],
     popupAnchor: [10, -26],

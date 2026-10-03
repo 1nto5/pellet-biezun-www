@@ -152,6 +152,42 @@ const structuredData = [localBusiness, ...(breadcrumbList ? [breadcrumbList] : [
         </script>
       )
     }
+    {
+      import.meta.env.DEV && (
+        <style is:inline>
+          {`
+          /* Palette comparison (2026-10-01): the variant measured in the
+             client's own material. Sign green from the printer's banner, red
+             from the fleet photos. Remove with the switch once one palette
+             is chosen. */
+          :root[data-paleta="materialy"] {
+            --color-sign: #1d6a05;
+            --color-sign-deep: #134803;
+            --color-red: #a8101c;
+          }
+          .paleta-przelacznik {
+            position: fixed;
+            left: 0.75rem;
+            bottom: 0.75rem;
+            z-index: 1000;
+            padding: 0.4rem 0.7rem;
+            background: var(--color-black);
+            color: var(--color-white);
+            font-size: 0.85rem;
+            border-radius: var(--radius-sign);
+          }
+          .paleta-przelacznik a {
+            color: var(--color-white);
+          }
+          :root:not([data-paleta="materialy"]) .paleta-obecna,
+          :root[data-paleta="materialy"] .paleta-materialy {
+            color: var(--color-yellow);
+            font-weight: 800;
+          }
+          `}
+        </style>
+      )
+    }
   </head>
   <body class="flex min-h-svh flex-col">
     <a href="#tresc" class="skip-link">Przejdź do treści</a>
