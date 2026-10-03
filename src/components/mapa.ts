@@ -68,7 +68,10 @@ export async function narysujMape(el: HTMLElement): Promise<void> {
   // scroll-wheel zoom, and on a touch screen one finger scrolls the page
   // instead of dragging the map. The +/- buttons zoom, and two fingers
   // still move and zoom the map.
-  const map = L.map(el, { scrollWheelZoom: false, dragging: !L.Browser.mobile });
+  const map = L.map(el, { scrollWheelZoom: false, dragging: !L.Browser.mobile, zoomControl: false });
+  // Leaflet names its buttons in English; the page is Polish.
+  L.control.zoom({ zoomInTitle: "Przybliż", zoomOutTitle: "Oddal" }).addTo(map);
+  map.on("popupopen", (e) => e.popup.getElement()?.querySelector(".leaflet-popup-close-button")?.setAttribute("aria-label", "Zamknij"));
   L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 18,
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',

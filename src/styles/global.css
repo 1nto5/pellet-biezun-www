@@ -388,11 +388,12 @@ main :where(p, address, dd, td) > a:not(.btn),
 /* The narrowest phones: the logo, the order button and the menu button
    still fit on one line. */
 @media (width < 22rem) {
-  .pinned-row {
-    column-gap: 0.75rem;
+  .pinned-row,
+  .pinned-row .akcje {
+    column-gap: 0.5rem;
   }
   .pinned-row .btn-sm {
-    padding-inline: 0.75rem;
+    padding-inline: 0.6rem;
   }
 }
 
@@ -413,7 +414,7 @@ main :where(p, address, dd, td) > a:not(.btn),
   border-bottom-color: var(--color-white);
   text-decoration: none;
 }
-.nav-link[aria-current="page"] {
+.nav-link[aria-current] {
   border-bottom-color: var(--color-yellow);
   font-weight: 800;
 }
@@ -472,7 +473,7 @@ main :where(p, address, dd, td) > a:not(.btn),
   color: var(--color-white);
   text-decoration-color: currentColor;
 }
-.menu nav a[aria-current="page"] {
+.menu nav a[aria-current] {
   text-decoration-color: var(--color-yellow);
   text-decoration-thickness: 0.2rem;
 }
@@ -815,13 +816,17 @@ textarea.input {
   overflow: hidden;
 }
 /* The form's reply under the button: a note with a yellow bar on its left. */
-.form-status:empty {
-  display: none;
-}
 .form-status {
   padding: 0.75rem 1rem 0.65rem;
   border-left: 0.4rem solid var(--color-yellow);
   background: var(--color-sand);
+}
+/* Empty, it takes no room but stays on the page: a screen reader announces
+   a status region's new text only if the region was there before it. */
+.form-status:empty {
+  padding: 0;
+  border: 0;
+  background: none;
 }
 
 /* ---------------------------------------------------------------------------

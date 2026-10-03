@@ -60,10 +60,11 @@ import { miejsca } from "../data/miejsca";
                 inputmode="numeric"
                 autocomplete="postal-code"
                 pattern="[0-9]{2}-[0-9]{3}"
-                placeholder="09-320"
                 title="Kod w formacie 00-000"
                 required
+                aria-describedby="kod-hint"
               />
+              <span id="kod-hint" class="hint">Np. 09-320.</span>
             </div>
             <div class="field">
               <label for="miejscowosc">Miejscowość <span class="req">*</span></label>

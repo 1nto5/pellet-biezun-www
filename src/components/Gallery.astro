@@ -121,7 +121,11 @@ const items = await Promise.all(
     image.style.setProperty("--proporcja", thumb.dataset.proporcja ?? "");
     image.src = thumb.dataset.full!;
     image.alt = thumb.dataset.alt ?? "";
-    dialog.querySelector(".lightbox-count")!.textContent = `${index + 1} / ${n}`;
+    // The count is announced on every step; with the photo's description, a
+    // screen reader user also hears what the new photo shows.
+    const count = dialog.querySelector(".lightbox-count")!;
+    const opis = Object.assign(document.createElement("span"), { className: "sr-only", textContent: `: ${image.alt}` });
+    count.replaceChildren(`${index + 1} / ${n}`, opis);
 
     // The neighbours load in the background, so a step to either is instant.
     for (const near of [index - 1, index + 1]) new Image().src = thumbs[(near + n) % n]!.dataset.full!;

@@ -138,7 +138,9 @@ const produktyLd = await Promise.all(
             <p class="mt-4 max-w-prose">{p.certyfikat}</p>
 
             <h3 class="mt-10 text-2xl">Parametry</h3>
-            <div class="mt-3 overflow-x-auto">
+            {/* A narrow screen scrolls the table sideways; the box takes focus so
+                a keyboard can scroll it too. */}
+            <div class="mt-3 overflow-x-auto" tabindex="0" role="region" aria-label={`Parametry: ${p.nazwa}`}>
               <table class="table">
                 {p.parametry.some((x) => x.wymaganie) && (
                   <thead>
