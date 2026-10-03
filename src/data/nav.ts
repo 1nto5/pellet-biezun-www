@@ -1,9 +1,10 @@
 /**
  * The navigation tree. The header and the footer show the top level; the
  * children only appear in the breadcrumbs. The local pages hang under the map,
- * one per place in `miejsca.ts`, even though their addresses sit under /dostawa/.
+ * one per town in `podstrony` (miejsca.ts), even though their addresses sit
+ * under /dostawa/.
  */
-import { miejsca, miejsceHref } from "./miejsca";
+import { podstrony, miejsceHref } from "./miejsca";
 
 export interface NavItem {
   href: string;
@@ -20,7 +21,7 @@ export const mainNav: readonly NavItem[] = [
   {
     href: "/mapa-dystrybucji/",
     label: "Mapa dystrybucji",
-    children: miejsca.map((m) => ({ href: miejsceHref(m), label: m.nazwa })),
+    children: podstrony.map((m) => ({ href: miejsceHref(m), label: m.nazwa })),
   },
   { href: "/faq/", label: "FAQ" },
   { href: "/kontakt/", label: "Kontakt" },

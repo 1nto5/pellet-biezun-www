@@ -1,10 +1,12 @@
 ---
 /**
  * The one `h1` of a page, with the breadcrumbs above it and an optional lead
- * below. Anything passed as a child sits under the lead. It goes into the
- * `header` slot of `PageShell`.
+ * below. Anything passed as a child sits under the lead. The livery stripes
+ * close the head off from the content. It goes into the `header` slot of
+ * `PageShell`.
  */
 import Breadcrumbs from "./Breadcrumbs.astro";
+import Pasy from "./Pasy.astro";
 
 interface Props {
   title: string;
@@ -14,9 +16,10 @@ interface Props {
 const { title, lead } = Astro.props;
 ---
 
-<header class="intro">
+<header>
   <Breadcrumbs />
-  <h1 class="max-w-[22ch] text-4xl md:text-5xl">{title}</h1>
-  {lead && <p class="mt-5 max-w-prose text-lg text-ink-soft">{lead}</p>}
+  <h1 class="tytul-strony">{title}</h1>
+  {lead && <p class="mt-5 max-w-prose text-lg font-medium">{lead}</p>}
   <slot />
+  <Pasy class="mt-8" />
 </header>

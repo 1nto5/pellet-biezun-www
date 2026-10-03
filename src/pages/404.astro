@@ -14,20 +14,53 @@ import { home, mainNav, orderLink } from "../data/nav";
       lead="Adres mógł się zmienić albo zawiera literówkę. Poniżej znajdziesz drogę dalej."
     />
     <div class="max-w-prose">
-      <ul role="list" class="rows">
-        {
-          [home, orderLink, ...mainNav].map((item) => (
-            <li>
-              <a href={item.href}>
-                <span>{item.label}</span>
-              </a>
-            </li>
-          ))
-        }
-      </ul>
-      <p class="mt-8 text-ink-soft">
+      <!-- A wrong exit: the way back is on a direction board. -->
+      <nav class="sign zjazd" aria-label="Dokąd dalej" data-ruch="tablica">
+        <ul role="list">
+          {
+            [home, orderLink, ...mainNav].map((item) => (
+              <li>
+                <a href={item.href}>{item.label}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+      <p class="mt-8">
         Możesz też zadzwonić: <a href={firma.phone.href} class="link-strong">{firma.phone.label}</a>.
       </p>
     </div>
   </PageShell>
 </Base>
+
+<style>
+  .zjazd {
+    padding: 0.9rem 1.3rem;
+  }
+  .zjazd li + li {
+    border-top: 1px solid color-mix(in srgb, var(--color-white) 40%, transparent);
+  }
+  .zjazd a {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.7rem 0 0.55rem;
+    color: var(--color-white);
+    font-size: 1.3rem;
+    font-weight: 800;
+    text-decoration: none;
+  }
+  /* A small arrow drawn at the end of each row, as on a direction board. */
+  .zjazd a::after {
+    content: "";
+    align-self: center;
+    width: 1.1rem;
+    height: 0.9rem;
+    background: var(--color-white);
+    clip-path: polygon(0 30%, 55% 30%, 55% 0, 100% 50%, 55% 100%, 55% 70%, 0 70%);
+  }
+  .zjazd a:hover {
+    color: var(--color-white);
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+  }
+</style>

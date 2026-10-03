@@ -10,35 +10,49 @@ const files = import.meta.glob<{ default: ImageMetadata }>("../assets/galeria/*.
   eager: true,
 });
 
-/** Alt text by file name. PRZYKŁAD: the photos are placeholders. */
+/** Alt text by file name. */
 const alts: Record<string, string> = {
-  "01-worki": "Zdjęcie przykładowe: worki pelletu 15 kg na palecie",
-  "02-big-bag": "Zdjęcie przykładowe: big bag z pelletem",
-  "03-sklad": "Zdjęcie przykładowe: skład w Bieżuniu",
-  "04-rozladunek": "Zdjęcie przykładowe: rozładunek palety u klienta",
-  "05-z-bliska": "Zdjęcie przykładowe: pellet z bliska",
-  "06-samochod": "Zdjęcie przykładowe: samochód dostawczy z windą",
-  "07-magazyn": "Zdjęcie przykładowe: magazyn z paletami",
-  "08-paleta": "Zdjęcie przykładowe: paleta pod folią",
+  "01-flota": "Samochody Pellet Bieżuń w rzędzie, przodem, na tle sosnowego lasu",
+  "02-magazyn": "Jasna hala magazynu z rzędem palet pelletu",
+  "03-zabudowa-grafika": "Zabudowa ciężarówki z grafiką worków pelletu",
+  "04-volvo": "Dwie ciężarówki Volvo z zabudową PELLET na placu, w tle hala i silosy",
+  "05-hiton-palety": "Dwie palety pelletu HITON w workach 15 kg",
+  "06-pellet-z-bliska": "Pellet drzewny z bliska",
+  "07-magazyn-palety": "Palety pelletu w magazynie",
+  "08-volvo-przod": "Ciężarówka Volvo Pellet Bieżuń z przodu",
+  "09-iveco": "Dwa auta Iveco Daily z czarną zabudową PELLET, mniejsze samochody na ciasne dojazdy",
+  "10-naczepa": "Naczepa z paletami pelletu spiętymi pasami",
+  "11-hiton-worki": "Paleta worków pelletu HITON owinięta folią w magazynie",
+  "12-zabudowa-bok": "Bok zabudowy z grafiką worków pelletu HITON",
+  "13-volvo-hala": "Ciężarówka Volvo w nowej hali magazynu",
+  "14-flota-wieczorem": "Samochody firmy i hala magazynu w popołudniowym słońcu",
+  "15-hiton-granulat": "Granulat pelletu HITON z bliska",
+  "16-zabudowa-tyl": "Tył zabudowy ciężarówki z numerem telefonu",
+  "17-flota-trzy-auta": "Dwie czerwone ciężarówki Volvo i Iveco Daily z zabudową PELLET na placu przy silosach",
+  "18-volvo-fh-naczepa": "Czerwone Volvo FH16 z czarną naczepą kurtynową, ujęcie z przodu",
+  "19-iveco-winda": "Iveco Daily z czarną zabudową PELLET od tyłu, widać złożoną windę",
+  "20-volvo-fh-tyl": "Volvo FH z białą zabudową PELLET od tyłu, z windą i numerem telefonu na drzwiach",
+  "21-iveco-bok": "Iveco Daily z czarną zabudową PELLET z boku",
+  "22-volvo-fh-naczepa-bok": "Volvo FH16 z trzyosiową naczepą kurtynową z boku, w tle silosy",
 };
 
 const photos = Object.entries(files)
   .sort(([a], [b]) => a.localeCompare(b))
   .map(([path, mod]) => {
     const name = path.split("/").pop()!.replace(/\.\w+$/, "");
-    return { src: mod.default, alt: alts[name] ?? "Zdjęcie ze składu Pellet Bieżuń" };
+    return { src: mod.default, alt: alts[name] ?? "Zdjęcie z magazynu Pellet Bieżuń" };
   });
 ---
 
 <Base
   title="Galeria"
-  description="Zdjęcia pelletu, składu w Bieżuniu i dostaw do klientów."
+  description="Zdjęcia naszych samochodów, magazynu we Władysławowie pod Bieżuniem i pelletu, który sprzedajemy."
 >
   <PageShell>
     <PageHeader
       slot="header"
       title="Galeria"
-      lead="Nasz skład, pellet w różnych opakowaniach i dostawy. Kliknij zdjęcie, aby je powiększyć."
+      lead="Nasze samochody, magazyn we Władysławowie pod Bieżuniem i pellet, który sprzedajemy. Kliknij zdjęcie, aby je powiększyć."
     />
     <Gallery photos={photos} />
   </PageShell>

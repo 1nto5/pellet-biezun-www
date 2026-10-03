@@ -1,0 +1,47 @@
+---
+/**
+ * The delivery truck: a photo of the company's Volvo FM with the box body,
+ * cab on the left, facing the way it drives. 240 × 108 drawing units, ground
+ * at the bottom edge; the photo is scaled so its length spans the 240 units
+ * and the tyres stand on the ground.
+ *
+ * The wheels stay as they are in the photo: a turning wheel cut from a still
+ * photo looks fake, and the road, the verge and the forest moving past
+ * already show the drive. The moving parts read the scene's custom
+ * properties (see `trasa.ts`): the tail lift, drawn over the photo at the
+ * back of the box, rides on `--lift` and folds on
+ * `--fold`; the pallet moves on `--pal-x`/`--pal-y`. The pallet is drawn
+ * before the photo, so it disappears inside the box; once it is on the
+ * ground and the electric pallet truck takes it (`--jack`), a copy in front
+ * of the house takes over (see Scena.astro).
+ */
+import Paleta from "./Paleta.astro";
+import { obrazy } from "./obrazy";
+
+/**
+ * Master photo: 2149 × 764 px, straightened so the box is level and all
+ * tyres stand on one line (px y 761). 0.11168 units per px puts it at
+ * y 23.01, 85.32 high, tyres on the ground at 108.
+ */
+const S = 240 / 2149;
+const Y0 = 108 - 761 * S;
+const r2 = (x: number) => Math.round(x * 100) / 100;
+---
+
+<!-- The truck's shadow on the road (droga.css). -->
+<div class="auto-cien"></div>
+<svg class="auto" viewBox="0 0 240 108" overflow="visible" aria-hidden="true" focusable="false">
+  <Paleta class="paleta-w-aucie" />
+
+  <image href={obrazy.auto} x="0" y={r2(Y0)} width="240" height={r2(764 * S)} />
+
+  <!-- Tail lift, hinged at the box's back bottom corner (239, 82.6). The
+       post grows as the plate goes down, so the plate never floats. -->
+  <rect class="winda-ramie" x="237.4" y="82.6" width="2.6" height="22.4" fill="#1d1f21" />
+  <g class="winda">
+    <g class="winda-plyta">
+      <rect x="239" y="82.6" width="24" height="3" fill="#2a2c2e" />
+      <rect x="239" y="82.6" width="24" height="0.6" fill="#9a9da0" />
+    </g>
+  </g>
+</svg>

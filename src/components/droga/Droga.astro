@@ -1,0 +1,203 @@
+---
+/**
+ * The drive on the home page: the truck loads at the hall, drives past the
+ * direction boards and unloads at a customer's house inside the free zone,
+ * with the end-of-zone sign ahead, while the reader scrolls.
+ *
+ * Built so the page is complete without it moving. The HTML holds every stop
+ * as text, most with a still frame of the scene. When scripts run and the
+ * reader has not asked for reduced motion (both known before the first
+ * paint), the CSS in `droga.css` swaps the frames for one sticky stage and
+ * reserves the scroll length under it, and the script below sets the scene
+ * from the scroll position.
+ *
+ * The slot is the hero. It sits in the same box as the stage, so the stage
+ * can stand behind it from the first screen: the road starts under the hero.
+ */
+import "./droga.css";
+import Scena from "./Scena.astro";
+import { firma } from "../../data/firma";
+import { DARMOWA_DOSTAWA_KM } from "../../data/miejsca";
+import { tablice, miastaWStrefie, kadry, start, czasKm, CZAS, KM_DOJAZD, type Stan } from "./trasa";
+
+interface Stop {
+  id: string;
+  /** The km post beside the heading; the stop between posts has none. */
+  km?: number;
+  /** When the stop's text shows on the 0–100 clock. */
+  od: number;
+  tytul: string;
+  tekst: string;
+  kadr?: Stan;
+}
+
+const pierwsza = tablice[0]!;
+
+const stopy: Stop[] = [
+  {
+    id: "zaladunek",
+    km: 0,
+    od: 0,
+    tytul: `Załadunek: ${firma.address.street}`,
+    tekst: "Pellet czeka w hali we Władysławowie koło Bieżunia. Stąd ładujemy palety na auta.",
+    kadr: kadry.zaladunek,
+  },
+  {
+    id: "w-drodze",
+    od: CZAS.odjazd,
+    tytul: "W drodze",
+    tekst: "Wozimy własnymi autami: od Iveco na 4 palety po ciężarówkę z naczepą na 26 palet. Każde ma windę i elektryczny wózek paletowy.",
+  },
+  {
+    id: "miasta",
+    km: pierwsza.naDrodze,
+    od: czasKm(pierwsza.naDrodze) - 3,
+    tytul: "Miasta po drodze",
+    tekst: "Drogowskazy pokazują miasta, do których dowozimy, i ich odległość od magazynu w linii prostej.",
+    kadr: kadry.tablice,
+  },
+  {
+    id: "na-miejscu",
+    km: KM_DOJAZD,
+    // From the moment the house comes into view.
+    od: czasKm(KM_DOJAZD - 20),
+    tytul: "Na miejscu, w strefie darmowej dostawy",
+    tekst: `Do ok. ${DARMOWA_DOSTAWA_KM} km dowozimy gratis, dalej po uzgodnieniu. Paletę zdejmujemy windą i podwozimy elektrycznym wózkiem paletowym.`,
+    kadr: kadry.naMiejscu,
+  },
+];
+---
+
+<div class="podroz" data-podroz>
+  <slot />
+
+  <section class="droga" aria-labelledby="droga-tytul" data-droga>
+    <h2 id="droga-tytul" class="sr-only">Jak pellet jedzie do klienta</h2>
+
+    <div class="droga-scena">
+      <Scena stan={start} live />
+      <p class="licznik" aria-hidden="true"><span data-licznik>0</span> km</p>
+    </div>
+
+    <ol class="stopy" role="list">
+      {
+        stopy.map((s) => (
+          <li class="stop" data-stop data-od={s.od}>
+            <div class="stop-tekst">
+              {s.km !== undefined && (
+                <p class="slupek">
+                  <span>km</span> {s.km}
+                </p>
+              )}
+              <h3>{s.tytul}</h3>
+              <p class="stop-opis">{s.tekst}</p>
+              {s.id === "miasta" && (
+                <ul class="stop-miasta" role="list">
+                  {miastaWStrefie.map((m) => (
+                    <li>
+                      {m.nazwa} <span>{m.km} km</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            {s.kadr && (
+              <div class="kadr">
+                <Scena stan={s.kadr} />
+              </div>
+            )}
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  <div class="droga-dystans" data-dystans data-ruch-start aria-hidden="true"></div>
+</div>
+
+<script>
+  import { ScrollTrigger } from "gsap/ScrollTrigger";
+  import { gsap } from "gsap";
+  import { stanAt, stanVars } from "./trasa";
+
+  const podroz = document.querySelector<HTMLElement>("[data-podroz]");
+  const hero = podroz?.firstElementChild as HTMLElement | null | undefined;
+  const droga = podroz?.querySelector<HTMLElement>("[data-droga]");
+  const scena = podroz?.querySelector<HTMLElement>("[data-scena-live]");
+  const rig = scena?.querySelector<HTMLElement>(".rig");
+  const dystans = podroz?.querySelector<HTMLElement>("[data-dystans]");
+  const licznik = podroz?.querySelector<HTMLElement>("[data-licznik]");
+  const stopy = [...(podroz?.querySelectorAll<HTMLElement>("[data-stop]") ?? [])];
+  const moving = window.matchMedia("(prefers-reduced-motion: no-preference)").matches;
+
+  if (podroz && hero && droga && scena && rig && dystans && licznik && moving) {
+    gsap.registerPlugin(ScrollTrigger);
+
+    const clamp = (x: number) => Math.min(1, Math.max(0, x));
+    const od = stopy.map((s) => Number(s.dataset.od));
+
+    // Measured by ScrollTrigger on every refresh (load, fonts, resize).
+    let driveStart = 1;
+    let driveEnd = 2;
+    // While the hero is on screen the scene is drawn smaller (`--z`), so the
+    // hall and the truck fit under the hero; it grows to full size as the
+    // hero scrolls away.
+    let z0 = 1;
+
+    const measure = () => {
+      scena.style.setProperty("--z", "1");
+      const u1 = rig.getBoundingClientRect().width / 60;
+      // The tallest thing at the start, the hall, reaches 34 units up.
+      const room = droga.clientHeight - hero.offsetHeight - 12;
+      z0 = Math.min(1, Math.max(0.35, room / (34 * u1)));
+    };
+
+    // The whole scene is a function of the scroll position, set at once:
+    // the same position always gives the same frame, whichever way the
+    // reader came from.
+    let shownStop = -2;
+    let shownKm = -1;
+    const render = () => {
+      const y = window.scrollY;
+      const z = z0 + (1 - z0) * clamp(y / driveStart);
+      const t = 100 * clamp((y - driveStart) / (driveEnd - driveStart));
+      const stan = stanAt(t);
+      for (const [k, v] of Object.entries(stanVars(stan))) scena.style.setProperty(k, v);
+      scena.style.setProperty("--z", String(z));
+
+      const index = y < driveStart + 2 ? -1 : od.findLastIndex((o) => t >= o);
+      if (index !== shownStop) {
+        stopy.forEach((s, i) => s.classList.toggle("is-active", i === index));
+        podroz.classList.toggle("is-driving", index >= 0);
+        shownStop = index;
+      }
+      const km = Math.round(stan.km);
+      if (km !== shownKm) {
+        licznik.textContent = String(km);
+        shownKm = km;
+      }
+    };
+
+    // The stage is sticky in CSS; the drive runs over the spacer after it.
+    // Its top reaches the bottom of the window when the stage has come fully
+    // under the header, and the drive ends with its bottom.
+    ScrollTrigger.create({
+      trigger: dystans,
+      start: "top bottom",
+      end: "bottom bottom",
+      onUpdate: render,
+      onRefresh: (self) => {
+        driveStart = Math.max(1, self.start);
+        driveEnd = Math.max(driveStart + 1, self.end);
+        measure();
+        render();
+      },
+    });
+    // Also straight from the scroll event, so a frame never waits for the
+    // next animation frame.
+    window.addEventListener("scroll", render, { passive: true });
+    // Heights change when the font and the images arrive.
+    document.fonts?.ready.then(() => ScrollTrigger.refresh());
+    window.addEventListener("load", () => ScrollTrigger.refresh());
+  }
+</script>

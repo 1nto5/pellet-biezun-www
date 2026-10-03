@@ -1,30 +1,35 @@
 ---
 /**
- * Pinned to the top of the page: one row with the company name, the sections
- * in a flat row from `lg` up and the „Zamów pellet" button. Below `lg` the
+ * Pinned to the top of the page: one row with the company name set like its
+ * sign, the sections on a green direction board from `lg` up and the
+ * „Zamów pellet" button. Below `lg` the
  * sections live behind a menu button, in a native <dialog> that slides in from
  * the left as a drawer under the header. A tap outside, a swipe to the left or
  * Escape closes it.
  */
+import { Image } from "astro:assets";
 import { mainNav, orderLink, activeSection } from "../data/nav";
+import autoFm from "../assets/droga/auto-fm.png";
 import { firma } from "../data/firma";
 
 const section = activeSection(Astro.url.pathname);
+/** "Pellet Bieżuń" → the two lines of the sign. */
+const wordmark = firma.name.split(" ") as [string, string];
 const current = (href: string) =>
   href === section?.href || href === Astro.url.pathname ? "page" : undefined;
 ---
 
 <header class="site-header">
-  <div class="header-surface border-b border-line" data-surface>
+  <div class="header-surface" data-surface>
     <div class="pinned-row page-wrap flex items-center justify-between gap-x-6">
-      <a href="/" class="no-underline hover:no-underline">
-        <span class="brand-name block font-display leading-tight font-semibold text-ink">{firma.name}</span>
-        <span class="brand-sub text-ink-soft">Pellet drzewny z dostawą</span>
+      <a href="/" class="marka" aria-label={firma.name}>
+        <span class="marka-pellet" aria-hidden="true">{wordmark[0]}</span>
+        <span class="marka-miasto" aria-hidden="true">{wordmark[1]}</span>
       </a>
 
-      <div class="flex items-center gap-x-6">
-        <nav aria-label="Menu główne" class="hidden lg:block">
-          <ul role="list" class="flex gap-x-6">
+      <div class="flex items-center gap-x-5">
+        <nav aria-label="Menu główne" class="sign nav-board hidden lg:block">
+          <ul role="list" class="flex">
             {
               mainNav.map((item) => (
                 <li>
@@ -37,14 +42,14 @@ const current = (href: string) =>
           </ul>
         </nav>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-3">
           <a
             href={orderLink.href}
             class="btn btn-primary btn-sm"
             aria-current={current(orderLink.href)}>{orderLink.label}</a
           >
           <button type="button" class="tool" data-menu-open aria-haspopup="dialog" aria-expanded="false">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" aria-hidden="true">
               <path d="M4 6h16M4 12h16M4 18h16"></path>
             </svg>
             <span class="sr-only">Menu</span>
@@ -52,13 +57,18 @@ const current = (href: string) =>
         </div>
       </div>
     </div>
+    <!-- The road band: the real truck, small, drives right to left along it as the page scrolls (ruch.ts). -->
+    <div class="pasek" data-pasek aria-hidden="true">
+      <div class="pasek-auto">
+        <Image src={autoFm} alt="" widths={[64, 128]} sizes="2.4rem" loading="eager" />
+      </div>
+    </div>
   </div>
 
   <div class="menu-backdrop" data-menu-backdrop hidden></div>
   <dialog class="menu" data-menu aria-label="Menu" tabindex="-1">
-    <p class="py-3">
-      <span class="text-sm text-ink-soft">Telefon:</span>
-      <a href={firma.phone.href} class="font-semibold">{firma.phone.label}</a>
+    <p class="pb-3">
+      Telefon: <a href={firma.phone.href} class="text-xl font-extrabold">{firma.phone.label}</a>
     </p>
     <nav aria-label="Menu główne" class="mt-2">
       <ul role="list">

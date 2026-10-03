@@ -1,75 +1,291 @@
 ---
+import { Image } from "astro:assets";
 import Base from "../layouts/Base.astro";
 import PageShell from "../components/PageShell.astro";
 import PageHeader from "../components/PageHeader.astro";
 import Button from "../components/Button.astro";
-import { produkty, cenaLabel, parametry } from "../data/oferta";
+import Pasy from "../components/Pasy.astro";
+import { firma, addressLine } from "../data/firma";
+import { produkty, cenyLabel, paletaLabel, cenyZDnia } from "../data/oferta";
+import { DARMOWA_DOSTAWA_KM } from "../data/miejsca";
+import fotoIveco from "../assets/flota/iveco.png";
+import fotoVolvoFm from "../assets/flota/volvo-fm.png";
+import fotoVolvoFh from "../assets/flota/volvo-fh.png";
+import fotoVolvoFhNaczepa from "../assets/flota/volvo-fh-naczepa.png";
+
+/**
+ * The fleet, each truck with a tail lift and an electric pallet truck.
+ * `min`–`max` is how many pallets it takes; the row of blocks draws it, the
+ * sentence says it. The two Iveco Daily are the same, so one photo shows both.
+ *
+ * The photos are the client's side views, cut out and levelled. `m` is the
+ * vehicle's approximate length, so the trucks are drawn to one scale.
+ */
+const flota = [
+  {
+    opis: "2 × Iveco Daily 7,2 t: do 4 palet, także na ciasne dojazdy",
+    min: 4,
+    max: 4,
+    m: 7,
+    zdjecie: fotoIveco,
+    alt: "Iveco Daily z czarną zabudową PELLET, z boku",
+  },
+  {
+    opis: "Volvo FM 26 t: 12–14 palet",
+    min: 12,
+    max: 14,
+    m: 10,
+    zdjecie: fotoVolvoFm,
+    alt: "Czerwone Volvo FM z białą zabudową PELLET, z boku",
+  },
+  {
+    opis: "Volvo FH: 14–16 palet",
+    min: 14,
+    max: 16,
+    m: 10,
+    zdjecie: fotoVolvoFh,
+    alt: "Czerwone Volvo FH z białą zabudową PELLET, z boku",
+  },
+  {
+    opis: "Volvo FH z naczepą kurtynową (firanką): 26 palet",
+    min: 26,
+    max: 26,
+    m: 16.5,
+    zdjecie: fotoVolvoFhNaczepa,
+    alt: "Czerwony ciągnik Volvo FH z czarną naczepą kurtynową, z boku",
+  },
+];
+const najdluzszy = Math.max(...flota.map((f) => f.m));
 ---
 
 <Base
   title="Oferta i ceny pelletu"
-  description="Pellet drzewny 6 mm klasy ENplus A1 w workach 15 kg, big bagach i luzem. Ceny za tonę, parametry i warunki dostawy."
+  description={`Pellet HITON i pellet sosnowy z Wielbarku w workach 15 kg na paletach. Ceny za paletę, certyfikaty, parametry, dostawa gratis do ok. ${DARMOWA_DOSTAWA_KM} km.`}
 >
   <PageShell>
     <PageHeader
       slot="header"
       title="Oferta i ceny"
-      lead="Pellet drzewny 6 mm z trocin iglastych, bez dodatków klejących. Trzy formy, ta sama jakość."
+      lead="Dwa rodzaje certyfikowanego pelletu drzewnego w workach 15 kg. Palety są zapakowane fabrycznie i przykryte foliowym kapturem, więc mogą stać na zewnątrz."
     />
 
-    <section aria-labelledby="produkty">
-      <h2 id="produkty" class="sr-only">Produkty</h2>
-      <ul role="list" class="grid gap-6 md:grid-cols-3">
+    {
+      produkty.map((p, i) => (
+        <section
+          class:list={["produkt-sekcja", i > 0 && "mt-16 border-t-2 border-black pt-16"]}
+          aria-labelledby={`produkt-${p.id}`}
+        >
+          <div class="produkt-zdjecia" data-ruch-grupa>
+            <span class="produkt-foto">
+              <Image
+                src={p.zdjecie.src}
+                alt={p.zdjecie.alt}
+                widths={[480, 800]}
+                sizes="(min-width: 64rem) 26rem, 100vw"
+                class="w-full"
+              />
+            </span>
+          </div>
+
+          <div data-ruch-grupa>
+            <h2 id={`produkt-${p.id}`} class="produkt-nazwa">
+              {p.nazwa}
+            </h2>
+            <p class="mt-2 text-lg font-medium">{p.podtytul}</p>
+
+            <div class="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+              {cenyLabel(p).map((c, j) => (
+                <p class:list={["cena-tag", j === 0 ? "text-3xl" : "text-xl"]}>{c}</p>
+              ))}
+            </div>
+            <p class="mt-4 font-semibold">Paleta: {paletaLabel(p)}</p>
+
+            <p class="mt-6 max-w-prose">{p.opis}</p>
+            <p class="mt-4 max-w-prose">{p.certyfikat}</p>
+
+            <h3 class="mt-10 text-2xl">Parametry</h3>
+            <div class="mt-3 overflow-x-auto">
+              <table class="table">
+                {p.parametry.some((x) => x.wymaganie) && (
+                  <thead>
+                    <tr>
+                      <th scope="col">Parametr</th>
+                      <th scope="col">Wynik</th>
+                      <th scope="col">Wymaganie ENplus A1</th>
+                    </tr>
+                  </thead>
+                )}
+                <tbody data-ruch-grupa="wiersz">
+                  {p.parametry.map((x) => (
+                    <tr>
+                      <th scope="row">{x.nazwa}</th>
+                      <td>{x.wartosc}</td>
+                      {p.parametry.some((y) => y.wymaganie) && <td class="!font-normal">{x.wymaganie}</td>}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p class="mt-3 max-w-prose text-sm text-ink-soft">Źródło: {p.zrodloParametrow}</p>
+          </div>
+        </section>
+      ))
+    }
+
+    <p class="mt-10 text-sm text-ink-soft">
+      Ceny z {cenyZDnia}. Przy większych zamówieniach cena do negocjacji.
+    </p>
+
+    <section class="mt-20" aria-labelledby="dostawa">
+      <Pasy />
+      <h2 id="dostawa" class="mt-6 text-3xl md:text-4xl" data-ruch="mijanie">Dostawa i odbiór</h2>
+      <div class="prose mt-5">
+        <p>
+          W promieniu ok. {DARMOWA_DOSTAWA_KM} km od magazynu dowozimy gratis. Dalej warunki ustalamy
+          indywidualnie. Sprawdź swoją miejscowość na <a href="/mapa-dystrybucji/">mapie dystrybucji</a>.
+        </p>
+        <p>Dowozimy własnymi samochodami. Każdy ma windę i elektryczny wózek paletowy:</p>
+      </div>
+
+      <ul role="list" class="flota mt-6" data-ruch-grupa="auto">
         {
-          produkty.map((p) => (
-            <li class="card">
-              <h3 class="text-xl">{p.nazwa}</h3>
-              <p class="mt-1 text-sm text-ink-soft">{p.forma}</p>
-              <p class="mt-3 flex-1">{p.opis}</p>
-              <p class="price mt-4 text-2xl">{cenaLabel(p)}</p>
+          flota.map((f) => (
+            <li class="flota-auto">
+              <span class="flota-pas">
+                <span class="flota-foto" style={`--dl:${f.m / najdluzszy}`} data-ruch-auto>
+                  <Image src={f.zdjecie} alt={f.alt} widths={[400, 800, 1200]} sizes="(min-width: 64rem) 34rem, 92vw" />
+                </span>
+              </span>
+              <div>
+                <p class="font-semibold">{f.opis}</p>
+                <div class="flota-palety" aria-hidden="true" data-ruch-grupa="paleta">
+                  {Array.from({ length: f.max }, (_, k) => (
+                    <span class:list={[k >= f.min && "flota-moze"]} />
+                  ))}
+                </div>
+              </div>
             </li>
           ))
         }
       </ul>
-      <p class="mt-4 text-sm text-ink-soft">
-        Ceny brutto (z VAT), bez kosztu dostawy. Przy większych zamówieniach cenę ustalamy
-        indywidualnie.
-      </p>
+
+      <div class="prose mt-8">
+        <p>
+          Odbiór osobisty w magazynie: {addressLine()}. Przed przyjazdem zadzwoń pod{" "}
+          <a href={firma.phone.href}>{firma.phone.label}</a>.
+        </p>
+      </div>
     </section>
 
-    <div class="mt-14 grid gap-12 lg:grid-cols-2">
-      <section aria-labelledby="parametry">
-        <h2 id="parametry" class="text-2xl md:text-3xl">Parametry pelletu</h2>
-        <table class="table mt-5">
-          <tbody>
-            {
-              parametry.map((p) => (
-                <tr>
-                  <th scope="row">{p.nazwa}</th>
-                  <td>{p.wartosc}</td>
-                </tr>
-              ))
-            }
-          </tbody>
-        </table>
-      </section>
-
-      <section aria-labelledby="dostawa">
-        <h2 id="dostawa" class="text-2xl md:text-3xl">Dostawa i odbiór</h2>
-        <div class="prose mt-5">
-          <p>
-            Dowozimy własnym samochodem z windą i wózkiem paletowym, pod dom albo do garażu. Koszt
-            zależy od miejscowości i liczby palet; przy każdej miejscowości podajemy go na
-            <a href="/mapa-dystrybucji/">mapie dystrybucji</a>.
-          </p>
-          <p>Odbiór osobisty w składzie w Bieżuniu w godzinach otwarcia, bez wcześniejszego zamawiania.</p>
-        </div>
-      </section>
-    </div>
-
-    <div class="mt-14 flex flex-wrap gap-3">
+    <div class="mt-14 flex flex-wrap gap-4">
       <Button href="/zamowienie/">Zamów pellet</Button>
       <Button href="/faq/" variant="secondary">Częste pytania</Button>
     </div>
   </PageShell>
 </Base>
+
+<style>
+  .produkt-sekcja {
+    display: grid;
+    gap: 2.5rem;
+  }
+  @media (min-width: 64rem) {
+    .produkt-sekcja {
+      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+      gap: 4rem;
+    }
+  }
+  .produkt-zdjecia {
+    max-width: 24rem;
+  }
+  @media (min-width: 64rem) {
+    .produkt-zdjecia {
+      max-width: none;
+      align-self: start;
+    }
+  }
+  /* Packshots are shot on white; multiply lets that white vanish into the
+     page, so only the bag and its shadow show. */
+  .produkt-foto {
+    display: block;
+  }
+  .produkt-foto :global(img) {
+    mix-blend-mode: multiply;
+  }
+  .produkt-nazwa {
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+
+  /* The fleet: each truck standing on its own strip of road, all to one
+     scale and nose to the left like in the drive on the home page, with its
+     row of pallet blocks. */
+  .flota {
+    display: grid;
+    gap: 2rem;
+    max-width: 64rem;
+  }
+  .flota-auto {
+    display: grid;
+    gap: 0.75rem;
+  }
+  @media (min-width: 64rem) {
+    .flota-auto {
+      grid-template-columns: 34rem minmax(0, 1fr);
+      align-items: end;
+      gap: 2.5rem;
+    }
+  }
+  /* The road: asphalt with a dashed edge line, the truck's tyres on it. */
+  .flota-pas {
+    display: block;
+    /* The truck drives in from the right edge of its road. */
+    overflow-x: clip;
+    padding-bottom: 0.55rem;
+    background:
+      linear-gradient(90deg, var(--color-white) 0 50%, transparent 50%) 0 calc(100% - 0.2rem) / 1.6rem 0.12rem repeat-x,
+      linear-gradient(var(--color-asphalt), var(--color-asphalt)) 0 100% / 100% 0.55rem no-repeat;
+  }
+  .flota-foto {
+    position: relative;
+    display: block;
+    width: calc(var(--dl) * (100% - 0.4rem));
+    margin-left: 0.4rem;
+    /* Tyres touch the asphalt. */
+    margin-bottom: -0.25rem;
+  }
+  /* A soft contact shadow under the wheels. */
+  .flota-foto::after {
+    content: "";
+    position: absolute;
+    inset: auto 2% 0.1rem 2%;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgb(0 0 0 / 0.35), transparent);
+    z-index: -1;
+  }
+  .flota-foto :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .flota-palety {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-top: 0.45rem;
+  }
+  .flota-palety span {
+    width: 1.35rem;
+    height: 1.1rem;
+    border-radius: 0.15rem;
+    background: var(--color-asphalt);
+    box-shadow: inset 0 -0.25rem 0 var(--color-black);
+  }
+  .flota-palety .flota-moze {
+    background: var(--color-white);
+    box-shadow: inset 0 0 0 2px var(--color-asphalt);
+  }
+</style>

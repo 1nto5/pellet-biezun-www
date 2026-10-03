@@ -1,7 +1,8 @@
 ---
 /**
- * One page per place in `miejsca.ts`: what a buyer from that town needs to
- * know, in sentences a search engine or an AI answer can quote.
+ * One page per town in `podstrony`: what a buyer from that town needs to
+ * know, in sentences a search engine or an AI answer can quote. What makes
+ * each page its own is the distance, the zone and the towns around it.
  */
 import type { GetStaticPaths } from "astro";
 import Base from "../../layouts/Base.astro";
@@ -9,61 +10,131 @@ import PageShell from "../../components/PageShell.astro";
 import PageHeader from "../../components/PageHeader.astro";
 import Button from "../../components/Button.astro";
 import Mapa from "../../components/Mapa.astro";
+import NazwaMiejsca from "../../components/NazwaMiejsca.astro";
 import { firma, addressLine } from "../../data/firma";
-import { miejsca, type Miejsce } from "../../data/miejsca";
-import { produkty, cenaLabel } from "../../data/oferta";
+import {
+  DARMOWA_DOSTAWA_KM,
+  miejsca,
+  podstrony,
+  odlegloscKm,
+  wStrefieDarmowej,
+  type MiejsceZPodstrona,
+} from "../../data/miejsca";
+import { produkty, cenyLabel, paletaLabel, cenyZDnia } from "../../data/oferta";
 import { distanceKm } from "../../lib/geo";
+import { pelnaNazwa } from "../../lib/miejsce";
 
 export const getStaticPaths = (() =>
-  miejsca.map((miejsce) => ({ params: { slug: miejsce.slug }, props: { miejsce } }))) satisfies GetStaticPaths;
+  podstrony.map((miejsce) => ({ params: { slug: miejsce.podstrona.slug }, props: { miejsce } }))) satisfies GetStaticPaths;
 
 interface Props {
-  miejsce: Miejsce;
+  miejsce: MiejsceZPodstrona;
 }
 
+/** Towns this close to the page's town are listed as its neighbourhood. */
+const OKOLICA_KM = 25;
+
 const { miejsce } = Astro.props;
-const km = distanceKm(firma.geo, miejsce.geo);
-// The town of the yard itself gets a different first sentence.
-const isHome = km <= 1;
-const lead = isHome
-  ? `Nasz skład jest ${miejsce.wMiejscowosci}. Pellet kupisz na miejscu albo zamówisz z dostawą.`
-  : `Dowozimy pellet drzewny ${miejsce.wMiejscowosci} i okolicy. Nasz skład w Bieżuniu jest około ${km} km stąd.`;
+const w = miejsce.podstrona.wMiejscowosci;
+const km = odlegloscKm(miejsce);
+const gratis = wStrefieDarmowej(miejsce);
+
+const okolica = miejsca
+  .filter((m) => m.nazwa !== miejsce.nazwa)
+  .map((m) => ({ m, km: distanceKm(miejsce.geo, m.geo) }))
+  .filter((o) => o.km <= OKOLICA_KM)
+  .sort((a, b) => a.km - b.km)
+  .map((o) => o.m);
+
+const lead = gratis
+  ? `Dowozimy pellet ${w} i okolicy. Do naszego magazynu we Władysławowie pod Bieżuniem jest stąd ok. ${km} km, więc dostawa jest gratis.`
+  : `Dowozimy pellet ${w} i okolicy. Do naszego magazynu we Władysławowie pod Bieżuniem jest stąd ok. ${km} km, warunki dostawy ustalamy indywidualnie.`;
 ---
 
 <Base
-  title={`Pellet ${miejsce.wMiejscowosci}`}
-  description={`Pellet drzewny ${miejsce.wMiejscowosci}: ceny, dostawa i odbiór. ${miejsce.dostawa}`}
+  title={`Pellet ${w}`}
+  description={`Pellet drzewny w workach 15 kg z dostawą ${w}: ok. ${km} km od magazynu, ${gratis ? "dostawa gratis" : "dostawa po uzgodnieniu"}. Ceny, rozładunek windą, odbiór w magazynie.`}
 >
   <PageShell>
-    <PageHeader slot="header" title={`Pellet ${miejsce.wMiejscowosci}`} lead={lead} />
+    <PageHeader slot="header" title={`Pellet ${w}`} lead={lead}>
+      <div class="drogowskaz mt-8" role="img" aria-label={`${miejsce.nazwa}: ${km} km od magazynu, ${gratis ? "dostawa gratis" : "dostawa po uzgodnieniu"}`}>
+        <div>
+          <div>
+            <span class="drogowskaz-nazwa">{miejsce.nazwa}</span>
+            <span class="drogowskaz-km">{km} km</span>
+            <span class="drogowskaz-uwaga">{gratis ? "dostawa gratis" : "dostawa po uzgodnieniu"}</span>
+          </div>
+        </div>
+      </div>
+    </PageHeader>
 
     <div class="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <div class="prose">
-        <h2>Dostawa</h2>
-        <p>{miejsce.dostawa}</p>
-        {miejsce.adres && (
-          <>
-            <h2>Punkt sprzedaży</h2>
-            <p>
-              {miejsce.adres}, {miejsce.nazwa}.
-              {miejsce.opis}
-            </p>
-          </>
-        )}
-        <h2>Ceny</h2>
-        <ul>
-          {produkty.map((p) => (
-            <li>
-              {p.nazwa}: <strong>{cenaLabel(p)}</strong>
-            </li>
-          ))}
-        </ul>
+        <h2 data-ruch="mijanie">Dostawa</h2>
         <p>
-          Skład: {addressLine()}, tel. <a href={firma.phone.href}>{firma.phone.label}</a>.
+          {miejsce.nazwa} leży ok. {km} km od magazynu w linii prostej.
+          {
+            gratis
+              ? ` To w strefie darmowej dostawy (ok. ${DARMOWA_DOSTAWA_KM} km od magazynu), więc za dowóz nie płacisz.`
+              : ` To poza strefą darmowej dostawy (ok. ${DARMOWA_DOSTAWA_KM} km od magazynu). Dowozimy i tutaj, warunki ustalamy indywidualnie przez telefon.`
+          }
+        </p>
+        <p>
+          Przywozimy własnymi samochodami. Każdy ma windę i elektryczny wózek paletowy, więc paletę
+          zdejmujemy z auta i podwozimy na miejsce. Na ciasne dojazdy mamy mniejsze auta Iveco Daily.
+        </p>
+        {
+          okolica.length > 0 && (
+            <p>
+              W okolicy dowozimy też do: {okolica.map(pelnaNazwa).join(", ")}.
+            </p>
+          )
+        }
+
+        <h2 data-ruch="mijanie">Ceny</h2>
+        <ul>
+          {
+            produkty.map((p) => (
+              <li>
+                {p.nazwa}: <strong>{cenyLabel(p).join(", ")}</strong> ({paletaLabel(p)})
+              </li>
+            ))
+          }
+        </ul>
+        <p>Ceny z {cenyZDnia}. Przy większych zamówieniach cena do negocjacji.</p>
+
+        <h2 data-ruch="mijanie">Odbiór w magazynie</h2>
+        <p>
+          Pellet możesz też odebrać sam: {addressLine()}. Przed przyjazdem zadzwoń pod{" "}
+          <a href={firma.phone.href}>{firma.phone.label}</a>.
         </p>
       </div>
-      <div>
-        <Mapa miejsca={[miejsce]} label={`Mapa: ${miejsce.nazwa}`} class="!aspect-square" />
+      <div class="space-y-6">
+        {
+          okolica.length > 0 && (
+            <section class="sign okolica" aria-labelledby="okolica" data-ruch="tablica">
+              <h2 id="okolica" class="text-lg text-white">W okolicy</h2>
+              <ul role="list" class="mt-2">
+                {okolica.map((m) => (
+                  <li>
+                    <span>
+                      <NazwaMiejsca miejsce={m} />
+                    </span>
+                    <span class="font-extrabold">{odlegloscKm(m)} km</span>
+                  </li>
+                ))}
+              </ul>
+              <p class="mt-3 text-sm">Odległość od magazynu w linii prostej.</p>
+            </section>
+          )
+        }
+        <Mapa
+          miejsca={[miejsce, ...okolica]}
+          strefa
+          wyroznione={miejsce}
+          label={`Mapa: magazyn, strefa darmowej dostawy i ${miejsce.nazwa} z okolicą`}
+          class="!aspect-square"
+        />
       </div>
     </div>
 
@@ -73,3 +144,21 @@ const lead = isHome
     </div>
   </PageShell>
 </Base>
+
+<style>
+  /* The neighbourhood as a small direction board. */
+  .okolica {
+    padding: 1.1rem 1.3rem 1rem;
+  }
+  .okolica li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.3rem 0 0.2rem;
+    border-top: 1px solid color-mix(in srgb, var(--color-white) 40%, transparent);
+    font-weight: 700;
+  }
+  .okolica :global(.text-ink-soft) {
+    color: var(--color-white);
+  }
+</style>

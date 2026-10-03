@@ -3,67 +3,108 @@ import Base from "../layouts/Base.astro";
 import PageShell from "../components/PageShell.astro";
 import PageHeader from "../components/PageHeader.astro";
 import Mapa from "../components/Mapa.astro";
+import NazwaMiejsca from "../components/NazwaMiejsca.astro";
+import Tablica from "../components/Tablica.astro";
 import { firma } from "../data/firma";
-import { miejsca, miejsceHref } from "../data/miejsca";
-import { distanceKm } from "../lib/geo";
+import {
+  DARMOWA_DOSTAWA_KM,
+  miejsca,
+  podstrony,
+  wojewodztwa,
+  miejsceHref,
+  odlegloscKm,
+  wStrefieDarmowej,
+} from "../data/miejsca";
 
-const punkty = miejsca.filter((m) => m.rodzaj === "punkt");
-const dostawy = miejsca.filter((m) => m.rodzaj === "dostawa");
+// The towns with their own page, nearest first, split by whether delivery is free.
+const poOdleglosci = [...podstrony].sort((a, b) => odlegloscKm(a) - odlegloscKm(b));
+const grupyPodstron = [
+  { id: "gratis", tytul: "Dostawa gratis", miasta: poOdleglosci.filter(wStrefieDarmowej) },
+  { id: "po-uzgodnieniu", tytul: "Dostawa po uzgodnieniu", miasta: poOdleglosci.filter((m) => !wStrefieDarmowej(m)) },
+].filter((g) => g.miasta.length > 0);
+
+// Every town by voivodeship, nearest first.
+const grupy = wojewodztwa
+  .map((w) => ({
+    wojewodztwo: w,
+    miejsca: miejsca.filter((m) => m.wojewodztwo === w).sort((a, b) => odlegloscKm(a) - odlegloscKm(b)),
+  }))
+  .filter((g) => g.miejsca.length > 0);
 ---
 
 <Base
   title="Mapa dystrybucji"
-  description={`Punkty sprzedaży i miejscowości, do których dowozimy pellet: ${miejsca.map((m) => m.nazwa).join(", ")}.`}
+  description={`Dokąd dowozimy pellet z magazynu we Władysławowie pod Bieżuniem: gratis w promieniu ok. ${DARMOWA_DOSTAWA_KM} km, dalej po uzgodnieniu. ${miejsca.length} miejscowości w ${wojewodztwa.length} województwach.`}
 >
   <PageShell>
     <PageHeader
       slot="header"
       title="Mapa dystrybucji"
-      lead="Gdzie kupić nasz pellet i dokąd go dowozimy. Kliknij znacznik albo miejscowość z listy, aby zobaczyć warunki dostawy."
+      lead={`Nasz magazyn jest we Władysławowie pod Bieżuniem. W promieniu ok. ${DARMOWA_DOSTAWA_KM} km od magazynu dowozimy pellet gratis, dalej warunki ustalamy indywidualnie. Kliknij punkt na mapie, aby zobaczyć odległość.`}
     />
 
-    <Mapa miejsca={miejsca} label="Mapa punktów sprzedaży i miejscowości dostaw" />
-    <p class="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm text-ink-soft">
-      <span><span class="legend-pin" style="background:#85522a"></span> punkt sprzedaży</span>
-      <span><span class="legend-pin" style="background:#1f5a46"></span> dostawa</span>
+    <Mapa miejsca={miejsca} strefa label="Mapa: magazyn, strefa darmowej dostawy i miejscowości, do których dowozimy" />
+    <p class="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm font-medium">
+      <span><span class="legend-pin legend-pin-magazyn"></span> magazyn</span>
+      <span><span class="legend-zone"></span> strefa darmowej dostawy (ok. {DARMOWA_DOSTAWA_KM} km)</span>
+      <span><span class="legend-dot legend-dot-strefa"></span> miejscowość w strefie</span>
+      <span><span class="legend-dot legend-dot-poza"></span> poza strefą, dostawa po uzgodnieniu</span>
     </p>
 
-    <div class="mt-12 grid gap-12 md:grid-cols-2">
-      <section aria-labelledby="punkty">
-        <h2 id="punkty" class="text-2xl">Punkty sprzedaży</h2>
-        <ul role="list" class="rows mt-4">
-          {
-            punkty.map((m) => (
-              <li>
-                <a href={miejsceHref(m)}>
-                  <span>{m.nazwa}</span>
-                  <p>{m.adres}</p>
-                </a>
-              </li>
-            ))
-          }
-        </ul>
-      </section>
-      <section aria-labelledby="dostawy">
-        <h2 id="dostawy" class="text-2xl">Dowozimy do</h2>
-        <ul role="list" class="rows mt-4">
-          {
-            dostawy.map((m) => (
-              <li>
-                <a href={miejsceHref(m)}>
-                  <span>{m.nazwa}</span>
-                  <p>około {distanceKm(firma.geo, m.geo)} km od Bieżunia · {m.dostawa}</p>
-                </a>
-              </li>
-            ))
-          }
-        </ul>
-      </section>
-    </div>
+    <section class="mt-12" aria-labelledby="podstrony">
+      <h2 id="podstrony" class="text-3xl" data-ruch="mijanie">Dostawa w Twojej okolicy</h2>
+      {
+        grupyPodstron.map((g) => (
+          <div class="mt-6">
+            <h3 id={`podstrony-${g.id}`} class="text-xl">
+              {g.tytul}
+            </h3>
+            <ul role="list" class="tablice mt-3" aria-labelledby={`podstrony-${g.id}`} data-ruch-grupa="tablica">
+              {g.miasta.map((m) => (
+                <li>
+                  <Tablica miejsce={m} href={miejsceHref(m)} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </section>
 
-    <p class="mt-10 max-w-prose text-ink-soft">
-      Nie ma Twojej miejscowości? Zadzwoń pod <a href={firma.phone.href}>{firma.phone.label}</a>,
-      często dowozimy także dalej.
+    <section class="mt-12" aria-labelledby="wszystkie">
+      <h2 id="wszystkie" class="text-3xl" data-ruch="mijanie">Wszystkie miejscowości</h2>
+      <p class="mt-2 max-w-prose text-ink-soft">
+        Odległość od magazynu w linii prostej. Miejscowości w strefie darmowej dostawy są oznaczone
+        „gratis”.
+      </p>
+      <div class="mt-6 grid gap-10 md:grid-cols-2 lg:grid-cols-3" data-ruch-grupa>
+        {
+          grupy.map((g) => (
+            <section aria-label={`Województwo ${g.wojewodztwo}`}>
+              <h3 class="text-xl">Województwo {g.wojewodztwo}</h3>
+              <ul role="list" class="mt-3 space-y-1">
+                {g.miejsca.map((m) => (
+                  <li class="flex justify-between gap-4 border-b border-line py-1">
+                    <span>
+                      <NazwaMiejsca miejsce={m} />
+                    </span>
+                    <span class="shrink-0 text-sm">
+                      {wStrefieDarmowej(m) && <span class="tag-gratis mr-2">gratis</span>}
+                      <span class="font-semibold">{odlegloscKm(m)} km</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))
+        }
+      </div>
+    </section>
+
+    <p class="mt-12 max-w-prose text-ink-soft">
+      Dowozimy też do okolicznych wsi, a na Mazury praktycznie wszędzie. Nie ma Twojej miejscowości?
+      Wszystko jest kwestią dogadania: zadzwoń pod{" "}
+      <a href={firma.phone.href} class="link-strong">{firma.phone.label}</a>.
     </p>
   </PageShell>
 </Base>

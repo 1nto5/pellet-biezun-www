@@ -1,0 +1,17 @@
+---
+/**
+ * A town's name with its note: "Nowe Miasto k. Płońska" as one name,
+ * "Mikołajki (czasem)" with the note small and muted.
+ */
+import type { Miejsce } from "../data/miejsca";
+import { dopisek } from "../lib/miejsce";
+
+interface Props {
+  miejsce: Miejsce;
+}
+
+const { miejsce } = Astro.props;
+const d = dopisek(miejsce);
+---
+
+{miejsce.nazwa}{d && (d.drobny ? <> <span class="text-sm font-normal text-ink-soft">{d.tekst}</span></> : ` ${d.tekst}`)}

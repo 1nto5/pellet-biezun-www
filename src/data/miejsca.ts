@@ -1,102 +1,142 @@
 /**
- * The places the company sells or delivers pellet: one list for the map on
- * /mapa-dystrybucji/, the page of each place under /dostawa/<slug>/, the
- * delivery area in the JSON-LD and llms.txt. Adding a place here adds its pin
- * and its page; nothing else needs touching.
+ * Towns the company delivers pellet to: one list for the map on
+ * /mapa-dystrybucji/, the 15 local pages under /dostawa/<slug>/, the delivery
+ * area in the JSON-LD (areaServed) and llms.txt.
  *
- * `rodzaj`:
- * - "punkt": pellet can be bought or collected there; `adres` says where.
- * - "dostawa": a town the company delivers to.
+ * Whether a town is in the free delivery zone is not stored: it follows from
+ * the straight-line distance to the warehouse (`firma.geo`).
  *
- * `slug` is the part of the address after /dostawa/: lowercase, no Polish
- * letters, written by hand so a renamed place keeps its old address.
+ * `podstrona.slug` is the part of the address after /dostawa/: lowercase, no
+ * Polish letters, written by hand so a page keeps its address.
  *
- * The whole list is PRZYKŁAD: real towns around Bieżuń with made-up details,
- * until the client sends where they actually deliver.
+ * The list is the client's own, sent 2026-09-30, with spelling corrected.
+ * Coordinates from OpenStreetMap (Nominatim).
  */
 import type { Geo } from "../lib/geo";
+import { distanceKm } from "../lib/geo";
+import { firma } from "./firma";
 
-export interface Miejsce {
+export type Wojewodztwo = "mazowieckie" | "łódzkie" | "podlaskie" | "kujawsko-pomorskie" | "warmińsko-mazurskie";
+
+/** Display order of the voivodeship groups. */
+export const wojewodztwa: readonly Wojewodztwo[] = ["mazowieckie", "łódzkie", "podlaskie", "kujawsko-pomorskie", "warmińsko-mazurskie"];
+
+export interface Podstrona {
   slug: string;
-  nazwa: string;
-  /** "w Sierpcu": the form the local page's sentences need. */
+  /** "w Płocku": the form the local page's sentences need. */
   wMiejscowosci: string;
-  rodzaj: "punkt" | "dostawa";
-  geo: Geo;
-  adres?: string;
-  /** Plain sentence, e.g. "Dostawa gratis od 2 palet." */
-  dostawa: string;
-  opis?: string;
-  przykladowe: boolean;
 }
 
+export interface Miejsce {
+  nazwa: string;
+  /** Shown after the name: "k. Płońska", "czasem", "rzadziej". */
+  dopisek?: string;
+  wojewodztwo: Wojewodztwo;
+  geo: Geo;
+  podstrona?: Podstrona;
+}
+
+export type MiejsceZPodstrona = Miejsce & { podstrona: Podstrona };
+
+/** Free delivery radius in km, straight line from the warehouse. */
+export const DARMOWA_DOSTAWA_KM = 80;
+
 export const miejsca: Miejsce[] = [
-  {
-    slug: "biezun",
-    nazwa: "Bieżuń",
-    wMiejscowosci: "w Bieżuniu",
-    rodzaj: "punkt",
-    geo: { lat: 52.9617, lng: 19.8886 },
-    adres: "ul. Przykładowa 1",
-    dostawa: "Odbiór osobisty ze składu albo dostawa gratis na terenie gminy.",
-    opis: "Nasz skład. Na miejscu pellet w workach i big bagach, załadunek wózkiem widłowym.",
-    przykladowe: true,
-  },
-  {
-    slug: "zuromin",
-    nazwa: "Żuromin",
-    wMiejscowosci: "w Żurominie",
-    rodzaj: "dostawa",
-    geo: { lat: 53.0661, lng: 19.9086 },
-    dostawa: "Dostawa gratis od 2 palet, poniżej 80 zł.",
-    przykladowe: true,
-  },
-  {
-    slug: "sierpc",
-    nazwa: "Sierpc",
-    wMiejscowosci: "w Sierpcu",
-    rodzaj: "punkt",
-    geo: { lat: 52.8564, lng: 19.669 },
-    adres: "ul. Przykładowa 10 (punkt partnerski)",
-    dostawa: "Odbiór w punkcie partnerskim albo dostawa gratis od 3 palet.",
-    przykladowe: true,
-  },
-  {
-    slug: "raciaz",
-    nazwa: "Raciąż",
-    wMiejscowosci: "w Raciążu",
-    rodzaj: "dostawa",
-    geo: { lat: 52.7797, lng: 20.1164 },
-    dostawa: "Dostawa gratis od 3 palet, poniżej 120 zł.",
-    przykladowe: true,
-  },
-  {
-    slug: "szrensk",
-    nazwa: "Szreńsk",
-    wMiejscowosci: "w Szreńsku",
-    rodzaj: "dostawa",
-    geo: { lat: 52.983, lng: 20.117 },
-    dostawa: "Dostawa gratis od 2 palet, poniżej 80 zł.",
-    przykladowe: true,
-  },
-  {
-    slug: "lubowidz",
-    nazwa: "Lubowidz",
-    wMiejscowosci: "w Lubowidzu",
-    rodzaj: "dostawa",
-    geo: { lat: 53.135, lng: 19.7875 },
-    dostawa: "Dostawa gratis od 3 palet, poniżej 120 zł.",
-    przykladowe: true,
-  },
-  {
-    slug: "mlawa",
-    nazwa: "Mława",
-    wMiejscowosci: "w Mławie",
-    rodzaj: "dostawa",
-    geo: { lat: 53.1122, lng: 20.3846 },
-    dostawa: "Dostawa od 4 palet, koszt ustalamy przy zamówieniu.",
-    przykladowe: true,
-  },
+  { nazwa: "Bieżuń", wojewodztwo: "mazowieckie", geo: { lat: 52.9618, lng: 19.89 } },
+  { nazwa: "Żuromin", wojewodztwo: "mazowieckie", geo: { lat: 53.0672, lng: 19.9078 }, podstrona: { slug: "zuromin", wMiejscowosci: "w Żurominie" } },
+  { nazwa: "Sierpc", wojewodztwo: "mazowieckie", geo: { lat: 52.8529, lng: 19.6675 }, podstrona: { slug: "sierpc", wMiejscowosci: "w Sierpcu" } },
+  { nazwa: "Raciąż", wojewodztwo: "mazowieckie", geo: { lat: 52.7811, lng: 20.1181 } },
+  { nazwa: "Glinojeck", wojewodztwo: "mazowieckie", geo: { lat: 52.8192, lng: 20.2863 } },
+  { nazwa: "Mława", wojewodztwo: "mazowieckie", geo: { lat: 53.1116, lng: 20.3832 }, podstrona: { slug: "mlawa", wMiejscowosci: "w Mławie" } },
+  { nazwa: "Ciechanów", wojewodztwo: "mazowieckie", geo: { lat: 52.882, lng: 20.6191 }, podstrona: { slug: "ciechanow", wMiejscowosci: "w Ciechanowie" } },
+  { nazwa: "Płońsk", wojewodztwo: "mazowieckie", geo: { lat: 52.6227, lng: 20.3705 }, podstrona: { slug: "plonsk", wMiejscowosci: "w Płońsku" } },
+  { nazwa: "Nowe Miasto", dopisek: "k. Płońska", wojewodztwo: "mazowieckie", geo: { lat: 52.6563, lng: 20.6307 } },
+  { nazwa: "Drobin", wojewodztwo: "mazowieckie", geo: { lat: 52.7378, lng: 19.9893 } },
+  { nazwa: "Bulkowo", wojewodztwo: "mazowieckie", geo: { lat: 52.5428, lng: 20.1162 } },
+  { nazwa: "Staroźreby", wojewodztwo: "mazowieckie", geo: { lat: 52.6322, lng: 19.9876 } },
+  { nazwa: "Bielsk", wojewodztwo: "mazowieckie", geo: { lat: 52.6713, lng: 19.8049 } },
+  { nazwa: "Płock", wojewodztwo: "mazowieckie", geo: { lat: 52.5465, lng: 19.7009 }, podstrona: { slug: "plock", wMiejscowosci: "w Płocku" } },
+  { nazwa: "Gostynin", wojewodztwo: "mazowieckie", geo: { lat: 52.4288, lng: 19.4613 } },
+  { nazwa: "Gąbin", wojewodztwo: "mazowieckie", geo: { lat: 52.3994, lng: 19.7307 } },
+  { nazwa: "Iłów", wojewodztwo: "mazowieckie", geo: { lat: 52.3395, lng: 20.0263 } },
+  { nazwa: "Sanniki", wojewodztwo: "mazowieckie", geo: { lat: 52.3309, lng: 19.8669 } },
+  { nazwa: "Wyszogród", wojewodztwo: "mazowieckie", geo: { lat: 52.3884, lng: 20.1913 } },
+  { nazwa: "Sochaczew", wojewodztwo: "mazowieckie", geo: { lat: 52.2297, lng: 20.2379 } },
+  { nazwa: "Cieksyn", wojewodztwo: "mazowieckie", geo: { lat: 52.5743, lng: 20.6678 } },
+  { nazwa: "Nasielsk", wojewodztwo: "mazowieckie", geo: { lat: 52.5868, lng: 20.813 } },
+  { nazwa: "Nowy Dwór Mazowiecki", wojewodztwo: "mazowieckie", geo: { lat: 52.4307, lng: 20.7155 } },
+  { nazwa: "Serock", wojewodztwo: "mazowieckie", geo: { lat: 52.5135, lng: 21.0731 } },
+  { nazwa: "Pułtusk", wojewodztwo: "mazowieckie", geo: { lat: 52.7051, lng: 21.084 } },
+  { nazwa: "Karniewo", wojewodztwo: "mazowieckie", geo: { lat: 52.8359, lng: 20.9913 } },
+  { nazwa: "Maków Mazowiecki", wojewodztwo: "mazowieckie", geo: { lat: 52.8657, lng: 21.1012 } },
+  { nazwa: "Różan", wojewodztwo: "mazowieckie", geo: { lat: 52.8893, lng: 21.3993 } },
+  { nazwa: "Długosiodło", wojewodztwo: "mazowieckie", geo: { lat: 52.7596, lng: 21.5929 } },
+  { nazwa: "Zaręby Kościelne", wojewodztwo: "mazowieckie", geo: { lat: 52.7571, lng: 22.1248 } },
+  { nazwa: "Brok", wojewodztwo: "mazowieckie", geo: { lat: 52.6989, lng: 21.8602 } },
+  { nazwa: "Małkinia Górna", wojewodztwo: "mazowieckie", geo: { lat: 52.6932, lng: 22.0351 } },
+  { nazwa: "Ostrów Mazowiecka", wojewodztwo: "mazowieckie", geo: { lat: 52.8, lng: 21.8976 } },
+  { nazwa: "Ostrołęka", wojewodztwo: "mazowieckie", geo: { lat: 53.0843, lng: 21.5669 }, podstrona: { slug: "ostroleka", wMiejscowosci: "w Ostrołęce" } },
+  { nazwa: "Baranowo", wojewodztwo: "mazowieckie", geo: { lat: 53.1752, lng: 21.2952 } },
+  { nazwa: "Kadzidło", wojewodztwo: "mazowieckie", geo: { lat: 53.2346, lng: 21.4643 } },
+  { nazwa: "Krasnosielc", wojewodztwo: "mazowieckie", geo: { lat: 53.0336, lng: 21.1575 } },
+  { nazwa: "Jednorożec", wojewodztwo: "mazowieckie", geo: { lat: 53.1405, lng: 21.0506 } },
+  { nazwa: "Przasnysz", wojewodztwo: "mazowieckie", geo: { lat: 53.019, lng: 20.8804 }, podstrona: { slug: "przasnysz", wMiejscowosci: "w Przasnyszu" } },
+  { nazwa: "Chorzele", wojewodztwo: "mazowieckie", geo: { lat: 53.261, lng: 20.8979 } },
+  { nazwa: "Myszyniec", wojewodztwo: "mazowieckie", geo: { lat: 53.3832, lng: 21.3421 } },
+  { nazwa: "Łowicz", wojewodztwo: "łódzkie", geo: { lat: 52.1077, lng: 19.9448 } },
+  { nazwa: "Kiernozia", wojewodztwo: "łódzkie", geo: { lat: 52.2688, lng: 19.8711 } },
+  { nazwa: "Żychlin", wojewodztwo: "łódzkie", geo: { lat: 52.244, lng: 19.6261 } },
+  { nazwa: "Łomża", wojewodztwo: "podlaskie", geo: { lat: 53.1751, lng: 22.0728 } },
+  { nazwa: "Włocławek", wojewodztwo: "kujawsko-pomorskie", geo: { lat: 52.6604, lng: 19.0719 }, podstrona: { slug: "wloclawek", wMiejscowosci: "we Włocławku" } },
+  { nazwa: "Dobrzyń nad Wisłą", wojewodztwo: "kujawsko-pomorskie", geo: { lat: 52.6375, lng: 19.3214 } },
+  { nazwa: "Tłuchowo", wojewodztwo: "kujawsko-pomorskie", geo: { lat: 52.7468, lng: 19.4673 } },
+  { nazwa: "Wielgie", wojewodztwo: "kujawsko-pomorskie", geo: { lat: 52.7404, lng: 19.2617 } },
+  { nazwa: "Lipno", wojewodztwo: "kujawsko-pomorskie", geo: { lat: 52.8474, lng: 19.1793 } },
+  { nazwa: "Skępe", wojewodztwo: "kujawsko-pomorskie", geo: { lat: 52.8672, lng: 19.3465 } },
+  { nazwa: "Kikół", wojewodztwo: "kujawsko-pomorskie", geo: { lat: 52.9123, lng: 19.1203 } },
+  { nazwa: "Czernikowo", wojewodztwo: "kujawsko-pomorskie", geo: { lat: 52.9423, lng: 18.9373 } },
+  { nazwa: "Obrowo", wojewodztwo: "kujawsko-pomorskie", geo: { lat: 52.9712, lng: 18.8789 } },
+  { nazwa: "Ciechocin", wojewodztwo: "kujawsko-pomorskie", geo: { lat: 53.0565, lng: 18.9244 } },
+  { nazwa: "Kowalewo Pomorskie", wojewodztwo: "kujawsko-pomorskie", geo: { lat: 53.1543, lng: 18.8975 } },
+  { nazwa: "Golub-Dobrzyń", wojewodztwo: "kujawsko-pomorskie", geo: { lat: 53.1139, lng: 19.0545 } },
+  { nazwa: "Jabłonowo Pomorskie", wojewodztwo: "kujawsko-pomorskie", geo: { lat: 53.388, lng: 19.1527 } },
+  { nazwa: "Wąbrzeźno", wojewodztwo: "kujawsko-pomorskie", geo: { lat: 53.28, lng: 18.9473 } },
+  { nazwa: "Brodnica", wojewodztwo: "kujawsko-pomorskie", geo: { lat: 53.2581, lng: 19.3994 }, podstrona: { slug: "brodnica", wMiejscowosci: "w Brodnicy" } },
+  { nazwa: "Rypin", wojewodztwo: "kujawsko-pomorskie", geo: { lat: 53.0673, lng: 19.406 }, podstrona: { slug: "rypin", wMiejscowosci: "w Rypinie" } },
+  { nazwa: "Nowe Miasto Lubawskie", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.4256, lng: 19.5936 } },
+  { nazwa: "Lubawa", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.5051, lng: 19.7494 } },
+  { nazwa: "Iława", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.5976, lng: 19.5612 }, podstrona: { slug: "ilawa", wMiejscowosci: "w Iławie" } },
+  { nazwa: "Grunwald", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.4853, lng: 20.0915 } },
+  { nazwa: "Dąbrówno", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.433, lng: 20.0361 } },
+  { nazwa: "Działdowo", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.2347, lng: 20.1818 }, podstrona: { slug: "dzialdowo", wMiejscowosci: "w Działdowie" } },
+  { nazwa: "Lidzbark", dopisek: "Welski", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.2628, lng: 19.8232 } },
+  { nazwa: "Kozłowo", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.3072, lng: 20.2931 } },
+  { nazwa: "Nidzica", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.3614, lng: 20.4276 } },
+  { nazwa: "Olsztynek", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.5834, lng: 20.2816 } },
+  { nazwa: "Jedwabno", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.5298, lng: 20.7268 } },
+  { nazwa: "Pasym", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.6522, lng: 20.7917 } },
+  { nazwa: "Dźwierzuty", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.7046, lng: 20.9609 } },
+  { nazwa: "Szczytno", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.5655, lng: 20.9916 }, podstrona: { slug: "szczytno", wMiejscowosci: "w Szczytnie" } },
+  { nazwa: "Rozogi", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.4824, lng: 21.3597 } },
+  { nazwa: "Wielbark", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.3984, lng: 20.9463 } },
+  { nazwa: "Stare Kiełbonki", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.662, lng: 21.3446 } },
+  { nazwa: "Biskupiec", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.8638, lng: 20.955 } },
+  { nazwa: "Mrągowo", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.8661, lng: 21.3046 } },
+  { nazwa: "Mikołajki", dopisek: "czasem", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.7982, lng: 21.5772 } },
+  { nazwa: "Reszel", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 54.0483, lng: 21.1422 } },
+  { nazwa: "Barczewo", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.8297, lng: 20.6911 } },
+  { nazwa: "Jeziorany", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.9769, lng: 20.7459 } },
+  { nazwa: "Lidzbark Warmiński", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 54.1259, lng: 20.5806 } },
+  { nazwa: "Bartoszyce", dopisek: "rzadziej", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 54.2524, lng: 20.8144 } },
+  { nazwa: "Dobre Miasto", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.9869, lng: 20.3973 } },
+  { nazwa: "Dywity", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.834, lng: 20.4734 } },
+  { nazwa: "Olsztyn", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.7767, lng: 20.4765 }, podstrona: { slug: "olsztyn", wMiejscowosci: "w Olsztynie" } },
+  { nazwa: "Gietrzwałd", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.748, lng: 20.2344 } },
+  { nazwa: "Łukta", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.8049, lng: 20.084 } },
+  { nazwa: "Ostróda", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.7029, lng: 19.9623 } },
 ];
 
-export const miejsceHref = (m: Miejsce) => `/dostawa/${m.slug}/`;
+export const podstrony: MiejsceZPodstrona[] = miejsca.filter((m): m is MiejsceZPodstrona => m.podstrona !== undefined);
+export const miejsceHref = (m: MiejsceZPodstrona) => `/dostawa/${m.podstrona.slug}/`;
+export const odlegloscKm = (m: Miejsce) => distanceKm(firma.geo, m.geo);
+export const wStrefieDarmowej = (m: Miejsce) => odlegloscKm(m) <= DARMOWA_DOSTAWA_KM;

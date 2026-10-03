@@ -1,0 +1,70 @@
+---
+/**
+ * One view of the road: pine forest and the roadside grass behind, the hall,
+ * km posts, direction boards and the end-of-zone sign along the way, the
+ * road, the truck, and the customer's house on the near side of the road.
+ * The truck faces left and the world passes it to the right. `stan` sets
+ * where everything stands (see `trasa.ts`); the live drive changes the same
+ * custom properties as the reader scrolls, the static frames keep them fixed.
+ *
+ * Only a picture: the story it shows is told in text next to it.
+ */
+import Ciezarowka from "./Ciezarowka.astro";
+import Hala from "./Hala.astro";
+import Dom from "./Dom.astro";
+import Ladowarka from "./Ladowarka.astro";
+import KoniecStrefy from "./KoniecStrefy.astro";
+import Paleta from "./Paleta.astro";
+import { obrazy } from "./obrazy";
+import { tablice, slupki, KM_DOJAZD, stanStyle, type Stan } from "./trasa";
+import { DARMOWA_DOSTAWA_KM } from "../../data/miejsca";
+
+interface Props {
+  stan: Stan;
+  /** Marks the scene the scroll script drives. */
+  live?: boolean;
+}
+
+const { stan, live = false } = Astro.props;
+
+/** The two bands behind the road, as CSS backgrounds (droga.css). */
+const pasy = `--las:url(${obrazy.las});--pobocze:url(${obrazy.pobocze})`;
+---
+
+<div class="scena" aria-hidden="true" style={pasy}>
+  <div class="scena-in" style={stanStyle(stan)} data-scena-live={live ? "" : undefined}>
+    <div class="las"></div>
+    <div class="pola"></div>
+    <div class="swiat">
+      <div class="w-hala"><Hala eager={live} /></div>
+      {slupki.map((km) => <div class="w-slupek" style={`--at:${km}`}>{km}</div>)}
+      {
+        tablice.map((t) => (
+          <div class="w-tablica" style={`--at:${t.naDrodze}`}>
+            <div class="sign">
+              {t.miasta.map((m) => (
+                <p>
+                  <span>{m.nazwa}</span> <span>{m.km}</span>
+                </p>
+              ))}
+            </div>
+          </div>
+        ))
+      }
+      <div class="w-koniec" style={`--at:${KM_DOJAZD}`}><KoniecStrefy km={DARMOWA_DOSTAWA_KM} /></div>
+    </div>
+    <div class="jezdnia"></div>
+    <div class="swiat">
+      <div class="w-widlak"><Ladowarka eager={live} /></div>
+    </div>
+    <div class="rig"><Ciezarowka /></div>
+    <div class="swiat">
+      <div class="w-dom" style={`--at:${KM_DOJAZD}`}><Dom eager={live} /></div>
+    </div>
+    <div class="rig">
+      <svg viewBox="0 0 240 108" overflow="visible" aria-hidden="true" focusable="false">
+        <Paleta class="paleta-przed-domem" zWozkiem />
+      </svg>
+    </div>
+  </div>
+</div>

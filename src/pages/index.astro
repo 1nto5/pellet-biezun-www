@@ -1,116 +1,322 @@
 ---
 import Base from "../layouts/Base.astro";
 import Button from "../components/Button.astro";
-import Figure from "../components/Figure.astro";
+import Pasy from "../components/Pasy.astro";
+import Tablica from "../components/Tablica.astro";
+import TablicaWjazdowa from "../components/TablicaWjazdowa.astro";
+import Droga from "../components/droga/Droga.astro";
+import { Image } from "astro:assets";
 import { firma, addressLine, hoursRange } from "../data/firma";
-import { produkty, cenaLabel } from "../data/oferta";
-import { miejsca, miejsceHref } from "../data/miejsca";
-import hero from "../assets/hero.jpg";
+import { produkty, cenyLabel, paletaLabel } from "../data/oferta";
+import { DARMOWA_DOSTAWA_KM, podstrony, miejsceHref, odlegloscKm, wStrefieDarmowej } from "../data/miejsca";
 
-/** Three facts a buyer asks about first. PRZYKŁAD until the client confirms them. */
-const zalety = [
-  { tytul: "Certyfikat ENplus A1", tekst: "Niska zawartość popiołu i stała wartość opałowa, sprawdzone w laboratorium." },
-  { tytul: "Dostawa pod dom", tekst: "Własny transport z windą. W gminie Bieżuń dowozimy gratis." },
-  { tytul: "Odbiór na miejscu", tekst: "Skład w Bieżuniu: worki i big bagi od ręki, załadunek wózkiem widłowym." },
-];
+/** "Pellet Bieżuń" → the two lines of the sign. */
+const [pellet, miasto] = firma.name.split(" ");
+
+/** Bag weights on offer; one number while every product comes in the same bag. */
+const workiKg = [...new Set(produkty.map((p) => p.workiKg))].join(" i ");
+
+/** The local pages, nearest first, split by whether delivery is free. */
+const miasta = [...podstrony].sort((a, b) => odlegloscKm(a) - odlegloscKm(b));
+const grupy = [
+  { id: "gratis", tytul: "Dostawa gratis", miasta: miasta.filter(wStrefieDarmowej) },
+  { id: "po-uzgodnieniu", tytul: "Dostawa po uzgodnieniu", miasta: miasta.filter((m) => !wStrefieDarmowej(m)) },
+].filter((g) => g.miasta.length > 0);
 ---
 
 <Base>
-  <section class="page-wrap py-12 md:py-16" aria-labelledby="hero-title">
-    <div class="grid items-center gap-10 md:grid-cols-2 md:gap-14">
-      <div class="intro">
-        <h1 id="hero-title" class="text-4xl md:text-5xl">
-          Pellet drzewny<br />
-          z dostawą pod dom
-        </h1>
-        <p class="mt-6 max-w-[44ch] text-lg text-ink-soft">
-          Worki 15 kg, big bagi i luz. Skład w Bieżuniu, dowozimy w promieniu około 50 km.
+  <Droga>
+    <section class="hero page-wrap" aria-labelledby="hero-title">
+      <h1 id="hero-title" class="wordmark">
+        <span class="wordmark-pellet">{pellet}</span>
+        <span class="wordmark-miasto">{miasto}</span>
+        <span class="wordmark-opis">pellet drzewny z dostawą</span>
+      </h1>
+      <div class="hero-dol">
+        <p class="hero-fakt">
+          Sprzedajemy pellet drzewny w workach {workiKg} kg na paletach. Dowozimy gratis do ok.&nbsp;{DARMOWA_DOSTAWA_KM}&nbsp;km {firma.odMiasta}.
         </p>
-        <div class="mt-8 flex flex-wrap gap-3">
+        <div class="hero-akcje">
           <Button href="/zamowienie/">Zamów pellet</Button>
-          <Button href="/oferta/" variant="secondary">Oferta i ceny</Button>
+          <a href={firma.phone.href} class="telefon">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"
+              ><path
+                fill="currentColor"
+                d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"
+              ></path></svg
+            >
+            <span class="sr-only">Zadzwoń: </span>{firma.phone.label}
+          </a>
         </div>
       </div>
-      <Figure
-        src={hero}
-        alt="Zdjęcie przykładowe: pellet drzewny"
-        loading="eager"
-        sizes="(min-width: 48rem) 32rem, 100vw"
-        class="intro-figure"
-      />
-    </div>
-  </section>
+    </section>
+  </Droga>
 
-  <section class="border-y border-line bg-sand" aria-labelledby="dlaczego">
-    <div class="page-wrap py-12 md:py-16">
-      <h2 id="dlaczego" class="text-2xl md:text-3xl" data-reveal>Dlaczego u nas</h2>
-      <ul role="list" class="mt-8 grid gap-6 md:grid-cols-3" data-reveal-group>
+  <section class="page-wrap pt-10 pb-16 md:pt-14 md:pb-24" aria-labelledby="oferta-skrot">
+    <div class="baner">
+      <p class="naklejka">
+        <span>Większe zamówienie?</span>
+        <strong>Cena do negocjacji</strong>
+      </p>
+      <h2 id="oferta-skrot" class="text-3xl md:text-4xl" data-ruch="mijanie">Co przywozimy</h2>
+      <ul role="list" class="mt-8 grid gap-10 md:grid-cols-2" data-ruch-grupa>
         {
-          zalety.map((z) => (
-            <li class="card">
-              <h3 class="text-xl">{z.tytul}</h3>
-              <p class="mt-2 text-ink-soft">{z.tekst}</p>
+          produkty.map((p) => (
+            <li class="produkt">
+              <Image
+                src={p.zdjecie.src}
+                alt={p.zdjecie.alt}
+                widths={[240, 400]}
+                sizes="(min-width: 48rem) 12rem, 40vw"
+                class="produkt-foto"
+              />
+              <div>
+                <h3 class="text-xl md:text-2xl">{p.nazwa}</h3>
+                <p class="mt-1 text-ink-soft">{paletaLabel(p)}</p>
+                <p class="price mt-3 text-2xl">{cenyLabel(p)[0]}</p>
+                {cenyLabel(p)[1] && <p class="text-ink-soft">{cenyLabel(p)[1]}</p>}
+              </div>
             </li>
           ))
         }
       </ul>
+      <div class="mt-8 flex flex-wrap items-center gap-x-8 gap-y-4">
+        <Button href="/zamowienie/">Zamów pellet</Button>
+        <a href={firma.phone.href} class="telefon">
+          <span class="sr-only">Zadzwoń: </span>{firma.phone.label}
+        </a>
+      </div>
     </div>
   </section>
 
-  <section class="page-wrap py-12 md:py-16" aria-labelledby="oferta-skrot">
-    <div class="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2" data-reveal>
-      <h2 id="oferta-skrot" class="text-2xl md:text-3xl">Oferta</h2>
-      <a href="/oferta/" class="link-strong">Parametry i szczegóły</a>
-    </div>
-    <ul role="list" class="mt-8 grid gap-6 md:grid-cols-3" data-reveal-group>
-      {
-        produkty.map((p) => (
-          <li class="card">
-            <h3 class="text-xl">{p.nazwa}</h3>
-            <p class="mt-1 text-sm text-ink-soft">{p.forma}</p>
-            <p class="price mt-4 text-2xl">{cenaLabel(p)}</p>
-          </li>
-        ))
-      }
-    </ul>
-    <p class="mt-4 text-sm text-ink-soft" data-reveal>Ceny brutto, bez kosztu dostawy.</p>
+  <section class="page-wrap pb-16 md:pb-24" aria-labelledby="dostawy-skrot">
+    <Pasy />
+    <h2 id="dostawy-skrot" class="mt-6 text-3xl md:text-4xl" data-ruch="mijanie">Gdzie dowozimy</h2>
+    <p class="mt-3 max-w-prose text-lg">
+      W promieniu ok. {DARMOWA_DOSTAWA_KM} km od magazynu dowozimy gratis, dalej warunki ustalamy
+      indywidualnie. Odległości podajemy w linii prostej.
+    </p>
+    {
+      grupy.map((g) => (
+        <div class="mt-8">
+          <h3 id={`dostawa-${g.id}`} class="text-xl">
+            {g.tytul}
+          </h3>
+          <ul role="list" class="tablice mt-3" aria-labelledby={`dostawa-${g.id}`} data-ruch-grupa="tablica">
+            {g.miasta.map((m) => (
+              <li>
+                <Tablica miejsce={m} href={miejsceHref(m)} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))
+    }
+    <p class="mt-8 text-lg">
+      Mniejsze miejscowości i wsie są na <a href="/mapa-dystrybucji/" class="link-strong">mapie dystrybucji</a>.
+    </p>
   </section>
 
-  <section class="page-wrap pb-12 md:pb-16" aria-labelledby="dostawy-skrot" data-reveal>
-    <div class="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2">
-      <h2 id="dostawy-skrot" class="text-2xl md:text-3xl">Gdzie dowozimy</h2>
-      <a href="/mapa-dystrybucji/" class="link-strong">Mapa dystrybucji</a>
-    </div>
-    <ul role="list" class="mt-6 flex flex-wrap gap-x-5 gap-y-2">
-      {
-        miejsca.map((m) => (
-          <li>
-            <a href={miejsceHref(m)}>{m.nazwa}</a>
-          </li>
-        ))
-      }
-    </ul>
-  </section>
-
-  <section class="border-t border-line bg-sand" aria-labelledby="kontakt-skrot">
-    <div
-      class="page-wrap grid gap-8 py-12 md:grid-cols-[1fr_auto] md:items-center md:py-16"
-      data-reveal
-    >
+  <section class="kontakt" aria-labelledby="kontakt-skrot">
+    <div class="page-wrap grid gap-10 py-16 md:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] md:items-center md:gap-16 md:py-20">
+      <div data-ruch="tablica"><TablicaWjazdowa /></div>
       <div>
-        <h2 id="kontakt-skrot" class="text-2xl">Skład i kontakt</h2>
-        <address class="mt-3 text-ink-soft">
+        <h2 id="kontakt-skrot" class="text-3xl md:text-4xl" data-ruch="mijanie">Magazyn i kontakt</h2>
+        <address class="mt-4 text-lg">
           {addressLine()}<br />
-          tel. <a href={firma.phone.href}>{firma.phone.label}</a>
+          tel. <a href={firma.phone.href} class="link-strong">{firma.phone.label}</a>
         </address>
         <p class="mt-2 text-ink-soft">
-          {firma.hours.map((h) => `${h.label} ${hoursRange(h)}`).join(", ")}
+          {firma.hours.map((h, i) => `${i ? h.label.toLowerCase() : h.label} ${hoursRange(h)}`).join(", ")}. Odbiór osobisty po
+          wcześniejszym telefonie.
         </p>
-      </div>
-      <div class="flex flex-wrap gap-3">
-        <Button href="/kontakt/">Kontakt</Button>
-        <Button href={firma.phone.href} variant="secondary">Zadzwoń</Button>
+        <div class="mt-6">
+          <Button href="/kontakt/" variant="secondary">Kontakt i formularz</Button>
+        </div>
       </div>
     </div>
   </section>
 </Base>
+
+<style>
+  /* The sign at poster size: PELLET as wide as the column, the town under
+     it spaced out to the same width, as on the banner. The capitals are a
+     style; the heading reads "Pellet Bieżuń". */
+  .hero {
+    padding-top: clamp(0.75rem, 2.5svh, 2rem);
+    padding-bottom: 1rem;
+    overflow-x: clip;
+  }
+  .wordmark {
+    --wm: min(27vw, 30svh, 17rem);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-transform: uppercase;
+    font-weight: 900;
+    line-height: 0.8;
+    letter-spacing: -0.045em;
+    white-space: nowrap;
+    overflow-wrap: normal;
+    text-wrap: nowrap;
+  }
+  .wordmark-pellet {
+    font-size: var(--wm);
+    margin-left: -0.04em;
+  }
+  /* Set like the sign: heavy, normal tracking, sized to end under the T. */
+  .wordmark-miasto {
+    margin-top: 0.2em;
+    margin-left: -0.03em;
+    font-size: calc(var(--wm) * 0.915);
+    letter-spacing: -0.02em;
+  }
+  /* The rest of the h1, so search engines read what the company does, not
+     only its name. */
+  .wordmark-opis {
+    margin-top: 0.6rem;
+    font-size: clamp(1.05rem, 1.6vw, 1.35rem);
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  .hero-dol {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1.25rem;
+  }
+  .hero-fakt {
+    max-width: 34ch;
+    font-size: 1.1rem;
+    font-weight: 500;
+    line-height: 1.35;
+  }
+  .hero-akcje {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.5rem;
+  }
+  /* Wide windows: the facts and the two actions beside the wordmark, at its
+     foot. */
+  @media (min-width: 56rem) {
+    .hero {
+      display: grid;
+      grid-template-columns: auto minmax(0, 24rem);
+      align-items: end;
+      column-gap: clamp(2rem, 5vw, 4.5rem);
+    }
+    .hero-dol {
+      margin-top: 0;
+      padding-bottom: 0.3rem;
+    }
+    .hero-fakt {
+      font-size: 1.3rem;
+    }
+  }
+
+  /* The phone written like on the truck: big, heavy, black. */
+  .telefon {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--color-black);
+    font-size: clamp(1.3rem, 5vw, 1.5rem);
+    font-weight: 900;
+    letter-spacing: -0.01em;
+    text-decoration-line: underline;
+    text-decoration-color: var(--color-yellow);
+    text-decoration-thickness: 0.2rem;
+    text-underline-offset: 0.2em;
+  }
+  .telefon:hover {
+    color: var(--color-black);
+    text-decoration-thickness: 0.3rem;
+  }
+  .telefon svg {
+    width: 1.1em;
+    height: 1.1em;
+  }
+
+  /* The banner: white, thin rounded yellow frame. */
+  .baner {
+    position: relative;
+    padding: 1.75rem 1.25rem;
+    border: 0.3rem solid var(--color-yellow);
+    border-radius: 1rem;
+  }
+  @media (min-width: 40rem) {
+    .baner {
+      padding: 2.5rem 2.75rem;
+    }
+  }
+  /* A shop-window sticker, after the red "DOSTAWA GRATIS!" disc on the
+     printer's banner: stuck over the panel's corner on wide screens, a tilted
+     tag under the heading on phones. */
+  .naklejka {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    margin-bottom: 1.25rem;
+    padding: 0.7rem 1.1rem;
+    background: var(--color-red);
+    color: var(--color-white);
+    border-radius: 0.75rem;
+    transform: rotate(-3deg);
+    line-height: 1.1;
+    text-align: center;
+  }
+  .naklejka span {
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+  .naklejka strong {
+    font-size: 1.3rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+  @media (min-width: 48rem) {
+    .naklejka {
+      position: absolute;
+      top: -2.75rem;
+      right: 2rem;
+      justify-content: center;
+      width: 11rem;
+      aspect-ratio: 1;
+      margin: 0;
+      padding: 1rem;
+      border-radius: 50%;
+      transform: rotate(-10deg);
+      box-shadow: 0 0 0 0.3rem var(--color-white);
+    }
+    .naklejka strong {
+      font-size: 1.35rem;
+    }
+  }
+  .produkt {
+    display: grid;
+    grid-template-columns: 7rem minmax(0, 1fr);
+    align-items: center;
+    gap: 1.25rem;
+  }
+  @media (min-width: 40rem) {
+    .produkt {
+      grid-template-columns: 10rem minmax(0, 1fr);
+    }
+  }
+  /* Packshots are shot on white; multiply lets that white vanish into the
+     page, so only the bag and its shadow show. */
+  .produkt-foto {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 4;
+    object-fit: contain;
+    mix-blend-mode: multiply;
+  }
+
+  .kontakt {
+    background: var(--color-sand);
+  }
+</style>

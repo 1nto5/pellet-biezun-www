@@ -1,0 +1,25 @@
+---
+/**
+ * A green direction board for one town: its name and the distance from the
+ * warehouse. With `href` the whole board is a link to the town's page.
+ * `.tablica` in global.css.
+ */
+import NazwaMiejsca from "./NazwaMiejsca.astro";
+import type { Miejsce } from "../data/miejsca";
+import { odlegloscKm } from "../data/miejsca";
+
+interface Props {
+  miejsce: Miejsce;
+  href?: string;
+  /** Distance to show; the distance from the warehouse when left out. */
+  km?: number;
+}
+
+const { miejsce, href, km = odlegloscKm(miejsce) } = Astro.props;
+const Tag = href ? "a" : "div";
+---
+
+<Tag href={href} class="sign tablica">
+  <span class="tablica-nazwa"><NazwaMiejsca miejsce={miejsce} /></span>
+  <span class="tablica-km">{km} km</span>
+</Tag>

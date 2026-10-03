@@ -1,0 +1,12 @@
+---
+/**
+ * The livery's slanted yellow stripes, as a divider between parts of a page.
+ * Drawn only; screen readers skip it.
+ */
+interface Props {
+  class?: string;
+}
+const { class: className } = Astro.props;
+---
+
+<div class:list={["pasy", className]} aria-hidden="true"><span></span><span></span><span></span></div>

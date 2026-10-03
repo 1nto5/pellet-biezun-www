@@ -35,13 +35,12 @@ const hasHeader = Astro.slots.has("header");
     twoColumn && (
       <div
         class="aside-sticky space-y-8 lg:sticky lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:self-start"
-        data-reveal
       >
         <slot name="aside" />
       </div>
     )
   }
-  <div class:list={["min-w-0", twoColumn && "lg:col-start-1 lg:row-start-2"]} data-reveal>
+  <div class:list={["min-w-0", twoColumn && "lg:col-start-1 lg:row-start-2"]}>
     <slot />
   </div>
 </div>

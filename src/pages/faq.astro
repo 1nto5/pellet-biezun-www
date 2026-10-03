@@ -2,6 +2,7 @@
 import Base from "../layouts/Base.astro";
 import PageShell from "../components/PageShell.astro";
 import PageHeader from "../components/PageHeader.astro";
+import TablicaWjazdowa from "../components/TablicaWjazdowa.astro";
 import { faq } from "../data/faq";
 import { firma } from "../data/firma";
 
@@ -18,13 +19,14 @@ const faqPage = {
 
 <Base
   title="Częste pytania"
-  description="Odpowiedzi na częste pytania o pellet: minimalne zamówienie, koszt i czas dostawy, certyfikat, płatność, przechowywanie."
+  description="Odpowiedzi na częste pytania o pellet: palety, koszt dostawy, rozładunek, przechowywanie, certyfikaty, odbiór z magazynu."
   jsonLd={[faqPage]}
 >
   <PageShell>
     <PageHeader slot="header" title="Częste pytania" />
 
-    <div class="faq max-w-prose">
+    <div class="grid gap-12 lg:grid-cols-[minmax(0,1fr)_22rem]">
+    <div class="faq max-w-prose" data-ruch-grupa>
       {
         faq.map((item, i) => (
           <details open={i === 0}>
@@ -35,9 +37,13 @@ const faqPage = {
       }
     </div>
 
-    <p class="mt-10 max-w-prose text-ink-soft">
-      Nie ma tu Twojego pytania? Zadzwoń pod <a href={firma.phone.href}>{firma.phone.label}</a> albo
-      <a href="/kontakt/">napisz do nas</a>.
-    </p>
+    <aside class="space-y-5 self-start lg:sticky lg:top-[calc(var(--header-height)+1.5rem)]" aria-label="Kontakt">
+      <p class="text-lg font-medium">
+        Nie ma tu Twojego pytania? Zadzwoń pod <a href={firma.phone.href} class="link-strong">{firma.phone.label}</a> albo
+        <a href="/kontakt/">napisz do nas</a>.
+      </p>
+      <TablicaWjazdowa />
+    </aside>
+    </div>
   </PageShell>
 </Base>

@@ -3,10 +3,9 @@
  */
 
 /**
- * The client has not sent their details yet, so the company data, prices,
- * photos and delivery places are made up. While this is true every page shows
- * a strip saying so and carries `noindex`, so search engines do not keep the
- * made-up data. Set to false once every value marked PRZYKŁAD is replaced
+ * Some of the company's details (registered name, NIP, hours, e-mail) are
+ * still made up. While this is true every page shows a strip saying so and
+ * carries `noindex`, so search engines do not keep the made-up data. Set to false once every value marked PRZYKŁAD is replaced
  * (`grep -rn PRZYKŁAD src astro.config.mjs` lists them).
  */
 export const daneprzykladowe = true;

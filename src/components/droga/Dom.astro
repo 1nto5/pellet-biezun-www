@@ -1,0 +1,16 @@
+---
+/**
+ * The customer's house, front elevation, the open double garage on its left
+ * so it faces the parked truck. It stands on the near side of the road, so it
+ * passes in front of the truck and is never covered by it.
+ */
+import { Image } from "astro:assets";
+import { dom } from "./obrazy";
+
+interface Props {
+  eager?: boolean;
+}
+const { eager = false } = Astro.props;
+---
+
+<Image src={dom} width={1460} format="webp" alt="" loading={eager ? "eager" : "lazy"} />

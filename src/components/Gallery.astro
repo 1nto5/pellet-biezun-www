@@ -1,7 +1,9 @@
 ---
 /**
  * A grid of photographs. Each one is a button that opens the full picture in a
- * native <dialog>; Escape and a click on the backdrop close it.
+ * native <dialog>; Escape and a click on the backdrop close it. Inside, the
+ * arrow buttons, the arrow keys and a finger swipe move to the previous or
+ * next photo, round from the last to the first.
  *
  * Without JavaScript the buttons do nothing and the grid is simply a grid of
  * photographs, which is most of what it is for.
@@ -27,7 +29,7 @@ const items = await Promise.all(
 ---
 
 <div data-gallery>
-  <ul class="gallery" role="list" data-reveal-group>
+  <ul class="gallery" role="list" data-ruch-grupa>
     {
       items.map((photo) => (
         <li>
@@ -46,21 +48,101 @@ const items = await Promise.all(
     {/* The <img> is built by the script on the first open: an image element
         with nothing to show yet would have to ship without a `src`. */}
     <div class="lightbox-bar">
-      <!-- The same words as the picture's alt text; read once, by the image. -->
-      <p class="lightbox-caption" aria-hidden="true"></p>
-      <button type="button" class="tool" data-lightbox-close>Zamknij</button>
+      <div class="lightbox-tools">
+        <button type="button" class="tool" data-lightbox-step="-1" hidden={items.length < 2}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" aria-hidden="true">
+            <path d="M15 5l-7 7 7 7"></path>
+          </svg>
+          <span class="sr-only">Poprzednie zdjęcie</span>
+        </button>
+        <p class="lightbox-count" aria-live="polite"></p>
+        <button type="button" class="tool" data-lightbox-step="1" hidden={items.length < 2}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" aria-hidden="true">
+            <path d="M9 5l7 7-7 7"></path>
+          </svg>
+          <span class="sr-only">Następne zdjęcie</span>
+        </button>
+        <button type="button" class="tool" data-lightbox-close autofocus>Zamknij</button>
+      </div>
     </div>
   </dialog>
 </div>
 
 <script>
+  const thumbsOf = (dialog: HTMLDialogElement) => [
+    ...dialog.closest("[data-gallery]")!.querySelectorAll<HTMLButtonElement>("button[data-full]"),
+  ];
+
+  /** Shows photo `index` (any whole number; it wraps round) in the dialog. */
+  function show(dialog: HTMLDialogElement, index: number) {
+    const thumbs = thumbsOf(dialog);
+    const n = thumbs.length;
+    index = ((index % n) + n) % n;
+    const thumb = thumbs[index];
+    dialog.dataset.index = String(index);
+
+    let image = dialog.querySelector("img");
+    if (!image) {
+      image = document.createElement("img");
+      dialog.prepend(image);
+    }
+    image.src = thumb.dataset.full!;
+    image.alt = thumb.dataset.alt ?? "";
+    dialog.querySelector(".lightbox-count")!.textContent = `${index + 1} / ${n}`;
+
+    // The neighbours load in the background, so a step to either is instant.
+    for (const near of [index - 1, index + 1]) new Image().src = thumbs[(near + n) % n].dataset.full!;
+    return image;
+  }
+
+  let current: ViewTransition | null = null;
+  const still = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  /** Moves `by` photos on; forward slides in from the right, like the trucks. */
+  function step(dialog: HTMLDialogElement, by: number) {
+    const to = Number(dialog.dataset.index ?? 0) + by;
+    // Counted now, not when the photo changes: the change waits for the
+    // transition, and a quick second tap must step on from this one.
+    dialog.dataset.index = String(to);
+    const way = by > 0 ? "dalej" : "wstecz";
+    if (still.matches) {
+      show(dialog, to);
+    } else if (document.startViewTransition) {
+      // The attribute picks the lightbox rules in global.css over the ones
+      // for moving between pages; it goes when this step is over.
+      const root = document.documentElement;
+      root.dataset.galeria = way;
+      // The page stands still until the new photo is ready, but no longer
+      // than a moment on a slow connection; then it slides in as it loads.
+      const transition = document.startViewTransition(() =>
+        Promise.race([show(dialog, to).decode().catch(() => {}), new Promise((done) => setTimeout(done, 400))]),
+      );
+      current = transition;
+      // A step that cuts into the previous one skips its animation; that is
+      // expected, not an error.
+      transition.ready.catch(() => {});
+      transition.finished.finally(() => {
+        if (current === transition) delete root.dataset.galeria;
+      });
+    } else {
+      show(dialog, to).animate(
+        [{ transform: `translateX(${by > 0 ? 3 : -3}rem)`, opacity: 0 }, { transform: "none", opacity: 1 }],
+        { duration: 250, easing: "ease-out" },
+      );
+    }
+  }
+
+  // A swipe can end with a click on whatever is under the finger; when that
+  // is the dialog's own padding it must not count as a click on the backdrop.
+  let swipedAt = 0;
+
   document.addEventListener("click", (event) => {
     const target = event.target instanceof Element ? event.target : null;
     if (!target) return;
 
     // A click on the backdrop lands on the dialog itself, never on its contents.
     if (target instanceof HTMLDialogElement && target.closest("[data-gallery]")) {
-      target.close();
+      if (performance.now() - swipedAt > 500) target.close();
       return;
     }
 
@@ -70,20 +152,50 @@ const items = await Promise.all(
       return;
     }
 
+    const stepper = target.closest<HTMLElement>("[data-lightbox-step]");
+    if (stepper) {
+      step(stepper.closest("dialog")!, Number(stepper.dataset.lightboxStep));
+      return;
+    }
+
     const thumb = target.closest<HTMLButtonElement>("[data-gallery] button[data-full]");
     if (!thumb) return;
 
     const dialog = thumb.closest("[data-gallery]")?.querySelector("dialog");
     if (!dialog) return;
 
-    let image = dialog.querySelector("img");
-    if (!image) {
-      image = document.createElement("img");
-      dialog.prepend(image);
-    }
-    image.src = thumb.dataset.full!;
-    image.alt = thumb.dataset.alt ?? "";
-    dialog.querySelector(".lightbox-caption")!.textContent = thumb.dataset.alt ?? "";
+    show(dialog, thumbsOf(dialog).indexOf(thumb));
     dialog.showModal();
   });
+
+  for (const dialog of document.querySelectorAll<HTMLDialogElement>("[data-gallery] dialog")) {
+    dialog.addEventListener("keydown", (e) => {
+      const n = thumbsOf(dialog).length;
+      const at = Number(dialog.dataset.index ?? 0);
+      const by = { ArrowLeft: -1, ArrowRight: 1, Home: -at, End: n - 1 - at }[e.key];
+      if (by === undefined || e.altKey || e.ctrlKey || e.metaKey) return;
+      e.preventDefault();
+      if (by !== 0) step(dialog, by);
+    });
+
+    // A finger swipe to the left shows the next photo, to the right the
+    // previous one. A mostly vertical move is a scroll, and a mouse drag is a
+    // text selection; neither counts.
+    let start: { x: number; y: number } | null = null;
+    dialog.addEventListener("pointerdown", (e) => {
+      start = e.pointerType === "mouse" ? null : { x: e.clientX, y: e.clientY };
+    });
+    dialog.addEventListener("pointerup", (e) => {
+      if (start) {
+        const dx = start.x - e.clientX;
+        const dy = Math.abs(start.y - e.clientY);
+        if (Math.abs(dx) > 40 && Math.abs(dx) > dy) {
+          swipedAt = performance.now();
+          step(dialog, dx > 0 ? 1 : -1);
+        }
+      }
+      start = null;
+    });
+    dialog.addEventListener("pointercancel", () => (start = null));
+  }
 </script>

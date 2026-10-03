@@ -1,0 +1,23 @@
+---
+/**
+ * The end-of-zone sign at the edge of the free delivery area: a white plate
+ * with a grey band across it behind the words, as Polish "end of" signs are,
+ * and a small plate under it with the distance. 64 × 120 drawing units,
+ * ground at the bottom edge.
+ */
+interface Props {
+  km: number;
+}
+const { km } = Astro.props;
+---
+
+<svg viewBox="0 0 64 120" aria-hidden="true" focusable="false">
+  <rect x="30" y="64" width="4" height="56" fill="#2e3134" />
+  <rect x="2" y="2" width="60" height="44" rx="3" fill="#fff" stroke="#000" stroke-width="2" />
+  <path d="M5 40 53 5h6v4L11 43H5z" fill="#b9bcbe" />
+  <text x="32" y="17" class="znak-tekst" text-anchor="middle">STREFA</text>
+  <text x="32" y="28" class="znak-tekst" text-anchor="middle">DARMOWEJ</text>
+  <text x="32" y="39" class="znak-tekst" text-anchor="middle">DOSTAWY</text>
+  <rect x="8" y="49" width="48" height="16" rx="2" fill="#fff" stroke="#000" stroke-width="2" />
+  <text x="32" y="61" class="znak-km" text-anchor="middle">{km} km</text>
+</svg>

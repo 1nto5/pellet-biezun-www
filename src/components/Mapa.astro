@@ -4,40 +4,63 @@
  * Leaflet is bundled with the site, not loaded from a CDN; only the map
  * tiles come from tile.openstreetmap.org (allowed in `public/_headers`).
  *
- * The pins are drawn in CSS (`divIcon`). Leaflet's default pin is a PNG whose
- * path breaks once the build moves it, so it is never used.
+ * The warehouse is always on the map, as a pin drawn in CSS (`divIcon`).
+ * Leaflet's default pin is a PNG whose path breaks once the build moves it,
+ * so it is never used. Towns are small dots (`circleMarker`), one look inside
+ * the free-delivery zone and another outside it; the zone itself is an
+ * optional circle. Dots and circle get a class, and their colours come from
+ * the tokens in `global.css`, so dark mode repaints them.
  *
  * The map is decoration on top of the facts: every page that shows one also
  * lists the same places as text, which is what works without JavaScript.
  */
 import "leaflet/dist/leaflet.css";
+import { firma, addressLine } from "../data/firma";
 import type { Miejsce } from "../data/miejsca";
-import { miejsceHref } from "../data/miejsca";
+import { DARMOWA_DOSTAWA_KM, miejsceHref, odlegloscKm, wStrefieDarmowej } from "../data/miejsca";
+import { maPodstrone, pelnaNazwa } from "../lib/miejsce";
 
 interface Props {
-  miejsca: readonly Miejsce[];
-  /** Zoom when there is one place; with several the map fits them all. */
+  /** Towns drawn as dots. None: the map shows the warehouse alone. */
+  miejsca?: readonly Miejsce[];
+  /** Draw the free-delivery circle around the warehouse. */
+  strefa?: boolean;
+  /** One town drawn bigger, e.g. the town of a local page. */
+  wyroznione?: Miejsce;
+  /** Zoom when the map shows the warehouse alone; otherwise it fits everything drawn. */
   zoom?: number;
   /** What the map shows, for screen readers. */
   label: string;
   class?: string;
 }
 
-const { miejsca, zoom = 12, label, class: className } = Astro.props;
+const { miejsca = [], strefa = false, wyroznione, zoom = 13, label, class: className } = Astro.props;
 
-const pins = miejsca.map((m) => ({
-  nazwa: m.nazwa,
-  rodzaj: m.rodzaj,
-  lat: m.geo.lat,
-  lng: m.geo.lng,
-  adres: m.adres ?? "",
-  href: miejsceHref(m),
-}));
+const dane = {
+  magazyn: {
+    nazwa: firma.name,
+    adres: addressLine(),
+    tel: firma.phone.label,
+    telHref: firma.phone.href,
+    lat: firma.geo.lat,
+    lng: firma.geo.lng,
+  },
+  promienKm: strefa ? DARMOWA_DOSTAWA_KM : null,
+  miejsca: miejsca.map((m) => ({
+    nazwa: pelnaNazwa(m),
+    lat: m.geo.lat,
+    lng: m.geo.lng,
+    km: odlegloscKm(m),
+    wStrefie: wStrefieDarmowej(m),
+    href: maPodstrone(m) ? miejsceHref(m) : null,
+    wyroznione: wyroznione !== undefined && m.nazwa === wyroznione.nazwa && m.geo.lat === wyroznione.geo.lat,
+  })),
+};
 ---
 
 <div
   class:list={["mapa", className]}
-  data-mapa={JSON.stringify(pins)}
+  data-mapa={JSON.stringify(dane)}
   data-zoom={zoom}
   role="region"
   aria-label={label}
@@ -47,18 +70,45 @@ const pins = miejsca.map((m) => ({
 <script>
   import L from "leaflet";
 
-  interface Pin {
-    nazwa: string;
-    rodzaj: "punkt" | "dostawa";
-    lat: number;
-    lng: number;
-    adres: string;
-    href: string;
+  interface Dane {
+    magazyn: { nazwa: string; adres: string; tel: string; telHref: string; lat: number; lng: number };
+    promienKm: number | null;
+    miejsca: {
+      nazwa: string;
+      lat: number;
+      lng: number;
+      km: number;
+      wStrefie: boolean;
+      href: string | null;
+      wyroznione: boolean;
+    }[];
+  }
+
+  // Popups are built from DOM nodes, not an HTML string, so a name with an
+  // odd character cannot break the markup.
+  function popup(...lines: (string | Node)[]): HTMLElement {
+    const box = document.createElement("div");
+    lines.forEach((line, i) => {
+      if (i > 0) box.append(document.createElement("br"));
+      box.append(line);
+    });
+    return box;
+  }
+  function strong(text: string): HTMLElement {
+    const el = document.createElement("strong");
+    el.textContent = text;
+    return el;
+  }
+  function link(href: string, text: string): HTMLAnchorElement {
+    const a = document.createElement("a");
+    a.href = href;
+    a.textContent = text;
+    return a;
   }
 
   for (const el of document.querySelectorAll<HTMLElement>("[data-mapa]")) {
-    const pins: Pin[] = JSON.parse(el.dataset.mapa ?? "[]");
-    if (pins.length === 0) continue;
+    const dane: Dane = JSON.parse(el.dataset.mapa ?? "{}");
+    const { magazyn } = dane;
 
     // Scroll-wheel zoom off: a page scrolling past the map should not get
     // caught by it. The +/- buttons and pinch still zoom.
@@ -68,35 +118,58 @@ const pins = miejsca.map((m) => ({
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     }).addTo(map);
 
-    for (const pin of pins) {
-      const big = pin.rodzaj === "punkt";
-      const icon = L.divIcon({
-        className: "",
-        html: `<div class="pin${big ? " pin-punkt" : ""}"></div>`,
-        iconSize: big ? [28, 28] : [24, 24],
-        iconAnchor: big ? [4, 30] : [4, 26],
-        popupAnchor: [10, -26],
-      });
+    const bounds = L.latLngBounds([[magazyn.lat, magazyn.lng]]);
 
-      // Built from DOM nodes, not an HTML string, so a name with an odd
-      // character cannot break the markup.
-      const popup = document.createElement("div");
-      const name = document.createElement("strong");
-      name.textContent = pin.nazwa;
-      popup.append(name);
-      if (pin.adres) popup.append(document.createElement("br"), pin.adres);
-      const link = document.createElement("a");
-      link.href = pin.href;
-      link.textContent = big ? "Punkt sprzedaży i dostawa" : "Dostawa i ceny";
-      popup.append(document.createElement("br"), link);
-
-      L.marker([pin.lat, pin.lng], { icon, title: pin.nazwa, alt: pin.nazwa }).addTo(map).bindPopup(popup);
+    // The zone first, so the dots sit on top of it. Not interactive: it would
+    // otherwise catch clicks meant for the map. Its extent comes from the
+    // coordinates: the circle's own getBounds() needs a map that already has
+    // a view, and this one gets its view only at the end.
+    if (dane.promienKm !== null) {
+      L.circle([magazyn.lat, magazyn.lng], {
+        radius: dane.promienKm * 1000,
+        className: "mapa-strefa",
+        interactive: false,
+      }).addTo(map);
+      bounds.extend(L.latLng(magazyn.lat, magazyn.lng).toBounds(dane.promienKm * 2000));
     }
 
-    if (pins.length === 1) {
-      map.setView([pins[0]!.lat, pins[0]!.lng], Number(el.dataset.zoom));
+    for (const m of dane.miejsca) {
+      const lines: (string | Node)[] = [
+        strong(m.nazwa),
+        `ok. ${m.km} km od magazynu w linii prostej`,
+        m.wStrefie ? "dostawa gratis" : "dostawa po uzgodnieniu",
+      ];
+      if (m.href) lines.push(link(m.href, "Dostawa i ceny"));
+
+      L.circleMarker([m.lat, m.lng], {
+        radius: m.wyroznione ? 9 : 5,
+        className: [
+          "mapa-miejsce",
+          m.wStrefie ? "mapa-miejsce-strefa" : "mapa-miejsce-poza",
+          m.wyroznione ? "mapa-miejsce-wyroznione" : "",
+        ].join(" "),
+      })
+        .addTo(map)
+        .bindPopup(popup(...lines));
+      bounds.extend([m.lat, m.lng]);
+    }
+
+    // The warehouse last, so its pin is above every dot.
+    const icon = L.divIcon({
+      className: "",
+      html: '<div class="pin pin-punkt"></div>',
+      iconSize: [28, 28],
+      iconAnchor: [4, 30],
+      popupAnchor: [10, -26],
+    });
+    L.marker([magazyn.lat, magazyn.lng], { icon, title: `Magazyn ${magazyn.nazwa}`, alt: `Magazyn ${magazyn.nazwa}` })
+      .addTo(map)
+      .bindPopup(popup(strong(`Magazyn ${magazyn.nazwa}`), magazyn.adres, link(magazyn.telHref, `tel. ${magazyn.tel}`)));
+
+    if (dane.miejsca.length === 0 && dane.promienKm === null) {
+      map.setView([magazyn.lat, magazyn.lng], Number(el.dataset.zoom));
     } else {
-      map.fitBounds(L.latLngBounds(pins.map((p) => [p.lat, p.lng])), { padding: [32, 32] });
+      map.fitBounds(bounds, { padding: [24, 24] });
     }
   }
 </script>

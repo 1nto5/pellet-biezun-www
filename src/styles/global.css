@@ -1,106 +1,109 @@
 @import "tailwindcss";
 
-/* The fallbacks, sized to the real faces so a swap does not reflow the text. */
+/* The fallback, sized to the real face so a swap does not reflow the text. */
 @font-face {
-  font-family: "Fraunces-fallback";
-  src: local("Georgia"), local("Times New Roman");
-  size-adjust: 103%;
-  ascent-override: 92%;
+  font-family: "League Spartan-fallback";
+  src: local("Arial"), local("Helvetica");
+  size-adjust: 92%;
+  ascent-override: 76%;
   descent-override: 24%;
   line-gap-override: 0%;
 }
-@font-face {
-  font-family: "Source Sans 3-fallback";
-  src: local("Arial"), local("Helvetica");
-  size-adjust: 94%;
-  ascent-override: 107%;
-  descent-override: 30%;
-  line-gap-override: 0%;
-}
 
 /* ---------------------------------------------------------------------------
-   Fonts. Self-hosted, no external request: the packages ship the woff2 files
-   and Vite copies them into the build. Fraunces draws the headings, Source
-   Sans 3 everything else; the upright faces in the latin and latin-ext
-   subsets, which is all Polish text needs.
+   Font. Self-hosted, no external request: the package ships the woff2 files
+   and Vite copies them into the build. One family for everything, League
+   Spartan, a free heavy geometric sans close to the lettering on the
+   company's signs and trucks; the weights carry the hierarchy. The latin and
+   latin-ext subsets cover every Polish letter. ≥ and ≤ are not in the font
+   and come from the fallback.
 
-   Declared here rather than through the packages' own CSS so the faces can
-   use `font-display: swap` without the jump: the text paints at once in a
-   fallback face whose metrics are adjusted to the real one (the two
-   `-fallback` faces above), so lines break in the same places and the swap,
-   when the ~160 kB of fonts land, is close to invisible.
-   Not preloaded: the fallback faces make the swap quiet enough.
+   Declared here rather than through the package's own CSS so the face can use
+   `font-display: swap` without the jump: the text paints at once in a
+   fallback face whose metrics are adjusted to the real one.
    ------------------------------------------------------------------------ */
 @font-face {
-  font-family: "Fraunces Variable";
+  font-family: "League Spartan Variable";
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
-  src: url("@fontsource-variable/fraunces/files/fraunces-latin-wght-normal.woff2") format("woff2-variations");
+  src: url("@fontsource-variable/league-spartan/files/league-spartan-latin-wght-normal.woff2") format("woff2-variations");
   unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
 }
 @font-face {
-  font-family: "Fraunces Variable";
+  font-family: "League Spartan Variable";
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
-  src: url("@fontsource-variable/fraunces/files/fraunces-latin-ext-wght-normal.woff2") format("woff2-variations");
-  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
-}
-@font-face {
-  font-family: "Source Sans 3 Variable";
-  font-style: normal;
-  font-weight: 100 900;
-  font-display: swap;
-  src: url("@fontsource-variable/source-sans-3/files/source-sans-3-latin-wght-normal.woff2") format("woff2-variations");
-  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
-}
-@font-face {
-  font-family: "Source Sans 3 Variable";
-  font-style: normal;
-  font-weight: 100 900;
-  font-display: swap;
-  src: url("@fontsource-variable/source-sans-3/files/source-sans-3-latin-ext-wght-normal.woff2") format("woff2-variations");
+  src: url("@fontsource-variable/league-spartan/files/league-spartan-latin-ext-wght-normal.woff2") format("woff2-variations");
   unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
 }
 
 /* ---------------------------------------------------------------------------
-   Tokens: the whole palette. `--color-*: initial` clears Tailwind's default
-   colours, so a stray `text-slate-600` does not compile.
+   Tokens: the whole palette, taken from the company's signs and truck livery.
+   `--color-*: initial` clears Tailwind's default colours, so a stray
+   `text-slate-600` does not compile.
 
-   One green means "you can act on this" (links, buttons, the active menu
-   entry). One wood brown marks what is emphasised: prices, the sample-data
-   strip. Each token is a pair, on paper and on the dark ground; which one
-   paints follows the reader's system setting. Contrast on paper: ink 13.8:1,
-   ink-soft 6.7:1, pine 7.6:1, wood 6.1:1, white on pine 8.1:1.
+   Light only: everything the company prints sits on white, and the site
+   follows it. Contrast on white: black 21:1, ink-soft 9.5:1, sign green
+   5.5:1 (white on it the same). Black on brand green 11:1, on yellow 13.9:1.
+   White on asphalt 13:1. Brand green is never behind white text, truck red
+   only in the drawings.
+
+   The old names (paper, sand, pine, wood, line) stay, pointing at the new
+   colours, because pages and components already use them as classes.
    ------------------------------------------------------------------------ */
 @theme static {
   --color-*: initial;
 
-  --color-paper: light-dark(#faf8f3, #17150f);
-  --color-sand: light-dark(#f1ebdd, #221f17);
-  --color-ink: light-dark(#1f2a2e, #ece8de);
-  --color-ink-soft: light-dark(#4d5a5f, #bab4a6);
-  --color-pine: light-dark(#1f5a46, #8ccfb1);
-  --color-pine-deep: light-dark(#153f31, #b4e0cb);
-  --color-wood: light-dark(#85522a, #e0b07f);
-  --color-line: light-dark(#d9d3c5, #3b372c);
-  --color-white: light-dark(#ffffff, #1e1b14);
-  --color-on-pine: light-dark(#ffffff, #0f1916);
-  --color-danger: light-dark(#a3261b, #ff9a8f);
-  --color-scrim: color-mix(in srgb, light-dark(#1f2a2e, #e8e4da) 60%, transparent);
+  --color-white: #ffffff;
+  --color-black: #000000;
+  /* Direction boards, links. White text on it. */
+  --color-sign: #177a00;
+  --color-sign-deep: #0f5200;
+  /* Accents only, black text on it. */
+  --color-brand: #2bd900;
+  /* Stripes, arrows, the primary button. Black text on it. */
+  --color-yellow: #ffcc00;
+  /* The road, the footer. White text on it. */
+  --color-asphalt: #2e3134;
+  --color-red: #d8231f;
 
-  --font-display: "Fraunces Variable", "Fraunces-fallback", Georgia, serif;
-  --font-body: "Source Sans 3 Variable", "Source Sans 3-fallback", system-ui, sans-serif;
+  --color-paper: #ffffff;
+  --color-sand: #f2f2f0;
+  --color-ink: #000000;
+  --color-ink-soft: #45484b;
+  --color-pine: var(--color-sign);
+  --color-pine-deep: var(--color-sign-deep);
+  --color-wood: #000000;
+  --color-line: #cfd0cc;
+  --color-on-pine: #ffffff;
+  --color-danger: #b3140f;
+  --color-scrim: color-mix(in srgb, #000 55%, transparent);
+
+  --font-display: "League Spartan Variable", "League Spartan-fallback", Arial, sans-serif;
+  --font-body: "League Spartan Variable", "League Spartan-fallback", Arial, sans-serif;
+
+  --radius-sign: 0.3rem;
 
   --text-sm: 0.9rem;
   --text-sm--line-height: 1.5;
-  --text-lg--line-height: 1.6;
-  --text-xl--line-height: 1.35;
-  --text-2xl--line-height: 1.25;
-  --text-3xl--line-height: 1.2;
-  --text-4xl--line-height: 1.12;
-  --text-5xl--line-height: 1.05;
+  --text-lg--line-height: 1.55;
+  --text-xl--line-height: 1.25;
+  --text-2xl--line-height: 1.15;
+  --text-3xl--line-height: 1.1;
+  --text-4xl--line-height: 1.02;
+  --text-5xl--line-height: 0.98;
+}
+
+/* Palette comparison (2026-10-01): the variant measured in the client's own
+   material. Sign green from the printer's banner, red from the fleet photos.
+   Only the dev server sets `data-paleta` (Base.astro); remove this block once
+   one palette is chosen. */
+:root[data-paleta="materialy"] {
+  --color-sign: #1d6a05;
+  --color-sign-deep: #134803;
+  --color-red: #a8101c;
 }
 
 /* ---------------------------------------------------------------------------
@@ -112,14 +115,14 @@ html {
   font-size: 112.5%; /* 18px */
   scroll-padding-top: calc(var(--header-height) + 1.5rem);
   -webkit-text-size-adjust: 100%;
-  color-scheme: light dark;
+  color-scheme: light;
 }
 
 body {
   font-family: var(--font-body);
-  background: var(--color-paper);
+  background: var(--color-white);
   color: var(--color-ink);
-  line-height: 1.6;
+  line-height: 1.55;
   overflow-wrap: break-word;
 }
 
@@ -140,30 +143,27 @@ body {
   h3,
   h4 {
     font-family: var(--font-display);
-    font-weight: 600;
-    font-optical-sizing: auto;
+    font-weight: 800;
     text-wrap: balance;
-    letter-spacing: -0.012em;
+    letter-spacing: -0.02em;
     color: var(--color-ink);
   }
 
   /* The line sits under the descenders and the ogonek of ą and ę. */
   a {
-    color: var(--color-pine);
-    text-underline-offset: 0.3em;
+    color: var(--color-sign);
+    text-underline-offset: 0.25em;
     text-decoration-skip-ink: none;
   }
-  /* The darker green is too close to the green for colour alone to answer a
-     hover, so a thicker line answers as well. */
   a:hover {
-    color: var(--color-pine-deep);
+    color: var(--color-sign-deep);
     text-decoration-line: underline;
     text-decoration-thickness: 2px;
   }
 
   ::selection {
-    background: var(--color-sand);
-    color: var(--color-ink);
+    background: var(--color-yellow);
+    color: var(--color-black);
   }
 
   address {
@@ -172,12 +172,12 @@ body {
 }
 
 .link-strong {
-  font-weight: 600;
+  font-weight: 700;
 }
 
 :focus-visible {
-  outline: 3px solid var(--color-pine);
-  outline-offset: 2px;
+  outline: 3px solid var(--color-black);
+  outline-offset: 3px;
 }
 @media (forced-colors: active) {
   :focus-visible {
@@ -189,8 +189,8 @@ body {
    The sample-data strip above the header, while `daneprzykladowe` is on.
    ------------------------------------------------------------------------ */
 .probka {
-  background: var(--color-wood);
-  color: var(--color-paper);
+  background: var(--color-yellow);
+  color: var(--color-black);
   font-size: var(--text-sm);
   line-height: 1.4;
 }
@@ -202,12 +202,11 @@ body {
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 60;
+  z-index: 1100;
   transform: translateY(-130%);
   padding: 0.75rem 1.25rem;
-  background: var(--color-pine);
-  color: var(--color-on-pine);
-  border-radius: 0 0 var(--radius-md) 0;
+  background: var(--color-black);
+  color: var(--color-white);
   text-decoration: none;
 }
 .skip-link:focus {
@@ -215,46 +214,103 @@ body {
 }
 
 /* ---------------------------------------------------------------------------
+   A sign board: the green panel with a thin white line set in from the edge,
+   the way Polish direction boards are made. `sign` alone is the panel; the
+   contents decide the rest.
+   ------------------------------------------------------------------------ */
+.sign {
+  background: var(--color-sign);
+  color: var(--color-white);
+  border-radius: var(--radius-sign);
+  box-shadow: inset 0 0 0 0.2rem var(--color-sign), inset 0 0 0 0.3rem var(--color-white);
+}
+.sign :focus-visible,
+.sign:focus-visible {
+  outline-color: var(--color-yellow);
+}
+
+/* The livery's slanted yellow stripes, as a divider. Three bars that get
+   narrower, leaning like the ones on the truck. Drawn, never read. */
+.pasy {
+  display: flex;
+  gap: 0.55rem;
+  height: 0.9rem;
+}
+.pasy span {
+  display: block;
+  background: var(--color-yellow);
+  transform: skewX(-35deg);
+}
+.pasy span:nth-child(1) {
+  width: 5.5rem;
+}
+.pasy span:nth-child(2) {
+  width: 2.5rem;
+}
+.pasy span:nth-child(3) {
+  width: 1.1rem;
+}
+
+/* ---------------------------------------------------------------------------
    Buttons. `btn-primary` is the one action of a page, `btn-secondary` the
    alternative beside it. The same classes style a <button> in a form.
+
+   The shape is a parallelogram like the tags on the truck. The slant is drawn
+   by a pseudo-element under the text, so the text stays upright and the
+   focus ring can follow the slant.
    ------------------------------------------------------------------------ */
 .btn {
+  position: relative;
+  isolation: isolate;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  min-height: 2.75rem;
-  padding: 0.65rem 1.4rem;
-  border: 2px solid var(--color-pine);
-  border-radius: var(--radius-md);
+  min-height: 2.9rem;
+  padding: 0.7rem 1.6rem 0.55rem;
+  border: 0;
+  background: none;
+  color: var(--color-black);
   font: inherit;
-  font-weight: 600;
-  line-height: 1.3;
+  font-weight: 800;
+  line-height: 1.2;
   text-decoration: none;
   cursor: pointer;
 }
-.btn-primary {
-  background: var(--color-pine);
-  color: var(--color-on-pine);
+.btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  transform: skewX(-14deg);
 }
-.btn-primary:hover {
-  background: var(--color-pine-deep);
-  border-color: var(--color-pine-deep);
-  color: var(--color-on-pine);
+.btn:hover {
+  color: var(--color-black);
   text-decoration: none;
 }
-.btn-secondary {
-  background: transparent;
-  color: var(--color-pine);
+.btn:focus-visible {
+  outline: none;
 }
-.btn-secondary:hover {
+.btn:focus-visible::before {
+  outline: 3px solid var(--color-black);
+  outline-offset: 3px;
+}
+.btn-primary::before {
+  background: var(--color-yellow);
+}
+.btn-primary:hover::before {
+  background: #ffd83d;
+  box-shadow: inset 0 -0.2rem 0 var(--color-black);
+}
+.btn-secondary::before {
+  border: 2px solid var(--color-black);
+}
+.btn-secondary:hover::before {
   background: var(--color-sand);
-  color: var(--color-pine-deep);
-  text-decoration: none;
 }
 .btn-sm {
-  min-height: 2.25rem;
-  padding: 0.35rem 0.9rem;
+  min-height: 2.3rem;
+  padding: 0.45rem 1.05rem 0.35rem;
   font-size: var(--text-sm);
 }
 
@@ -263,21 +319,20 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 2.25rem;
-  min-width: 2.25rem;
+  min-height: 2.3rem;
+  min-width: 2.3rem;
   padding: 0.25rem 0.6rem;
-  border: 1px solid var(--color-pine);
-  border-radius: var(--radius-md);
+  border: 2px solid var(--color-black);
+  border-radius: var(--radius-sign);
   background: var(--color-white);
-  color: var(--color-ink);
+  color: var(--color-black);
   font-size: var(--text-sm);
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.2;
   cursor: pointer;
 }
 .tool:hover {
-  border-color: var(--color-pine-deep);
-  color: var(--color-pine-deep);
+  background: var(--color-sand);
 }
 .tool svg {
   width: 1.15rem;
@@ -285,29 +340,11 @@ body {
 }
 
 /* ---------------------------------------------------------------------------
-   Header and main menu. A flat row of links from `lg` up; below that the same
-   links in a <dialog> drawer that slides in from the left, under the pinned
-   row. The drawer is not modal, so its shade is an element of its own.
+   Header. The company's name set like its sign, then the sections on one
+   green direction board from `lg` up; below that the same links in a
+   <dialog> drawer that slides in from the left, under the pinned row. The
+   drawer is not modal, so its shade is an element of its own.
    ------------------------------------------------------------------------ */
-.nav-link {
-  display: inline-block;
-  padding: 0.4rem 0 0.25rem;
-  border-bottom: 2px solid transparent;
-  color: var(--color-ink);
-  font-size: 0.9375rem;
-  text-decoration: none;
-}
-.nav-link:hover {
-  color: var(--color-pine-deep);
-  border-bottom-color: var(--color-pine);
-  text-decoration: none;
-}
-.nav-link[aria-current="page"] {
-  color: var(--color-pine);
-  border-bottom-color: var(--color-pine);
-  font-weight: 600;
-}
-
 .site-header {
   position: sticky;
   top: 0;
@@ -315,7 +352,8 @@ body {
   pointer-events: none;
 }
 .header-surface {
-  background: var(--color-paper);
+  background: var(--color-white);
+  border-bottom: 2px solid var(--color-black);
   pointer-events: auto;
 }
 @media (max-height: 26rem) {
@@ -324,15 +362,57 @@ body {
   }
 }
 .pinned-row {
-  padding-block: 0.625rem;
+  padding-block: 0.55rem;
 }
-.brand-name {
-  font-size: 1.2rem;
+
+/* PELLET over BIEŻUŃ, both in capitals as on the sign; the words stay
+   readable text, the capitals are only a style. */
+.marka {
+  display: inline-flex;
+  flex-direction: column;
+  color: var(--color-black);
+  font-weight: 900;
+  line-height: 0.82;
+  text-transform: uppercase;
+  text-decoration: none;
 }
-.brand-sub {
-  font-size: 0.8125rem;
-  line-height: 1.25;
+.marka:hover {
+  color: var(--color-black);
+  text-decoration: none;
 }
+.marka-pellet {
+  font-size: 1.85rem;
+  letter-spacing: -0.035em;
+}
+.marka-miasto {
+  margin-top: 0.2rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.29em;
+}
+
+.nav-board {
+  padding: 0.3rem 0.45rem;
+}
+.nav-link {
+  display: inline-block;
+  padding: 0.5rem 0.7rem 0.35rem;
+  color: var(--color-white);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 0.2rem solid transparent;
+}
+.nav-link:hover {
+  color: var(--color-white);
+  border-bottom-color: var(--color-white);
+  text-decoration: none;
+}
+.nav-link[aria-current="page"] {
+  border-bottom-color: var(--color-yellow);
+  font-weight: 800;
+}
+
 .menu {
   pointer-events: auto;
   position: fixed;
@@ -343,14 +423,20 @@ body {
   max-width: none;
   height: auto;
   max-height: none;
-  padding: 0.5rem 1.25rem 1.5rem;
+  padding: 1rem 1.25rem 1.5rem;
   border: 0;
-  border-right: 1px solid var(--color-line);
-  background: var(--color-paper);
-  color: var(--color-ink);
+  background: var(--color-sign);
+  color: var(--color-white);
+  box-shadow: inset -0.3rem 0 0 var(--color-white);
   overflow-y: auto;
   overscroll-behavior: contain;
   touch-action: pan-y;
+}
+.menu a {
+  color: var(--color-white);
+}
+.menu :focus-visible {
+  outline-color: var(--color-yellow);
 }
 @media (min-width: 64rem) {
   .menu,
@@ -369,24 +455,24 @@ body {
 }
 .menu nav a {
   display: block;
-  padding: 0.85rem 0.25rem;
-  border-top: 1px solid var(--color-line);
-  color: var(--color-ink);
-  font-size: 1.125rem;
+  padding: 0.85rem 0.25rem 0.7rem;
+  border-top: 1px solid color-mix(in srgb, var(--color-white) 45%, transparent);
+  font-size: 1.2rem;
+  font-weight: 700;
   text-decoration-line: underline;
   text-decoration-color: transparent;
   text-decoration-thickness: 2px;
 }
 .menu nav a:hover {
-  color: var(--color-pine-deep);
+  color: var(--color-white);
   text-decoration-color: currentColor;
 }
 .menu nav a[aria-current="page"] {
-  color: var(--color-pine);
-  font-weight: 600;
+  text-decoration-color: var(--color-yellow);
+  text-decoration-thickness: 0.2rem;
 }
 .menu li:last-child a {
-  border-bottom: 1px solid var(--color-line);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-white) 45%, transparent);
 }
 
 /* The crumb separator is drawn but never read out. */
@@ -488,33 +574,68 @@ body {
 }
 .table th,
 .table td {
-  padding: 0.55rem 0.75rem 0.55rem 0;
+  padding: 0.6rem 0.9rem 0.5rem 0;
   border-bottom: 1px solid var(--color-line);
   text-align: left;
   vertical-align: top;
 }
 .table thead th {
-  font-weight: 600;
-  border-bottom: 2px solid var(--color-ink);
+  font-weight: 800;
+  border-bottom: 3px solid var(--color-black);
 }
 .table tbody th {
   font-weight: 400;
   color: var(--color-ink-soft);
 }
+.table td {
+  font-weight: 600;
+}
 
-/* A product or a fact in a box. The site's only card. */
+/* A product or a fact in a box. */
 .card {
   display: flex;
   flex-direction: column;
   padding: 1.25rem 1.4rem 1.4rem;
   border: 1px solid var(--color-line);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-sign);
   background: var(--color-white);
 }
 .price {
-  color: var(--color-wood);
+  color: var(--color-black);
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+/* A price on a yellow slanted tag, like the tags on the truck. */
+.cena-tag {
+  position: relative;
+  isolation: isolate;
+  display: inline-block;
+  padding: 0.5rem 1.4rem 0.3rem;
+  color: var(--color-black);
+  font-weight: 900;
+  line-height: 1.1;
+}
+.cena-tag::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--color-yellow);
+  transform: skewX(-14deg);
+}
+
+/* "gratis" beside a town: black on brand green. */
+.tag-gratis {
+  display: inline-block;
+  padding: 0.1rem 0.4rem 0;
+  border-radius: 0.2rem;
+  background: var(--color-brand);
+  color: var(--color-black);
+  font-size: 0.8rem;
+  font-weight: 800;
+  line-height: 1.4;
 }
 
 figcaption {
@@ -522,6 +643,138 @@ figcaption {
   font-size: var(--text-sm);
   line-height: 1.5;
   color: var(--color-ink-soft);
+}
+
+/* ---------------------------------------------------------------------------
+   Direction boards that link somewhere: one town and its distance per board,
+   the whole board is the link. Used on the home page, the map page and the
+   local pages.
+   ------------------------------------------------------------------------ */
+.tablice {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 0.6rem;
+}
+.tablica {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1.1rem 0.7rem;
+  color: var(--color-white);
+  font-size: 1.15rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+a.tablica:hover {
+  color: var(--color-white);
+  background: var(--color-sign-deep);
+  box-shadow:
+    inset 0 0 0 0.2rem var(--color-sign-deep),
+    inset 0 0 0 0.3rem var(--color-white);
+  text-decoration: none;
+}
+a.tablica:hover .tablica-nazwa {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+}
+.tablica .text-ink-soft {
+  color: var(--color-white);
+}
+.tablica-km {
+  flex: none;
+  font-weight: 800;
+}
+
+/* The entry board by the road, as the company has it: green panel, the name,
+   a yellow arrow band with the address, the phone in white. */
+.wjazd {
+  padding: 1.6rem 1.6rem 1.4rem;
+}
+.wjazd-marka {
+  display: flex;
+  flex-direction: column;
+  font-weight: 900;
+  line-height: 0.85;
+  text-transform: uppercase;
+}
+.wjazd-marka span:first-child {
+  font-size: 4.2rem;
+  letter-spacing: -0.04em;
+}
+.wjazd-marka span:last-child {
+  margin-top: 0.4rem;
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: 0.43em;
+}
+.wjazd-strzalka {
+  margin-top: 1.1rem;
+  margin-right: -0.6rem;
+  padding: 0.55rem 2.6rem 0.4rem 0.8rem;
+  background: var(--color-yellow);
+  color: var(--color-black);
+  font-size: 1.2rem;
+  font-weight: 800;
+  clip-path: polygon(0 0, calc(100% - 1.6rem) 0, 100% 50%, calc(100% - 1.6rem) 100%, 0 100%);
+}
+.wjazd-tel {
+  display: inline-block;
+  margin-top: 0.9rem;
+  color: var(--color-white);
+  font-size: 2rem;
+  font-weight: 900;
+  text-decoration: none;
+}
+.wjazd-tel:hover {
+  color: var(--color-white);
+  text-decoration: underline;
+  text-decoration-thickness: 0.2rem;
+}
+
+/* A direction board in the shape of an arrow, for the head of a local page:
+   green, a thin white line set in, pointing right. Three nested shapes make
+   the line follow the point. */
+.drogowskaz {
+  --grot: clamp(2rem, 6vw, 4rem);
+  display: block;
+  max-width: 44rem;
+  padding: 0.25rem;
+  background: var(--color-sign);
+  clip-path: polygon(0 0, calc(100% - var(--grot)) 0, 100% 50%, calc(100% - var(--grot)) 100%, 0 100%);
+  border-radius: var(--radius-sign) 0 0 var(--radius-sign);
+}
+.drogowskaz > div {
+  padding: 0.12rem;
+  background: var(--color-white);
+  clip-path: polygon(0 0, calc(100% - var(--grot) + 0.1rem) 0, 100% 50%, calc(100% - var(--grot) + 0.1rem) 100%, 0 100%);
+}
+.drogowskaz > div > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1.5rem;
+  padding: 1rem calc(var(--grot) + 0.75rem) 0.8rem 1.25rem;
+  background: var(--color-sign);
+  color: var(--color-white);
+  clip-path: polygon(0 0, calc(100% - var(--grot) + 0.2rem) 0, 100% 50%, calc(100% - var(--grot) + 0.2rem) 100%, 0 100%);
+}
+.drogowskaz-nazwa {
+  font-size: clamp(2rem, 6vw, 3.6rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+.drogowskaz-km {
+  font-size: clamp(1.6rem, 4.5vw, 2.8rem);
+  font-weight: 900;
+  line-height: 1;
+}
+.drogowskaz-uwaga {
+  flex-basis: 100%;
+  font-size: 1rem;
+  font-weight: 600;
 }
 
 /* ---------------------------------------------------------------------------
@@ -536,21 +789,25 @@ figcaption {
 }
 .field > label,
 .field > .label {
-  font-weight: 600;
+  font-weight: 700;
 }
 .field .hint {
   font-size: var(--text-sm);
   color: var(--color-ink-soft);
 }
 .req {
-  color: var(--color-wood);
+  color: var(--color-danger);
+}
+legend {
+  font-weight: 900;
+  letter-spacing: -0.02em;
 }
 .input {
   width: 100%;
-  min-height: 2.75rem;
-  padding: 0.55rem 0.75rem;
-  border: 1px solid var(--color-ink-soft);
-  border-radius: var(--radius-md);
+  min-height: 2.9rem;
+  padding: 0.6rem 0.8rem 0.5rem;
+  border: 2px solid var(--color-black);
+  border-radius: var(--radius-sign);
   background: var(--color-white);
   color: var(--color-ink);
   font: inherit;
@@ -560,15 +817,21 @@ textarea.input {
   resize: vertical;
 }
 .input:hover {
-  border-color: var(--color-ink);
+  background: var(--color-sand);
 }
 .input:focus-visible {
+  outline: 3px solid var(--color-yellow);
   outline-offset: 0;
-  border-color: var(--color-pine);
+  box-shadow: 0 0 0 5px var(--color-black);
 }
 .input:user-invalid {
   border-color: var(--color-danger);
-  box-shadow: inset 3px 0 0 var(--color-danger);
+  box-shadow: inset 0.35rem 0 0 var(--color-danger);
+}
+.input:user-invalid:focus-visible {
+  box-shadow:
+    inset 0.35rem 0 0 var(--color-danger),
+    0 0 0 5px var(--color-black);
 }
 .check {
   display: grid;
@@ -577,10 +840,10 @@ textarea.input {
   align-items: start;
 }
 .check input {
-  width: 1.2rem;
-  height: 1.2rem;
-  margin-top: 0.2rem;
-  accent-color: var(--color-pine);
+  width: 1.3rem;
+  height: 1.3rem;
+  margin-top: 0.15rem;
+  accent-color: var(--color-sign);
 }
 /* The trap field: off-screen for people, still in the form for bots. */
 .hp {
@@ -590,13 +853,19 @@ textarea.input {
   height: 1px;
   overflow: hidden;
 }
+/* A note that matters: a yellow bar on its left. */
 .form-note {
-  padding: 0.75rem 1rem;
-  border-left: 4px solid var(--color-wood);
+  padding: 0.75rem 1rem 0.65rem;
+  border-left: 0.4rem solid var(--color-yellow);
   background: var(--color-sand);
 }
 .form-status:empty {
   display: none;
+}
+.form-status {
+  padding: 0.75rem 1rem 0.65rem;
+  border-left: 0.4rem solid var(--color-brand);
+  background: var(--color-sand);
 }
 
 /* ---------------------------------------------------------------------------
@@ -607,8 +876,8 @@ textarea.input {
   width: 100%;
   aspect-ratio: 4 / 3;
   max-height: 36rem;
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-lg);
+  border: 2px solid var(--color-black);
+  border-radius: var(--radius-sign);
   background: var(--color-sand);
   z-index: 0; /* keeps Leaflet's panes under the pinned header */
 }
@@ -617,17 +886,20 @@ textarea.input {
     aspect-ratio: 16 / 9;
   }
 }
+/* The warehouse: a green pin with a white rim and a black edge, the sign's
+   colours. */
 .pin {
   width: 1.4rem;
   height: 1.4rem;
   border: 3px solid #fff;
   border-radius: 50% 50% 50% 0;
-  background: #1f5a46;
+  background: var(--color-sign);
   transform: rotate(-45deg);
-  box-shadow: 0 2px 6px rgb(0 0 0 / 0.35);
+  box-shadow:
+    0 0 0 2px #000,
+    0 2px 6px rgb(0 0 0 / 0.35);
 }
 .pin-punkt {
-  background: #85522a;
   width: 1.7rem;
   height: 1.7rem;
 }
@@ -638,6 +910,11 @@ textarea.input {
   font-size: 0.95rem;
   line-height: 1.45;
 }
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  border-radius: var(--radius-sign);
+  box-shadow: 0 0 0 2px var(--color-black);
+}
 .legend-pin {
   display: inline-block;
   width: 0.9rem;
@@ -646,26 +923,99 @@ textarea.input {
   transform: rotate(-45deg);
   vertical-align: -0.05rem;
 }
+.legend-pin-magazyn {
+  background: var(--color-sign);
+  box-shadow: 0 0 0 2px #000;
+}
+
+/* The free-delivery zone and the town dots. Leaflet draws them as SVG paths
+   with its own colours as attributes; these rules win over the attributes.
+   The legend's swatches share them. */
+.mapa-strefa {
+  stroke: var(--color-sign);
+  stroke-width: 3;
+  stroke-dasharray: 10 7;
+  fill: var(--color-brand);
+  fill-opacity: 0.1;
+}
+.mapa-miejsce {
+  stroke-width: 2;
+  fill-opacity: 1;
+}
+.mapa-miejsce-strefa {
+  stroke: var(--color-white);
+  fill: var(--color-sign);
+}
+.mapa-miejsce-poza {
+  stroke: var(--color-asphalt);
+  fill: var(--color-white);
+}
+.mapa-miejsce-wyroznione {
+  stroke: var(--color-black);
+  stroke-width: 3;
+  fill: var(--color-yellow);
+}
+.legend-dot {
+  display: inline-block;
+  width: 0.8rem;
+  height: 0.8rem;
+  border: 2px solid;
+  border-radius: 50%;
+  vertical-align: -0.05rem;
+}
+.legend-dot-strefa {
+  border-color: var(--color-sign);
+  background: var(--color-sign);
+}
+.legend-dot-poza {
+  border-color: var(--color-asphalt);
+  background: var(--color-white);
+}
+.legend-zone {
+  display: inline-block;
+  width: 1.2rem;
+  height: 0.8rem;
+  border: 2px dashed var(--color-sign);
+  border-radius: 0.2rem;
+  background: color-mix(in srgb, var(--color-brand) 12%, transparent);
+  vertical-align: -0.05rem;
+}
 
 /* ---------------------------------------------------------------------------
-   Photographs: the gallery grid and the lightbox it opens.
+   Photographs: the gallery grid and the lightbox it opens. The first photo
+   is set large.
    ------------------------------------------------------------------------ */
 .gallery {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
   list-style: none;
   margin: 0;
   padding: 0;
 }
+@media (min-width: 40rem) {
+  .gallery {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (min-width: 64rem) {
+  .gallery {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+.gallery > li:first-child {
+  grid-column: span 2;
+  grid-row: span 2;
+}
 .gallery button {
   display: block;
   width: 100%;
+  height: 100%;
   padding: 0;
   border: 0;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sign);
   background: none;
-  cursor: pointer;
+  cursor: zoom-in;
 }
 .gallery img {
   display: block;
@@ -673,17 +1023,18 @@ textarea.input {
   height: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sign);
 }
 .gallery button:hover img {
-  outline: 3px solid var(--color-pine);
-  outline-offset: -3px;
+  outline: 0.3rem solid var(--color-yellow);
+  outline-offset: -0.3rem;
 }
 .gallery-media,
 .card-media {
   display: block;
+  height: 100%;
   overflow: hidden;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sign);
 }
 .lightbox {
   width: min(64rem, 92vw);
@@ -691,20 +1042,20 @@ textarea.input {
   max-height: 92vh;
   margin: auto;
   padding: 1rem;
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-md);
-  background: var(--color-paper);
+  border: 0;
+  border-radius: var(--radius-sign);
+  background: var(--color-white);
   color: var(--color-ink);
 }
 .lightbox::backdrop {
-  background: color-mix(in srgb, var(--color-ink) 85%, transparent);
+  background: color-mix(in srgb, var(--color-asphalt) 92%, transparent);
 }
 .lightbox img {
   display: block;
   width: 100%;
   max-height: 72vh;
   object-fit: contain;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sign);
 }
 .lightbox-bar {
   display: flex;
@@ -714,108 +1065,137 @@ textarea.input {
   gap: 0.5rem 1.5rem;
   margin-top: 0.75rem;
 }
-.lightbox-caption {
+/* Previous, the count, next and close, in one row under the photo. The
+   photo's description is only its alt text, not shown. The arrows are a
+   finger's width. */
+.lightbox-tools {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+.lightbox-tools [data-lightbox-step] {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+}
+.lightbox-count {
+  min-width: 4.5ch;
   font-size: var(--text-sm);
-  color: var(--color-ink-soft);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+/* A sideways finger move is a swipe to the next photo, not a pan. */
+.lightbox {
+  touch-action: pan-y pinch-zoom;
 }
 
-/* FAQ: each question a <details>, the answer under it. */
+/* FAQ: each question a <details>, the answer under it. The marker is a black
+   square with a plus that turns into a minus when open. */
 .faq details {
-  border-top: 1px solid var(--color-line);
+  border-top: 2px solid var(--color-black);
 }
 .faq details:last-child {
-  border-bottom: 1px solid var(--color-line);
+  border-bottom: 2px solid var(--color-black);
 }
 .faq summary {
-  padding: 0.9rem 0;
-  font-weight: 600;
+  display: flex;
+  gap: 1rem;
+  align-items: baseline;
+  padding: 1rem 0 0.9rem;
+  font-size: 1.2rem;
+  font-weight: 800;
+  line-height: 1.3;
   cursor: pointer;
+  list-style: none;
+}
+.faq summary::-webkit-details-marker {
+  display: none;
+}
+.faq summary::before {
+  content: "+" / "";
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding-top: 0.15rem;
+  border-radius: 0.2rem;
+  background: var(--color-black);
+  color: var(--color-white);
+  font-size: 1.1rem;
+  line-height: 1;
+}
+.faq details[open] summary::before {
+  content: "−" / "";
+  background: var(--color-yellow);
+  color: var(--color-black);
 }
 .faq summary:hover {
-  color: var(--color-pine-deep);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.2em;
 }
 .faq details p {
-  padding-bottom: 1rem;
-  color: var(--color-ink-soft);
+  padding: 0 0 1.1rem 2.5rem;
+  max-width: 62ch;
 }
 
 /* ---------------------------------------------------------------------------
-   Motion. Short, and off for a reader who asked for reduced motion: the title
-   block comes in, blocks marked `data-reveal` fade up as they enter the view
-   (hidden only when the script can run), hovers ease.
+   Footer: the end of the road, white on asphalt.
+   ------------------------------------------------------------------------ */
+.site-footer {
+  background: var(--color-asphalt);
+  color: var(--color-white);
+}
+.site-footer a {
+  color: var(--color-white);
+  text-decoration-line: underline;
+  text-decoration-color: color-mix(in srgb, var(--color-white) 45%, transparent);
+}
+.site-footer a:hover {
+  color: var(--color-white);
+  text-decoration-color: var(--color-yellow);
+}
+.site-footer :focus-visible {
+  outline-color: var(--color-yellow);
+}
+.site-footer .soft {
+  color: #c9ccce;
+}
+/* The road's centre line along the top edge. */
+.site-footer::before {
+  content: "";
+  display: block;
+  height: 0.35rem;
+  background: repeating-linear-gradient(90deg, var(--color-white) 0 2.5rem, transparent 2.5rem 4.5rem);
+  opacity: 0.85;
+  margin-top: 1.4rem;
+}
+
+/* ---------------------------------------------------------------------------
+   Motion. Only what answers the reader: the menu drawer and the lightbox
+   open and close, links and buttons change colour. The drive on the home page
+   has its own rules next to it. Off for a reader who asked for reduced motion.
    ------------------------------------------------------------------------ */
 @media screen and (prefers-reduced-motion: no-preference) {
   html {
     scroll-behavior: smooth;
   }
-  .intro > * {
-    animation: 600ms cubic-bezier(0.2, 0.7, 0.2, 1) both fade-up;
-  }
-  .intro > :nth-child(2) {
-    animation-delay: 100ms;
-  }
-  .intro > :nth-child(3) {
-    animation-delay: 200ms;
-  }
-  .intro > :nth-child(n + 4) {
-    animation-delay: 300ms;
-  }
-  .intro-figure {
-    animation: 800ms 160ms cubic-bezier(0.2, 0.7, 0.2, 1) both fade-in;
-  }
-
-  html[data-js] :is([data-reveal], [data-reveal-group] > *) {
-    opacity: 0;
-    transform: translateY(1rem);
-    transition:
-      opacity 500ms ease-out,
-      transform 500ms cubic-bezier(0.2, 0.7, 0.2, 1);
-  }
-  html[data-js] :is([data-reveal].is-visible, [data-reveal-group].is-visible > *) {
-    opacity: 1;
-    transform: none;
-  }
-  html[data-js] [data-reveal-group].is-visible > :nth-child(2) {
-    transition-delay: 90ms;
-  }
-  html[data-js] [data-reveal-group].is-visible > :nth-child(3) {
-    transition-delay: 180ms;
-  }
-  html[data-js] [data-reveal-group].is-visible > :nth-child(n + 4) {
-    transition-delay: 270ms;
-  }
 
   a,
-  .btn,
+  .btn::before,
   .tool,
   .nav-link,
-  .card-link span,
   .menu nav a,
   .rows a > span {
     transition:
       color 150ms ease,
-      background-color 250ms ease,
+      background-color 200ms ease,
       border-color 150ms ease,
-      text-decoration-thickness 250ms ease,
-      text-decoration-color 250ms ease,
-      transform 200ms ease,
-      box-shadow 200ms ease;
-  }
-  .btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px -4px color-mix(in srgb, var(--color-ink) 35%, transparent);
-  }
-  .btn:active {
-    transform: none;
-    box-shadow: none;
-  }
-  .card-link img,
-  .gallery img {
-    transition: transform 400ms cubic-bezier(0.2, 0.7, 0.2, 1);
-  }
-  .card-link:hover img,
-  .gallery button:hover img {
-    transform: scale(1.03);
+      box-shadow 150ms ease,
+      text-decoration-thickness 200ms ease,
+      text-decoration-color 200ms ease;
   }
 
   .menu-backdrop {
@@ -878,36 +1258,102 @@ textarea.input {
   }
 }
 
-.card-link span {
-  text-underline-offset: 0.3em;
+/* ---------------------------------------------------------------------------
+   Moving between pages: the browser's own view transition, page to page with
+   no script. The page leaves to the left and the next one comes in from the
+   right, the way the trucks drive. The header and the sample-data strip are
+   captured on their own, so they stay put instead of sliding with the page.
+   A browser without view transitions just opens the next page; for reduced
+   motion there is no transition at all.
+
+   The lightbox uses the same machinery to slide from photo to photo; while it
+   does, the script sets `data-galeria` on <html> and only its rules apply.
+   ------------------------------------------------------------------------ */
+.site-header {
+  view-transition-name: site-header;
 }
-.card-link:hover span {
-  color: var(--color-pine-deep);
-  text-decoration-thickness: 2px;
+.probka {
+  view-transition-name: probka;
+}
+html[data-galeria] .site-header,
+html[data-galeria] .probka {
+  view-transition-name: none;
+}
+html[data-galeria] .lightbox img {
+  view-transition-name: lightbox-foto;
 }
 
-footer a {
-  text-decoration-line: underline;
-  text-decoration-color: transparent;
-}
-footer a:hover {
-  text-decoration-color: currentColor;
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+
+  html:not([data-galeria])::view-transition-old(root) {
+    animation: 300ms ease-out both droga-wyjazd;
+  }
+  html:not([data-galeria])::view-transition-new(root) {
+    animation: 380ms ease-out both droga-wjazd;
+  }
+  /* The new header simply replaces the old one, in its new place: no
+     cross-fade, and no glide from where it stood on a scrolled page. */
+  ::view-transition-group(site-header),
+  ::view-transition-group(probka) {
+    animation: none;
+  }
+  ::view-transition-old(site-header),
+  ::view-transition-old(probka) {
+    display: none;
+  }
+  ::view-transition-new(site-header),
+  ::view-transition-new(probka) {
+    animation: none;
+  }
+
+  /* In the lightbox the rest of the dialog swaps at once; only the photo
+     moves. */
+  html[data-galeria]::view-transition-old(root),
+  html[data-galeria]::view-transition-new(root) {
+    animation: none;
+  }
+  html[data-galeria]::view-transition-group(lightbox-foto) {
+    animation-duration: 300ms;
+  }
+  html[data-galeria="dalej"]::view-transition-old(lightbox-foto) {
+    animation: 300ms ease-out both droga-wyjazd;
+  }
+  html[data-galeria="dalej"]::view-transition-new(lightbox-foto) {
+    animation: 300ms ease-out both droga-wjazd;
+  }
+  html[data-galeria="wstecz"]::view-transition-old(lightbox-foto) {
+    animation: 300ms ease-out both droga-wyjazd-wstecz;
+  }
+  html[data-galeria="wstecz"]::view-transition-new(lightbox-foto) {
+    animation: 300ms ease-out both droga-wjazd-wstecz;
+  }
 }
 
-/* A browser from before light-dark() gets the light pair, plain. */
-@supports not (color: light-dark(#000, #fff)) {
-  :root {
-    --color-paper: #faf8f3;
-    --color-sand: #f1ebdd;
-    --color-ink: #1f2a2e;
-    --color-ink-soft: #4d5a5f;
-    --color-pine: #1f5a46;
-    --color-pine-deep: #153f31;
-    --color-wood: #85522a;
-    --color-line: #d9d3c5;
-    --color-white: #ffffff;
-    --color-on-pine: #ffffff;
-    --color-danger: #a3261b;
+@keyframes droga-wyjazd {
+  to {
+    transform: translateX(-3rem);
+    opacity: 0;
+  }
+}
+@keyframes droga-wjazd {
+  from {
+    transform: translateX(3rem);
+    opacity: 0;
+  }
+}
+@keyframes droga-wyjazd-wstecz {
+  to {
+    transform: translateX(3rem);
+    opacity: 0;
+  }
+}
+@keyframes droga-wjazd-wstecz {
+  from {
+    transform: translateX(-3rem);
+    opacity: 0;
   }
 }
 
@@ -922,26 +1368,38 @@ footer a:hover {
   }
 }
 
-@keyframes fade-up {
-  from {
-    opacity: 0;
-    transform: translateY(0.75rem);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
 /* The rail beside wide pages sticks just under the pinned row. */
 .aside-sticky {
   top: calc(var(--header-height, 0px) + 1.5rem);
+}
+
+/* The page title under the breadcrumbs: heavy and tight, like the lettering
+   on the signs. */
+.tytul-strony {
+  max-width: 20ch;
+  font-size: clamp(2.3rem, 6vw, 4.2rem);
+  font-weight: 900;
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+}
+
+/* Dev-only palette switch (see Base.astro). */
+.paleta-przelacznik {
+  position: fixed;
+  left: 0.75rem;
+  bottom: 0.75rem;
+  z-index: 1000;
+  padding: 0.4rem 0.7rem;
+  background: var(--color-black);
+  color: var(--color-white);
+  font-size: 0.85rem;
+  border-radius: var(--radius-sign);
+}
+.paleta-przelacznik a {
+  color: var(--color-white);
+}
+:root:not([data-paleta="materialy"]) .paleta-obecna,
+:root[data-paleta="materialy"] .paleta-materialy {
+  color: var(--color-yellow);
+  font-weight: 800;
 }

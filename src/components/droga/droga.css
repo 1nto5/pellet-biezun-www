@@ -1,0 +1,542 @@
+/* ---------------------------------------------------------------------------
+   The drive on the home page (Droga.astro, Scena.astro and the drawings).
+
+   Two ways to show it. By default, and for readers who asked for reduced
+   motion or have no scripts: the stops one under another, most with a
+   still frame. With scripts and motion allowed: one sticky stage with the stops'
+   texts on top of each other, and a spacer after it that gives the scroll
+   length. Both conditions are known before the first paint (`data-js` is set
+   by an inline script in the head), so nothing jumps when the script loads.
+   ------------------------------------------------------------------------ */
+
+/* ---- The scene ---------------------------------------------------------- */
+
+/* `--u` is the scene's unit: `--uh`% of its height, or `--uw`% of its width
+   if that is less, so the truck always fits across. Everything in the scene
+   is sized in it. `--z` scales it down while the hero is on screen. The
+   truck faces left and stands at `--x0` (its front); the world slides right
+   past it by `--shift`. */
+.scena {
+  position: relative;
+  container-type: size;
+  overflow: hidden;
+  background: var(--color-white);
+}
+.scena-in {
+  --u: calc(min(var(--uh, 1) * 1cqh, var(--uw, 0.9) * 1cqw) * var(--z, 1));
+  /* `--cam` moves the truck left by up to 22 units, never past the edge, so
+     the hall behind its back shows on the right. `--park` puts its front 100
+     units from the right edge, where the house behind it and the sign ahead
+     both fit. */
+  --x0: calc(
+    (1 - var(--park, 0)) * (50% - 30 * var(--u) - var(--cam) * min(22 * var(--u), 50% - 30 * var(--u))) +
+      var(--park, 0) * (100% - 100 * var(--u))
+  );
+  --shift: calc(var(--km) * 8 * var(--u));
+  position: absolute;
+  inset: 0;
+}
+.scena svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.scena img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Far away: pine forest, moving slowest. The photo band repeats without a
+   seam as long as each tile keeps the image's own proportions. */
+.las {
+  position: absolute;
+  inset-inline: 0;
+  bottom: calc(11.5 * var(--u));
+  height: calc(16 * var(--u));
+  background: var(--las) repeat-x;
+  background-size: auto 100%;
+  background-position-x: calc(var(--shift) * 0.3);
+}
+/* Nearer: the grass along the road. */
+.pola {
+  position: absolute;
+  inset-inline: 0;
+  bottom: calc(9 * var(--u));
+  height: calc(5 * var(--u));
+  background: var(--pobocze) repeat-x;
+  background-size: auto 100%;
+  background-position-x: calc(var(--shift) * 0.6);
+}
+/* The road: asphalt with the centre line, at the truck's speed. */
+.jezdnia {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: calc(9 * var(--u));
+  /* Next to the photos a flat grey band looks drawn, so the asphalt gets a
+     grain (fractal noise, moving with the road) and a little light: shade
+     under the verge, a touch lighter towards the viewer. */
+  background:
+    linear-gradient(rgb(0 0 0 / 0.22), transparent calc(2.5 * var(--u))),
+    linear-gradient(transparent 55%, rgb(255 255 255 / 0.05)),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.62 0 0 0 0 0.62 0 0 0 0 0.6 1.3 0 0 0 -0.6'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"),
+    var(--color-asphalt);
+  background-size:
+    auto,
+    auto,
+    calc(14 * var(--u)) calc(14 * var(--u)),
+    auto;
+  background-position:
+    0 0,
+    0 0,
+    var(--shift) 0,
+    0 0;
+  box-shadow: inset 0 calc(0.5 * var(--u)) 0 #8a8d90;
+}
+/* The centre line: dashes, slightly worn. */
+.jezdnia::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: calc(4.6 * var(--u));
+  height: calc(0.7 * var(--u));
+  background: linear-gradient(90deg, rgb(238 238 232 / 0.92) 0 50%, transparent 50%);
+  background-size: calc(8 * var(--u)) 100%;
+  background-position-x: var(--shift);
+}
+/* The solid edge line along the verge, as on Polish roads. */
+.jezdnia::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: calc(1.1 * var(--u));
+  height: calc(0.35 * var(--u));
+  background: rgb(238 238 232 / 0.85);
+}
+
+/* Things along the road, placed from the truck's front. Each stands at
+   `--at` km, measured to the truck's middle (30 units behind its front);
+   the house and the sign are placed around the truck parked at `--at`. As
+   the odometer grows they move right, so a place further on the road stands
+   further left. */
+.swiat {
+  position: absolute;
+  left: var(--x0);
+  bottom: 0;
+  width: 0;
+  height: 100%;
+  transform: translateX(var(--shift));
+}
+.swiat > * {
+  position: absolute;
+  bottom: calc(9 * var(--u));
+}
+/* The hall stands behind the truck's back at the start, its open door 6
+   units from its left end. The gravel at its foot meets the road. */
+.w-hala {
+  left: calc(72 * var(--u));
+  bottom: calc(8.5 * var(--u));
+  width: calc(84 * var(--u));
+}
+/* The board on the plain wall right of the door, under the eaves. */
+.w-hala .hala-tablica {
+  position: absolute;
+  left: 27%;
+  top: 38%;
+  width: 20%;
+  border-radius: calc(0.5 * var(--u));
+  box-shadow: 0 calc(0.3 * var(--u)) calc(0.6 * var(--u)) rgb(0 0 0 / 0.3);
+}
+/* The house stands on the near side of the road, on the scene's bottom edge,
+   4 units behind the parked truck's back, garage towards it. Its garage
+   floor is 2.8 units up, the door 9 to 26 units from its left end. */
+.w-dom {
+  left: calc((64 - var(--at) * 8) * var(--u));
+  bottom: 0;
+  width: calc(76 * var(--u));
+}
+.w-widlak {
+  left: calc(var(--fork) * var(--u));
+  bottom: calc(3 * var(--u));
+  width: calc(26 * var(--u));
+}
+/* The end-of-zone sign, just ahead of the truck parked at `--at`. */
+.w-koniec {
+  left: calc((-17 - var(--at) * 8) * var(--u));
+  width: calc(16 * var(--u));
+}
+/* A km post: white, black cap, the number on it. */
+.w-slupek {
+  left: calc((30 - 2 - var(--at) * 8) * var(--u));
+  width: calc(4 * var(--u));
+  height: calc(7 * var(--u));
+  padding-top: calc(2.2 * var(--u));
+  border: calc(0.3 * var(--u)) solid var(--color-black);
+  border-top-width: calc(1.6 * var(--u));
+  border-radius: calc(0.6 * var(--u)) calc(0.6 * var(--u)) 0 0;
+  background: var(--color-white);
+  box-shadow: calc(0.4 * var(--u)) calc(0.3 * var(--u)) calc(0.6 * var(--u)) rgb(0 0 0 / 0.25);
+  color: var(--color-black);
+  font-size: calc(1.9 * var(--u));
+  font-weight: 800;
+  line-height: 1;
+  text-align: center;
+}
+/* A direction board on two posts. */
+.w-tablica {
+  left: calc((30 - 17 - var(--at) * 8) * var(--u));
+  width: calc(34 * var(--u));
+  /* Out of sight while the truck loads at the hall (odometer 0): on short
+     windows the first board would stand behind the hero text. They fade in
+     over the first 2 km. */
+  opacity: clamp(0, calc(var(--km) / 2), 1);
+}
+.w-tablica::after {
+  content: "";
+  display: block;
+  /* Tall posts: the board sits above the truck's roof as it passes. */
+  height: calc(22 * var(--u));
+  background: linear-gradient(90deg, transparent 22%, var(--color-asphalt) 22% 25%, transparent 25% 75%, var(--color-asphalt) 75% 78%, transparent 78%);
+}
+.w-tablica .sign {
+  padding: calc(2 * var(--u)) calc(2.6 * var(--u)) calc(1.6 * var(--u));
+  border-radius: calc(1 * var(--u));
+  box-shadow:
+    inset 0 0 0 calc(0.7 * var(--u)) var(--color-sign),
+    inset 0 0 0 calc(1 * var(--u)) var(--color-white),
+    calc(0.4 * var(--u)) calc(0.4 * var(--u)) calc(0.9 * var(--u)) rgb(0 0 0 / 0.25);
+  font-size: calc(3.2 * var(--u));
+  font-weight: 700;
+  line-height: 1.3;
+}
+.w-tablica p {
+  display: flex;
+  justify-content: space-between;
+  gap: 1em;
+}
+.w-tablica p span:last-child {
+  font-weight: 800;
+}
+
+.rig {
+  position: absolute;
+  left: var(--x0);
+  bottom: calc(3 * var(--u));
+  width: calc(60 * var(--u));
+}
+/* The truck's shadow on the road: a soft ellipse under its whole length. */
+.auto-cien {
+  position: absolute;
+  left: -1%;
+  bottom: calc(-0.6 * var(--u));
+  width: 103%;
+  height: calc(1.8 * var(--u));
+  background: radial-gradient(closest-side, rgb(0 0 0 / 0.45), transparent);
+}
+
+/* The truck's moving parts, driven by the same properties. SVG units. */
+.paleta {
+  transform: translate(calc(var(--pal-x) * 1px), calc(var(--pal-y) * 1px));
+}
+/* Two copies of the pallet: the one in the truck drawing can hide inside the
+   box; the one in front takes over on the ground, in front of the house. */
+.paleta-w-aucie {
+  opacity: calc(1 - var(--jack));
+}
+.paleta-przed-domem {
+  opacity: var(--jack);
+}
+/* The lift goes down 22.4 units, from the box floor (82.6) to the road (108,
+   less the plate's thickness); the post under the hinge grows with it. */
+.winda {
+  transform: translateY(calc(var(--lift) * 22.4px));
+}
+.winda-ramie {
+  transform-origin: 238px 82.6px;
+  transform: scaleY(var(--lift));
+}
+/* Folding, the plate turns up against the back of the box. */
+.winda-plyta {
+  transform-origin: 239px 82.6px;
+  transform: rotate(calc(var(--fold) * -90deg));
+  /* A real lift stows under the box, where the photo already shows it; a
+     drawn plate standing up behind the box would read as a black post, so
+     it fades out as it folds. */
+  opacity: calc(1 - var(--fold));
+}
+
+/* Lettering in the drawings. */
+.znak-duzy {
+  font: 900 19px var(--font-display);
+  letter-spacing: -0.5px;
+  fill: #fff;
+}
+.znak-maly {
+  font: 800 8.5px var(--font-display);
+  letter-spacing: 2.4px;
+  fill: #fff;
+}
+.znak-km {
+  font: 900 10px var(--font-display);
+}
+.znak-tekst {
+  font: 800 7.6px var(--font-display);
+}
+
+/* ---- The stops' texts --------------------------------------------------- */
+
+.stop h3 {
+  font-size: 1.6rem;
+  line-height: 1.1;
+}
+/* A km post beside the heading, like the ones along the road. Only the stops
+   carry numbers, because they are points on the way. */
+.slupek {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 2.6rem;
+  margin-bottom: 0.6rem;
+  padding: 0 0.35rem 0.2rem;
+  border: 2px solid var(--color-black);
+  border-top-width: 0;
+  border-radius: 0.3rem 0.3rem 0 0;
+  background: var(--color-white);
+  font-size: 1.2rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+.slupek span {
+  align-self: stretch;
+  margin-inline: -0.4rem;
+  margin-bottom: 0.15rem;
+  padding: 0.15rem 0 0.05rem;
+  border-radius: 0.3rem 0.3rem 0 0;
+  background: var(--color-black);
+  color: var(--color-white);
+  font-size: 0.7rem;
+  text-align: center;
+}
+.stop-opis {
+  margin-top: 0.4rem;
+}
+.stop-miasta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 1rem;
+  margin-top: 0.4rem;
+  font-weight: 600;
+}
+.stop-miasta span {
+  font-weight: 400;
+  color: var(--color-ink-soft);
+}
+
+/* ---- Static: the stops one under another ------------------------------- */
+
+.droga-scena,
+.droga-dystans {
+  display: none;
+}
+.droga {
+  padding-block: 2.5rem 1rem;
+}
+.stopy {
+  display: grid;
+  gap: 2.5rem;
+  margin-inline: auto;
+  max-width: var(--container-6xl);
+  padding-inline: 1rem;
+}
+.stop {
+  display: grid;
+  gap: 1rem;
+}
+.stop .kadr {
+  order: -1;
+}
+.kadr .scena {
+  aspect-ratio: 2 / 1;
+  --uh: 2;
+  --uw: 0.74;
+}
+@media (min-width: 40rem) {
+  .stopy {
+    padding-inline: 2rem;
+  }
+  .kadr .scena {
+    aspect-ratio: 3 / 1;
+    --uh: 2;
+    --uw: 0.9;
+  }
+}
+@media (min-width: 56rem) {
+  .stop {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    align-items: end;
+    gap: 2rem;
+  }
+  .stop .kadr {
+    order: 0;
+  }
+  .stop:not(:has(.kadr)) .stop-tekst {
+    grid-column: 1;
+  }
+}
+
+/* ---- Live: one sticky stage, scrubbed by the scroll ---------------------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  html[data-js] .podroz {
+    position: relative;
+  }
+  /* The hero scrolls away over the stage, which stands still from the start. */
+  html[data-js] .podroz > :first-child {
+    position: relative;
+    z-index: 2;
+  }
+  html[data-js] .droga {
+    position: sticky;
+    z-index: 1;
+    /* Short by the draft strip's height (`--probka-h`, 0 without it), so the
+       whole stage fits the first screen under the strip. Once the strip has
+       scrolled away the stage keeps its place at the bottom; the band left
+       above it is white on white. */
+    top: calc(var(--header-height) + var(--probka-h, 0px));
+    bottom: 0;
+    height: calc(100svh - var(--header-height) - var(--probka-h, 0px));
+    min-height: 22rem;
+    padding: 0;
+    overflow: hidden;
+    background: var(--color-white);
+  }
+  html[data-js] .droga-scena {
+    display: block;
+    position: absolute;
+    inset: 0;
+    /* The truck about 40% of the window's width. */
+    --uh: 1.45;
+    --uw: 0.667;
+  }
+  html[data-js] .droga-scena > .scena {
+    height: 100%;
+  }
+  html[data-js] .droga-dystans {
+    display: block;
+    height: 330vh;
+  }
+  html[data-js] .kadr {
+    display: none;
+  }
+  html[data-js] .stopy {
+    position: absolute;
+    top: clamp(0.75rem, 3svh, 2rem);
+    left: 0;
+    right: 0;
+    display: grid;
+    padding-inline: 1rem;
+    pointer-events: none;
+  }
+  /* One stop's text at a time, swapped at once: no fade, so an old text
+     never shows under the new one. Hidden with opacity, not visibility, so
+     screen readers still get the whole story. */
+  html[data-js] .stop {
+    grid-area: 1 / 1;
+    display: block;
+    max-width: 44rem;
+    opacity: 0;
+  }
+  html[data-js] .stop.is-active {
+    opacity: 1;
+  }
+  html[data-js] .stop h3 {
+    font-size: clamp(1.8rem, 3.4vw, 3.4rem);
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  html[data-js] .stop-opis {
+    margin-top: 0.6rem;
+    max-width: 36rem;
+    font-size: clamp(1.05rem, 1.35vw, 1.3rem);
+    font-weight: 500;
+    line-height: 1.35;
+  }
+  /* The boards in the scene show the towns; the list is for the static version. */
+  html[data-js] .stop-miasta {
+    display: none;
+  }
+  @media (min-width: 40rem) {
+    html[data-js] .stopy {
+      padding-inline: 2rem;
+    }
+  }
+  @media (min-width: 72rem) {
+    html[data-js] .stopy {
+      padding-inline: max(2rem, calc((100% - var(--container-6xl)) / 2 + 2rem));
+    }
+  }
+
+  /* A tall window: the texts above the scene, the scene a landscape box
+     at the bottom, so the truck stays large. */
+  @media (orientation: portrait) {
+    html[data-js] .droga {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+    html[data-js] .droga-scena {
+      position: relative;
+      inset: auto;
+      flex: none;
+      /* Narrower than on desktop (135 units across), so the garage and the
+         end-of-zone sign both fit beside the parked truck, and the hall's
+         board fits at the start. */
+      height: min(58vw, 50%);
+      --uh: 1.8;
+      --uw: 0.74;
+    }
+    html[data-js] .stopy {
+      position: relative;
+      top: auto;
+      order: -1;
+      padding-bottom: 1.25rem;
+    }
+    html[data-js] .droga-dystans {
+      height: 240vh;
+    }
+  }
+}
+
+/* The odometer in the scene's corner, once the drive has started. */
+.licznik {
+  opacity: 0;
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.3rem 0.6rem 0.15rem;
+  border-radius: var(--radius-sign);
+  background: var(--color-black);
+  color: var(--color-white);
+  font-size: 1.05rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+.is-driving .licznik {
+  opacity: 1;
+}
+.licznik span {
+  display: inline-block;
+  min-width: 2ch;
+  text-align: right;
+}
+@media (orientation: portrait) {
+  .licznik {
+    top: 0.5rem;
+    right: 0.75rem;
+    font-size: 0.9rem;
+  }
+}

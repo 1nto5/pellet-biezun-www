@@ -1,7 +1,8 @@
 ---
 /**
  * Three columns of facts, all from `data/firma.ts`, and a bottom line with the
- * registered name, the tax number and the privacy policy.
+ * registered name, the tax number and the privacy policy. White on asphalt,
+ * with the road's centre line along the top.
  */
 import { firma, hoursRange } from "../data/firma";
 import { home, mainNav, otherPages } from "../data/nav";
@@ -9,11 +10,11 @@ import { home, mainNav, otherPages } from "../data/nav";
 const year = new Date().getFullYear();
 ---
 
-<footer class="mt-auto border-t border-line bg-sand">
+<footer class="site-footer mt-auto">
   <div class="page-wrap grid gap-10 py-12 md:grid-cols-3 md:py-16">
     <div>
-      <p id="footer-firma" class="font-display text-lg font-semibold">{firma.name}</p>
-      <address class="mt-3 text-ink-soft" aria-labelledby="footer-firma">
+      <p id="footer-firma" class="text-lg font-extrabold">{firma.name}</p>
+      <address class="mt-3 soft" aria-labelledby="footer-firma">
         {firma.address.street}<br />
         {firma.address.postalCode}
         {firma.address.city}<br />
@@ -23,8 +24,8 @@ const year = new Date().getFullYear();
     </div>
 
     <div>
-      <p id="footer-godziny" class="font-display text-lg font-semibold">Godziny otwarcia</p>
-      <dl class="mt-3 text-ink-soft" aria-labelledby="footer-godziny">
+      <p id="footer-godziny" class="text-lg font-extrabold">Godziny otwarcia</p>
+      <dl class="mt-3 soft" aria-labelledby="footer-godziny">
         {
           firma.hours.map((h) => (
             <div class="flex justify-between gap-4 sm:max-w-72">
@@ -34,11 +35,11 @@ const year = new Date().getFullYear();
           ))
         }
       </dl>
-      <p class="mt-2 text-sm text-ink-soft">{firma.closedNote}</p>
+      <p class="mt-2 text-sm soft">{firma.closedNote}</p>
     </div>
 
     <div>
-      <p id="footer-strony" class="font-display text-lg font-semibold">Strony</p>
+      <p id="footer-strony" class="text-lg font-extrabold">Strony</p>
       <nav aria-labelledby="footer-strony">
         <ul role="list" class="mt-3 grid grid-cols-2 gap-x-6 gap-y-1">
           {
@@ -55,9 +56,9 @@ const year = new Date().getFullYear();
     </div>
   </div>
 
-  <div class="border-t border-line">
+  <div class="border-t border-white/25">
     <div
-      class="page-wrap flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2 py-4 text-sm text-ink-soft"
+      class="page-wrap flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2 py-4 text-sm soft"
     >
       <p>© {year} {firma.legalName}, NIP {firma.nip}</p>
       <p class="flex flex-wrap gap-x-6">

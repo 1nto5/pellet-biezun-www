@@ -1,0 +1,15 @@
+---
+/**
+ * The red telescopic loader that loads the truck, facing left, forks low on
+ * the left, as the company loads at the hall.
+ */
+import { Image } from "astro:assets";
+import { ladowarka } from "./obrazy";
+
+interface Props {
+  eager?: boolean;
+}
+const { eager = false } = Astro.props;
+---
+
+<Image src={ladowarka} width={520} format="webp" alt="" loading={eager ? "eager" : "lazy"} />

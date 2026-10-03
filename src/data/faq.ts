@@ -2,32 +2,49 @@
  * Questions and answers: the FAQ page and its FAQPage JSON-LD. Answers are
  * plain text, because the JSON-LD needs them without markup.
  *
- * PRZYKŁAD: typical questions of pellet buyers, to be replaced with the ones
- * the client really hears on the phone.
+ * Only what the client has confirmed. Payment, minimum order, delivery times
+ * and single bags are left out until they are known. Prices are not repeated
+ * here: they live in `oferta.ts`.
  */
+import { firma, addressLine } from "./firma";
+import { produkty, paletaLabel, certyfikatZNazwa } from "./oferta";
+import { DARMOWA_DOSTAWA_KM } from "./miejsca";
+
 export const faq: { q: string; a: string }[] = [
   {
-    q: "Jaki jest minimalny rozmiar zamówienia z dostawą?",
-    a: "Dowozimy od jednej palety (975 kg). Pojedyncze worki można kupić na miejscu w składzie w Bieżuniu.",
+    q: "Ile worków jest na palecie?",
+    a: `${produkty.map((p) => `${p.nazwa}: ${paletaLabel(p)}`).join(". ")}. Pellet jest w workach po 15 kg, zapakowany fabrycznie na paletach.`,
   },
   {
     q: "Ile kosztuje dostawa?",
-    a: "Zależy od miejscowości i ilości. W gminie Bieżuń dowozimy gratis, w pozostałych miejscowościach dostawa jest gratis od 2 lub 3 palet. Koszt dla konkretnej miejscowości jest na mapie dystrybucji.",
+    a: `W promieniu ok. ${DARMOWA_DOSTAWA_KM} km od magazynu dostawa jest gratis. Dalej warunki ustalamy indywidualnie, zadzwoń: ${firma.phone.label}.`,
   },
   {
-    q: "Jak szybko dostarczacie pellet?",
-    a: "Zwykle w ciągu 2–5 dni roboczych od potwierdzenia zamówienia. W sezonie grzewczym termin może się wydłużyć, dlatego warto zamawiać wcześniej.",
+    q: "Jak wygląda rozładunek?",
+    a: "Każdy nasz samochód ma windę i elektryczny wózek paletowy, więc paletę zdejmujemy z auta i podwozimy na miejsce. Na ciasne dojazdy mamy mniejsze auta Iveco Daily.",
   },
   {
-    q: "Czy pellet ma certyfikat?",
-    a: "Tak, sprzedajemy pellet klasy ENplus A1. Kartę parametrów pokażemy przy odbiorze albo wyślemy mailem.",
+    q: "Czy pellet można trzymać na zewnątrz?",
+    a: "Tak. Palety są fabrycznie zapakowane i przykryte foliowym kapturem, który chroni worki przed deszczem.",
   },
   {
-    q: "Jak płacę za zamówienie?",
-    a: "Gotówką lub kartą przy odbiorze albo przelewem po otrzymaniu faktury. Strona nie pobiera płatności.",
+    q: "Jakie certyfikaty ma pellet?",
+    a: produkty.map(certyfikatZNazwa).join(" "),
   },
   {
-    q: "Jak przechowywać pellet?",
-    a: "W suchym, przewiewnym miejscu, z dala od ścian, które mogą być wilgotne. Worki najlepiej trzymać na palecie, nie na gołej posadzce.",
+    q: "Do jakich kotłów nadaje się ten pellet?",
+    a: "Oba rodzaje pelletu, które sprzedajemy, to wysokiej jakości certyfikowany pellet drzewny, doskonały do kotłów 5 generacji.",
+  },
+  {
+    q: "Czy mogę odebrać pellet sam?",
+    a: `Tak, z magazynu: ${addressLine()}. Przed przyjazdem zadzwoń pod ${firma.phone.label}.`,
+  },
+  {
+    q: "Czy przy większej ilości cena jest niższa?",
+    a: "Przy większych zamówieniach cena jest do negocjacji. Zadzwoń, a ustalimy warunki.",
+  },
+  {
+    q: "Co zrobić z popiołem?",
+    a: "Popiół z pelletu HITON, który jest w 100% sosnowy i bez dodatków chemicznych, można wykorzystać jako nawóz w ogrodzie.",
   },
 ];

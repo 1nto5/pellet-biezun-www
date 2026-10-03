@@ -1,0 +1,19 @@
+---
+/**
+ * The company's entry board, as it stands by the road: green panel, PELLET
+ * over BIEŻUŃ, a yellow arrow band with the address and the phone in white.
+ * `.wjazd` in global.css.
+ */
+import { firma } from "../data/firma";
+
+const [pellet, miasto] = firma.name.split(" ");
+---
+
+<div class="sign wjazd">
+  <p class="wjazd-marka" aria-hidden="true">
+    <span>{pellet}</span>
+    <span>{miasto}</span>
+  </p>
+  <p class="wjazd-strzalka">{firma.address.street}</p>
+  <a href={firma.phone.href} class="wjazd-tel"><span class="sr-only">Zadzwoń: </span>{firma.phone.label}</a>
+</div>
