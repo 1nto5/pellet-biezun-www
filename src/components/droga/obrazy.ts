@@ -4,7 +4,9 @@
  * the largest size each one shows at in a 1440 px wide window. The truck, the
  * hall, the house and the loader are <img> with a `srcset` (Ciezarowka.astro
  * and the rest), whose `sizes` is the widest share of the window each takes
- * in the scene. The forest and the verge are background bands, so they come
+ * in the scene, the truck's and the house's with the camera close on the
+ * unloading (`--zoom-max`); a phone takes the house a little soft there
+ * rather than a file twice as large. The forest and the verge are background bands, so they come
  * in two sizes, the small one for phones (droga.css); the pallet and the
  * pallet truck are small enough to have one.
  *

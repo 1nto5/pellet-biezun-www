@@ -30,9 +30,14 @@ export const KM_DOJAZD = DARMOWA_DOSTAWA_KM - 6;
  * against the back; `fork` the loader's left edge in scene units, from the
  * truck's front; `palX`, `palY` the pallet's bottom-left corner in the truck
  * drawing's units (4 per scene unit, front of the truck at 0, back of the box
- * at 239, ground at 108, the scene's bottom edge at 120); `jack` 1 = the
- * electric pallet truck shows; `park` 1 = the truck stands at a fixed place
- * near the right edge, so the house behind it and the sign ahead both fit.
+ * at 239, ground at 108, the scene's bottom edge at 120); `przod` 1 = the
+ * pallet is drawn in front of everything (on the ground, off the lift), 0 =
+ * inside the truck's drawing, so the box can hide it; `woz` how much the
+ * electric pallet truck shows, `wozDx` how far it has backed away from the
+ * pallet, in the drawing's units; `park` 1 = the truck stands at a fixed
+ * place near the right edge, so the house behind it and the sign ahead both
+ * fit; `zoom` 1 = the camera close on the unloading; `odjazd` 1 = the truck
+ * has driven off the left edge, leaving the house and the pallet behind.
  */
 export interface Stan {
   km: number;
@@ -42,8 +47,12 @@ export interface Stan {
   fork: number;
   palX: number;
   palY: number;
-  jack: number;
+  przod: number;
+  woz: number;
+  wozDx: number;
   park: number;
+  zoom: number;
+  odjazd: number;
 }
 
 /**
@@ -61,13 +70,16 @@ const PAL = {
   wGarazu: { x: 318, y: 109 },
 };
 
-/** Moments on the 0–100 clock. */
+/**
+ * Moments on the 0–100 clock. The loading takes the first eighth, the road
+ * two fifths, and the unloading at the customer's, with the truck driving
+ * off, nearly half: it is what the reader most wants to see.
+ */
 export const CZAS = {
   odjazd: 13,
-  rozped: 20,
-  hamowanie: 64,
-  postoj: 76,
-  koniec: 100,
+  rozped: 19,
+  hamowanie: 46,
+  postoj: 54,
 };
 /** Km reached when the truck is up to speed, and when it starts to brake. */
 const KM_ROZPED = 6;
@@ -81,6 +93,15 @@ const lagodnie: Ease = (x) => (x < 0.5 ? 2 * x * x : 1 - (-2 * x + 2) ** 2 / 2);
 
 /** A track: [time, value] points, with the ease used on the way to each point. */
 type Tor = [number, number, Ease?][];
+
+/**
+ * At the customer's, from the stop (`U`): the camera closes in while the lift
+ * unfolds, the pallet slides out onto it and goes down, the pallet truck
+ * shows under it and takes it into the garage, then backs away into the
+ * truck; the lift goes up and folds, the camera draws back, and the truck
+ * drives off.
+ */
+const U = CZAS.postoj;
 
 const tory: Record<keyof Stan, Tor> = {
   km: [
@@ -101,42 +122,68 @@ const tory: Record<keyof Stan, Tor> = {
   lift: [
     [6, 1],
     [9, 0],
-    [CZAS.postoj + 7, 0],
-    [CZAS.postoj + 12, 1],
+    [U + 7, 0],
+    [U + 12, 1],
+    [U + 27, 1],
+    [U + 31, 0],
   ],
   fold: [
     [11, 0],
     [CZAS.odjazd, 1],
-    [CZAS.postoj, 1],
-    [CZAS.postoj + 3, 0],
+    [U, 1],
+    [U + 3, 0],
+    [U + 31, 0],
+    [U + 33, 1],
   ],
   palX: [
     [0, PAL.naWidlach.x],
     [4, PAL.naWindzie.x],
     [9, PAL.naWindzie.x],
     [11, PAL.wSrodku],
-    [CZAS.postoj + 3, PAL.wSrodku],
-    [CZAS.postoj + 7, PAL.naWindzie.x],
-    [CZAS.postoj + 13, PAL.naWindzie.x],
-    [CZAS.koniec - 1, PAL.wGarazu.x, lagodnie],
+    [U + 3, PAL.wSrodku],
+    [U + 7, PAL.naWindzie.x],
+    [U + 14, PAL.naWindzie.x],
+    [U + 23, PAL.wGarazu.x, lagodnie],
   ],
   palY: [
     [0, PAL.naWidlach.y],
     [4, PAL.naWindzie.y],
     [6, PAL.naWindzie.y],
     [9, PAL.gora],
-    [CZAS.postoj + 7, PAL.gora],
-    [CZAS.postoj + 12, PAL.naWindzie.y],
-    [CZAS.postoj + 13, PAL.naWindzie.y],
-    [CZAS.koniec - 1, PAL.wGarazu.y, lagodnie],
+    [U + 7, PAL.gora],
+    [U + 12, PAL.naWindzie.y],
+    [U + 14, PAL.naWindzie.y],
+    [U + 23, PAL.wGarazu.y, lagodnie],
   ],
-  jack: [
-    [CZAS.postoj + 12, 0],
-    [CZAS.postoj + 13, 1],
+  // Once the pallet stands on the ground, the copy in front takes over at
+  // the same place, so the change does not show.
+  przod: [
+    [U + 12, 0],
+    [U + 12.5, 1],
+  ],
+  woz: [
+    [U + 12, 0],
+    [U + 14, 1],
+    [U + 23, 1],
+    [U + 27, 0],
+  ],
+  wozDx: [
+    [U + 23, 0],
+    [U + 27, -50],
   ],
   park: [
     [CZAS.hamowanie, 0],
     [CZAS.postoj, 1, lagodnie],
+  ],
+  zoom: [
+    [U + 1, 0],
+    [U + 6, 1, lagodnie],
+    [U + 32, 1],
+    [U + 37, 0, lagodnie],
+  ],
+  odjazd: [
+    [U + 36, 0],
+    [U + 45, 1, przyspiesz],
   ],
 };
 
@@ -177,8 +224,12 @@ export function stanVars(s: Stan): Record<string, string> {
     "--fork": String(s.fork),
     "--pal-x": String(s.palX),
     "--pal-y": String(s.palY),
-    "--jack": String(s.jack),
+    "--przod": String(s.przod),
+    "--woz": String(s.woz),
+    "--woz-dx": String(s.wozDx),
     "--park": String(s.park),
+    "--zoom": String(s.zoom),
+    "--odjazd": String(s.odjazd),
   };
 }
 export function stanStyle(s: Stan): string {

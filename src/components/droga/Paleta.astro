@@ -1,21 +1,16 @@
 ---
 /**
  * A pallet of 15 kg bags under its film hood, bottom-left corner at 0,0 in
- * the truck drawing's units, placed by `--pal-x`/`--pal-y`. `z-wozkiem` adds
- * the electric pallet truck, forks under the pallet and pointing right, the
- * way it takes the pallet into the garage. Its photo has the forks on the
- * left, so it is mirrored here; it has no lettering.
+ * the truck drawing's units, placed by `--pal-x`/`--pal-y`.
  */
 import { obrazy } from "./obrazy";
 
 interface Props {
   class?: string;
-  zWozkiem?: boolean;
 }
-const { class: className, zWozkiem = false } = Astro.props;
+const { class: className } = Astro.props;
 ---
 
 <g class:list={["paleta", className]}>
-  {zWozkiem && <image href={obrazy.wozek} transform="matrix(-1 0 0 1 18 0)" x="0" y="-19.85" width="36" height="19.85" />}
   <image href={obrazy.paleta} x="0" y="-24.5" width="18" height="24.5" />
 </g>

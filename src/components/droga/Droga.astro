@@ -15,15 +15,20 @@
  *   reserved under it; the script sets the scene from the scroll position.
  * - Elsewhere, phones above all, one scene pinned under the header with the
  *   stops' texts scrolling under it, each held below the scene for as long
- *   as its part of the drive takes (`--udzial`); the scene moves by
- *   animations tied to the scroll (`jazda.ts`), light enough for a phone.
+ *   as its part of the drive takes (`--udzial`); the script moves the
+ *   scene's light, paused animations to the scroll's moment (`jazda.ts`).
+ *
+ * The last stop carries the order button and the phone: the reader who has
+ * followed the delivery to the garage is the one ready to order.
  *
  * The slot is the hero. It sits in the same box as the stage, so the stage
  * can stand behind it from the first screen: the road starts under the hero.
  */
 import "./droga.css";
 import Scena from "./Scena.astro";
+import Button from "../Button.astro";
 import { firma } from "../../data/firma";
+import { orderLink } from "../../data/nav";
 import { DARMOWA_DOSTAWA_KM } from "../../data/miejsca";
 import { start, czasKm, CZAS, KM_DOJAZD, type Stan } from "./trasa";
 import { tablice, miastaWStrefie, kadry } from "./tablice";
@@ -70,8 +75,15 @@ const stopy: Stop[] = [
     // From the moment the house comes into view.
     od: czasKm(KM_DOJAZD - 20),
     tytul: "Na miejscu, w strefie darmowej dostawy",
-    tekst: `Do ok. ${DARMOWA_DOSTAWA_KM} km dowozimy gratis, dalej po uzgodnieniu. Paletę zdejmujemy windą i podwozimy elektrycznym wózkiem paletowym.`,
+    tekst: `Do ok. ${DARMOWA_DOSTAWA_KM} km dowozimy gratis, dalej po uzgodnieniu.`,
     kadr: kadry.naMiejscu,
+  },
+  {
+    id: "rozladunek",
+    od: CZAS.postoj,
+    tytul: "Rozładunek",
+    tekst: "Paletę zdejmujemy windą i podwozimy elektrycznym wózkiem paletowym.",
+    kadr: kadry.rozladunek,
   },
 ];
 
@@ -102,6 +114,15 @@ const udzial = (i: number) => Math.round(((stopy[i + 1]?.od ?? 100) - stopy[i]!.
               )}
               <h3>{s.tytul}</h3>
               <p class="stop-opis">{s.tekst}</p>
+              {s.id === "rozladunek" && (
+                <div class="stop-akcje">
+                  <Button href={orderLink.href}>{orderLink.label}</Button>
+                  <a href={firma.phone.href} class="stop-telefon">
+                    <span class="sr-only">Zadzwoń: </span>
+                    {firma.phone.label}
+                  </a>
+                </div>
+              )}
               {s.id === "miasta" && (
                 <ul class="stop-miasta" role="list">
                   {miastaWStrefie.map((m) => (
@@ -128,7 +149,7 @@ const udzial = (i: number) => Math.round(((stopy[i + 1]?.od ?? 100) - stopy[i]!.
 
 <script>
   import { stanAt, stanVars } from "./trasa";
-  import { uruchomJazde, zasiegStrony, type Jazda, type Os } from "./jazda";
+  import { uruchomJazde, type Jazda } from "./jazda";
 
   const podroz = document.querySelector<HTMLElement>("[data-podroz]");
   const hero = podroz?.firstElementChild as HTMLElement | null | undefined;
@@ -169,7 +190,8 @@ const udzial = (i: number) => Math.round(((stopy[i + 1]?.od ?? 100) - stopy[i]!.
       driveEnd = Math.max(driveStart + 1, top + dystans.offsetHeight - window.innerHeight);
 
       scena.style.setProperty("--z", "1");
-      const u1 = rig.getBoundingClientRect().width / 60;
+      // The layout width: the camera's zoom, a transform, must not count.
+      const u1 = rig.offsetWidth / 60;
       // The tallest thing at the start, the hall, reaches 34 units up.
       const room = droga.clientHeight - hero.offsetHeight - 12;
       z0 = Math.min(1, Math.max(0.35, room / (34 * u1)));
@@ -204,7 +226,11 @@ const udzial = (i: number) => Math.round(((stopy[i + 1]?.od ?? 100) - stopy[i]!.
     // Pinned (droga.css): each stop's text is held under the scene, at its
     // sticky `top`, while its part of the drive plays. The drive reaches a
     // stop's moment as the stop's top comes to that line, and its end as the
-    // last text is about to be pushed away by the end of the drive.
+    // last text is about to be pushed away by the end of the drive. The axis
+    // holds those pairs of a scroll position and a moment, both growing;
+    // between two of them the drive moves evenly with the scroll.
+    type Os = [y: number, t: number][];
+    let os: Os = [[0, 0]];
     const zmierzOs = (): Os => {
       const linia = parseFloat(getComputedStyle(teksty[0]!).top);
       const y = window.scrollY - linia;
@@ -214,20 +240,30 @@ const udzial = (i: number) => Math.round(((stopy[i + 1]?.od ?? 100) - stopy[i]!.
       os.push([Math.max(os.at(-1)![0], Math.round(koniec + y)), 100]);
       return os;
     };
-    const takaSama = (a: Os, b: Os) => a.length === b.length && a.every(([y, t], i) => y === b[i]![0] && t === b[i]![1]);
+    const chwila = (y: number): number => {
+      if (y <= os[0]![0]) return os[0]![1];
+      for (let i = 1; i < os.length; i++) {
+        const [y1, t1] = os[i]!;
+        if (y <= y1) {
+          const [y0, t0] = os[i - 1]!;
+          return y1 === y0 ? t1 : t0 + ((t1 - t0) * (y - y0)) / (y1 - y0);
+        }
+      }
+      return os.at(-1)![1];
+    };
+    const przewin = () => jazda?.ustaw(chwila(window.scrollY));
 
     const refresh = () => {
       const nowy = (getComputedStyle(podroz).getPropertyValue("--droga").trim() || "nieruchoma") as Tryb;
       live = nowy === "live";
 
-      // The pinned drive is set up for one scene width, one placing of the
-      // stops and one page length; a change in any of them, or another
-      // version, sets it up again.
+      // The pinned drive is set up for one scene width; another width, or
+      // another version, sets it up again.
       if (nowy === "przypieta") {
-        const os = zmierzOs();
-        if (!jazda || jazda.szerokosc !== scena.clientWidth || jazda.zasieg !== zasiegStrony() || !takaSama(jazda.os, os)) {
+        os = zmierzOs();
+        if (!jazda || jazda.szerokosc !== scena.clientWidth) {
           jazda?.zatrzymaj();
-          jazda = uruchomJazde(scena, os, (km) => (licznik.textContent = String(km)));
+          jazda = uruchomJazde(scena, (km) => (licznik.textContent = String(km)));
         }
       } else if (jazda) {
         jazda.zatrzymaj();
@@ -243,19 +279,18 @@ const udzial = (i: number) => Math.round(((stopy[i + 1]?.od ?? 100) - stopy[i]!.
       if (live) {
         measure();
         render();
+      } else {
+        przewin();
       }
       podroz.classList.add("is-ready");
     };
 
     refresh();
-    window.addEventListener("scroll", () => (live ? render() : jazda?.przewin(window.scrollY)), { passive: true });
+    window.addEventListener("scroll", () => (live ? render() : przewin()), { passive: true });
     window.addEventListener("resize", refresh);
-    // Heights change when the font and the images arrive; the pinned drive
-    // also follows the length of the whole page.
+    // Heights change when the font and the images arrive.
     window.addEventListener("load", refresh);
     document.fonts?.ready.then(refresh);
-    const obserwator = new ResizeObserver(refresh);
-    obserwator.observe(podroz);
-    obserwator.observe(document.body);
+    new ResizeObserver(refresh).observe(podroz);
   }
 </script>

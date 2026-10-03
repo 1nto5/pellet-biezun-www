@@ -1,8 +1,10 @@
 ---
 /**
  * The customer's house, front elevation, the open double garage on its left
- * so it faces the parked truck. It stands on the near side of the road, so it
- * passes in front of the truck and is never covered by it.
+ * so it faces the parked truck. It stands on the near side of the road, yet
+ * is drawn behind the truck: a house sliding across the truck as it brakes
+ * looked like the truck driving through it. Parked, the truck stands clear
+ * of it.
  *
  * The live scene shows it only at the end of the drive, yet loads it at once:
  * a lazy image waits until it is on screen, and here that would be mid-drive.
@@ -21,7 +23,7 @@ const { eager = false } = Astro.props;
   src={dom}
   width={1460}
   widths={[440, 880, 1460]}
-  sizes="56vw"
+  sizes="(min-width: 64rem) 70vw, 75vw"
   format="webp"
   alt=""
   loading={eager ? "eager" : "lazy"}

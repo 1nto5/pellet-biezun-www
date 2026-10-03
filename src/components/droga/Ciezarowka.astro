@@ -13,8 +13,9 @@
  * the box, rides on `--lift` and folds on `--fold`; the pallet moves on
  * `--pal-x`/`--pal-y`. The pallet is drawn
  * under the photo, so it disappears inside the box; once it is on the
- * ground and the electric pallet truck takes it (`--jack`), a copy in front
- * of the house takes over (see Scena.astro).
+ * ground (`--przod`), a copy in front of the house takes over, with the
+ * electric pallet truck (see Scena.astro). Driving off (`--odjazd`), the
+ * whole truck leaves by the left edge.
  *
  * Three layers in the same 240 × 108 units: the pallet's drawing, the photo
  * as an <img> whose size fits the screen (a phone gets a far smaller file
@@ -50,7 +51,7 @@ const gora = `${Math.round((Y0 / 108) * 10000) / 100}%`;
   src={auto}
   width={1800}
   widths={[600, 1100, 1800]}
-  sizes="50vw"
+  sizes="(min-width: 64rem) 56vw, 90vw"
   format="webp"
   alt=""
   class="auto-foto"

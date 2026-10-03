@@ -58,5 +58,6 @@ export const slupki: number[] = Array.from({ length: Math.floor((KM_DOJAZD - 14)
 export const kadry = {
   zaladunek: stanAt(5),
   tablice: stanAt(czasKm((tablice[1] ?? tablice[0])!.naDrodze - 4)),
-  naMiejscu: stanAt(CZAS.postoj + 18),
+  naMiejscu: stanAt(CZAS.postoj),
+  rozladunek: stanAt(CZAS.postoj + 18),
 };

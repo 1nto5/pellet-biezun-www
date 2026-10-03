@@ -12,8 +12,7 @@
      the stops' texts scrolling under it, each held just below it while its
      part of the drive plays (jazda.ts). A phone has too little power to
      redraw the scene on every scroll step, so there the drive moves only
-     transforms, which the browser ties to the scroll without the page's
-     script where it can.
+     transforms and opacity, set to the scroll's moment by the script.
 
    Every condition is known before the first paint (`data-js` is set by an
    inline script in the head), so the layout never jumps when the script
@@ -49,6 +48,11 @@
   --shift: calc(var(--km) * 8 * var(--u));
   position: absolute;
   inset: 0;
+  /* At the customer's the camera closes in (`--zoom`) by up to `--zoom-max`,
+     on the garage door behind the parked truck, the road staying on the
+     bottom edge. */
+  transform: scale(calc(1 + var(--zoom, 0) * (var(--zoom-max, 1.4) - 1)));
+  transform-origin: calc(100% - 15 * var(--u)) 100%;
 }
 .scena svg {
   display: block;
@@ -174,7 +178,8 @@
 }
 /* The house stands on the near side of the road, on the scene's bottom edge,
    4 units behind the parked truck's back, garage towards it. Its garage
-   floor is 2.8 units up, the door 9 to 26 units from its left end. */
+   floor is 2.8 units up, the door 9 to 26 units from its left end. It is
+   drawn behind the truck (Scena.astro), which passes in front of it. */
 .w-dom {
   left: calc((64 - var(--at) * 8) * var(--u));
   bottom: 0;
@@ -256,6 +261,11 @@
   bottom: calc(3 * var(--u));
   width: calc(60 * var(--u));
 }
+/* Driving off (`--odjazd`), the truck leaves by the left edge, 5 units past
+   it; the pallet and its truck, in the other rig, stay. */
+.rig-auto {
+  left: calc(var(--x0) - var(--odjazd, 0) * (var(--x0) + 65 * var(--u)));
+}
 /* The truck's shadow on the road: a soft ellipse under its whole length. */
 .auto-cien {
   position: absolute;
@@ -282,12 +292,18 @@
   transform: translate(calc(var(--pal-x) * 1px), calc(var(--pal-y) * 1px));
 }
 /* Two copies of the pallet: the one in the truck drawing can hide inside the
-   box; the one in front takes over on the ground, in front of the house. */
+   box; the one in front takes over on the ground (`--przod`), in front of
+   the house. */
 .paleta-w-aucie {
-  opacity: calc(1 - var(--jack));
+  opacity: calc(1 - var(--przod));
 }
 .paleta-przed-domem {
-  opacity: var(--jack);
+  opacity: var(--przod);
+}
+/* The electric pallet truck under the pallet, or backing away from it. */
+.wozek {
+  transform: translate(calc((var(--pal-x) + var(--woz-dx)) * 1px), calc(var(--pal-y) * 1px));
+  opacity: var(--woz);
 }
 /* The lift goes down 22.4 units, from the box floor (82.6) to the road (108,
    less the plate's thickness); the post under the hinge grows with it. */
@@ -374,6 +390,29 @@
   font-weight: 400;
   color: var(--color-ink-soft);
 }
+/* The order button and the phone under the last stop, for the reader who
+   has followed the drive to its end. The phone is set like the hero's. */
+.stop-akcje {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.5rem;
+  margin-top: 1rem;
+}
+.stop-telefon {
+  color: var(--color-black);
+  font-size: 1.3rem;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  text-decoration-line: underline;
+  text-decoration-color: var(--color-yellow);
+  text-decoration-thickness: 0.2rem;
+  text-underline-offset: 0.2em;
+}
+.stop-telefon:hover {
+  color: var(--color-black);
+  text-decoration-thickness: 0.3rem;
+}
 
 /* ---- Static: the stops one under another ------------------------------- */
 
@@ -402,6 +441,7 @@
   aspect-ratio: 2 / 1;
   --uh: 2;
   --uw: 0.74;
+  --zoom-max: 1.8;
 }
 @media (min-width: 40rem) {
   .stopy {
@@ -411,6 +451,7 @@
     aspect-ratio: 3 / 1;
     --uh: 2;
     --uw: 0.9;
+    --zoom-max: 1.5;
   }
 }
 @media (min-width: 56rem) {
@@ -438,12 +479,13 @@
        their posts, and never more than 40% of the window. */
     --scena-h: min(100vw * 4 / 9, 40svh);
     /* Scroll for the whole drive, shared out among the stops. */
-    --dlugosc: 230svh;
+    --dlugosc: 260svh;
   }
   html[data-js] .droga {
     padding-top: 1.5rem;
   }
   html[data-js] .droga-scena {
+    --zoom-max: 2;
     display: block;
     position: sticky;
     z-index: 1;
@@ -566,7 +608,7 @@
   }
   html[data-js] .droga-dystans {
     display: block;
-    height: 330vh;
+    height: 380vh;
   }
   html[data-js] .kadr {
     display: none;
@@ -608,6 +650,14 @@
   /* The boards in the scene show the towns; the list is for the static version. */
   html[data-js] .stop-miasta {
     display: none;
+  }
+  /* The texts let clicks through to the page, all but the shown stop's
+     buttons; a hidden stop's buttons cannot take the focus either. */
+  html[data-js] .stop.is-active .stop-akcje {
+    pointer-events: auto;
+  }
+  html[data-js] .stop:not(.is-active) .stop-akcje {
+    visibility: hidden;
   }
   @media (min-width: 72rem) {
     html[data-js] .stopy {
