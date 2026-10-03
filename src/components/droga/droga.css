@@ -1,12 +1,16 @@
 /* ---------------------------------------------------------------------------
    The drive on the home page (Droga.astro, Scena.astro and the drawings).
 
-   Two ways to show it. By default, and for readers who asked for reduced
-   motion or have no scripts: the stops one under another, most with a
-   still frame. With scripts and motion allowed: one sticky stage with the stops'
-   texts on top of each other, and a spacer after it that gives the scroll
-   length. Both conditions are known before the first paint (`data-js` is set
-   by an inline script in the head), so nothing jumps when the script loads.
+   Two ways to show it. By default: the stops one under another, most with
+   a still frame. That is what phones and other narrow or upright screens
+   get, and readers who asked for reduced motion or have no scripts. On a
+   wide landscape screen with scripts and motion allowed: one sticky stage
+   with the stops' texts on top of each other, and a spacer after it that
+   gives the scroll length. A phone has too little room for the stage, which
+   left most of each screen empty, and too little power to redraw the scene
+   on every scroll step. Every condition is known before the first paint
+   (`data-js` is set by an inline script in the head), so nothing jumps when
+   the script loads; the script follows whichever version the CSS shows.
    ------------------------------------------------------------------------ */
 
 /* ---- The scene ---------------------------------------------------------- */
@@ -388,7 +392,7 @@
 
 /* ---- Live: one sticky stage, scrubbed by the scroll ---------------------- */
 
-@media (prefers-reduced-motion: no-preference) {
+@media (prefers-reduced-motion: no-preference) and (min-width: 64rem) and (orientation: landscape) {
   html[data-js] .podroz {
     position: relative;
   }
@@ -436,7 +440,7 @@
     left: 0;
     right: 0;
     display: grid;
-    padding-inline: 1rem;
+    padding-inline: 2rem;
     pointer-events: none;
   }
   /* One stop's text at a time, swapped at once: no fade, so an old text
@@ -468,44 +472,9 @@
   html[data-js] .stop-miasta {
     display: none;
   }
-  @media (min-width: 40rem) {
-    html[data-js] .stopy {
-      padding-inline: 2rem;
-    }
-  }
   @media (min-width: 72rem) {
     html[data-js] .stopy {
       padding-inline: max(2rem, calc((100% - var(--container-6xl)) / 2 + 2rem));
-    }
-  }
-
-  /* A tall window: the texts above the scene, the scene a landscape box
-     at the bottom, so the truck stays large. */
-  @media (orientation: portrait) {
-    html[data-js] .droga {
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-    }
-    html[data-js] .droga-scena {
-      position: relative;
-      inset: auto;
-      flex: none;
-      /* Narrower than on desktop (135 units across), so the garage and the
-         end-of-zone sign both fit beside the parked truck, and the hall's
-         board fits at the start. */
-      height: min(58vw, 50%);
-      --uh: 1.8;
-      --uw: 0.74;
-    }
-    html[data-js] .stopy {
-      position: relative;
-      top: auto;
-      order: -1;
-      padding-bottom: 1.25rem;
-    }
-    html[data-js] .droga-dystans {
-      height: 240vh;
     }
   }
 }
@@ -532,11 +501,4 @@
   display: inline-block;
   min-width: 2ch;
   text-align: right;
-}
-@media (orientation: portrait) {
-  .licznik {
-    top: 0.5rem;
-    right: 0.75rem;
-    font-size: 0.9rem;
-  }
 }

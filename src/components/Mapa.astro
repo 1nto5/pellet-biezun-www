@@ -103,9 +103,11 @@ const dane = {
     const dane: Dane = JSON.parse(el.dataset.mapa ?? "{}");
     const { magazyn } = dane;
 
-    // Scroll-wheel zoom off: a page scrolling past the map should not get
-    // caught by it. The +/- buttons and pinch still zoom.
-    const map = L.map(el, { scrollWheelZoom: false });
+    // A page scrolling past the map must not get caught by it: no
+    // scroll-wheel zoom, and on a touch screen one finger scrolls the page
+    // instead of dragging the map. The +/- buttons zoom, and two fingers
+    // still move and zoom the map.
+    const map = L.map(el, { scrollWheelZoom: false, dragging: !L.Browser.mobile });
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 18,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
