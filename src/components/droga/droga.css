@@ -3,21 +3,24 @@
 
    Three ways to show it. By default, for readers who asked for reduced
    motion or have no scripts: the stops one under another, most with a
-   still frame. With scripts and motion allowed:
+   still frame. With scripts and motion allowed, the drive follows the
+   scroll, both ways:
 
    - On a wide landscape screen: one sticky stage with the stops' texts on
      top of each other, and a spacer after it that gives the scroll length.
-   - Elsewhere, phones above all: one scene above the stops' texts, playing
-     the drive by itself (jazda.ts). A phone has too little room for the
-     sticky stage, which left most of each screen empty, and too little
-     power to redraw the scene on every scroll step; the loop moves only
-     transforms, which the browser plays without the page's script.
+   - Elsewhere, phones above all: one scene pinned under the header, and
+     the stops' texts scrolling under it, each held just below it while its
+     part of the drive plays (jazda.ts). A phone has too little power to
+     redraw the scene on every scroll step, so there the drive moves only
+     transforms, which the browser ties to the scroll without the page's
+     script where it can.
 
    Every condition is known before the first paint (`data-js` is set by an
    inline script in the head), so the layout never jumps when the script
-   loads; the script follows whichever version the CSS shows. Only the
-   sticky stage waits for it, as its size on the first screen (`--z`) has
-   to be measured: it fades in once drawn rather than shrink in view.
+   loads; the script follows whichever version the CSS names in `--droga`.
+   Only the sticky stage waits for it, as its size on the first screen
+   (`--z`) has to be measured: it fades in once drawn rather than shrink in
+   view.
    ------------------------------------------------------------------------ */
 
 /* ---- The scene ---------------------------------------------------------- */
@@ -424,44 +427,98 @@
   }
 }
 
-/* ---- On its own: one scene that plays the drive by itself --------------- */
+/* ---- Pinned: one scene under the header, the texts scrolling under it -- */
 
-@media screen and (prefers-reduced-motion: no-preference) and ((width < 64rem) or (orientation: portrait)) {
+/* Only where the window is tall enough for the scene and a stop's text
+   under it; a lower one (a phone on its side) gets the still frames. */
+@media screen and (prefers-reduced-motion: no-preference) and ((width < 64rem) or (orientation: portrait)) and (min-height: 30rem) {
+  html[data-js] .podroz {
+    --droga: przypieta;
+    /* The scene's height: just tall enough for the direction boards high on
+       their posts, and never more than 40% of the window. */
+    --scena-h: min(100vw * 4 / 9, 40svh);
+    /* Scroll for the whole drive, shared out among the stops. */
+    --dlugosc: 230svh;
+  }
   html[data-js] .droga {
     padding-top: 1.5rem;
   }
-  /* Just tall enough for the direction boards high on their posts. */
   html[data-js] .droga-scena {
     display: block;
-    position: relative;
-    aspect-ratio: 9 / 4;
-    margin-bottom: 2rem;
+    position: sticky;
+    z-index: 1;
+    top: var(--header-height);
+    height: var(--scena-h);
+    margin-bottom: 1rem;
+    background: var(--color-white);
     --uh: 2;
     --uw: 0.74;
   }
   html[data-js] .droga-scena > .scena {
     height: 100%;
   }
-  /* The scene shows every stop, so the stops are text alone, side by side
-     where there is room. */
+  /* A text going under the scene fades out on its way. */
+  html[data-js] .droga-scena::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    top: 100%;
+    height: 1rem;
+    background: linear-gradient(var(--color-white), rgb(255 255 255 / 0));
+    pointer-events: none;
+  }
+  /* The scene shows every stop, so the stops are text alone. Each is as long
+     as its share of the drive, and its text stays under the scene until the
+     next one pushes it away. */
   html[data-js] .kadr {
     display: none;
   }
   html[data-js] .stopy {
-    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
-    gap: 2rem;
+    display: block;
   }
   html[data-js] .stop {
     display: block;
+    min-height: calc(var(--udzial) * var(--dlugosc));
+    padding-bottom: 2.5rem;
+  }
+  html[data-js] .stop-tekst {
+    position: sticky;
+    top: calc(var(--header-height) + var(--scena-h) + 1rem);
+    max-width: 40rem;
+  }
+  /* Set like the live drive's texts, at a phone's size. */
+  html[data-js] .stop h3 {
+    font-size: clamp(1.6rem, 5vw, 2.6rem);
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  html[data-js] .stop-opis {
+    margin-top: 0.6rem;
+    font-size: clamp(1rem, 2.6vw, 1.2rem);
+    font-weight: 500;
+    line-height: 1.35;
   }
   html[data-js] .licznik {
     top: 0.5rem;
     right: 0.75rem;
     font-size: 0.9rem;
   }
+  /* The header's road band starts once the scene leaves the screen. It
+     starts as this element's bottom reaches the window's (ruch.ts), so the
+     element, empty, is shifted down by as much as that leaves to scroll;
+     a relative shift moves nothing else. */
+  html[data-js] .droga-dystans {
+    display: block;
+    position: relative;
+    top: calc(100dvh - var(--header-height) - var(--scena-h) - 1rem);
+    height: 0;
+  }
   @media (min-width: 40rem) {
+    html[data-js] .podroz {
+      --scena-h: min(100vw / 3, 40svh);
+    }
     html[data-js] .droga-scena {
-      aspect-ratio: 3 / 1;
       --uw: 0.9;
     }
   }
@@ -471,6 +528,7 @@
 
 @media screen and (prefers-reduced-motion: no-preference) and (min-width: 64rem) and (orientation: landscape) {
   html[data-js] .podroz {
+    --droga: live;
     position: relative;
   }
   /* The hero scrolls away over the stage, which stands still from the start. */
@@ -580,37 +638,4 @@
   display: inline-block;
   min-width: 2ch;
   text-align: right;
-}
-
-/* The loop's pause button, in the corner across from the odometer and as
-   tall as it is there (sama). Shown by the script only while the loop plays
-   by itself. It answers taps a little around it too. */
-.pauza {
-  position: absolute;
-  top: 0.5rem;
-  left: 0.75rem;
-  display: grid;
-  place-items: center;
-  width: 2rem;
-  height: calc(0.9rem * 1.2 + 0.45rem);
-  border-radius: var(--radius-sign);
-  background: var(--color-black);
-  color: var(--color-white);
-  cursor: pointer;
-}
-.pauza::before {
-  content: "";
-  position: absolute;
-  inset: -0.5rem;
-}
-.pauza svg {
-  width: 0.8rem;
-  height: 0.8rem;
-}
-.pauza-graj,
-.pauza.is-paused .pauza-stop {
-  display: none;
-}
-.pauza.is-paused .pauza-graj {
-  display: inline;
 }

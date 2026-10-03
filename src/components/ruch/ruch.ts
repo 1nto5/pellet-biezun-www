@@ -17,9 +17,9 @@
  *                              [data-ruch-auto] truck drives in on its road;
  *                              empty = arrive from the right).
  *   data-ruch-start            the band starts after this element has scrolled
- *                              by (the home drive's spacer, when the live
- *                              drive shows it); the band's truck is hidden
- *                              until then.
+ *                              by (the end of the home page's drive, when a
+ *                              moving drive shows it); the band's truck is
+ *                              hidden until then.
  *
  * An arrival plays once. The element waits off its place (`.czeka`) until a
  * sliver of it comes into view; then the class goes and a CSS transition

@@ -1,31 +1,25 @@
 /**
- * The drive played by itself, for the screens where the live drive does not
- * run (droga.css): one scene, the same timeline (`stanAt`), on a loop.
+ * The drive tied to the scroll, for the screens where the live drive does
+ * not run (droga.css): one scene pinned above the stops' texts, the same
+ * timeline (`stanAt`), set by how far the reader has scrolled.
  *
  * Built to be light on a phone. Every moving part moves by a transform or an
  * opacity, set up once as Web Animations keyframes sampled from the
- * timeline; after that the browser plays them on its own, with no script per
- * frame and nothing tied to the scroll. The scene's custom properties stay
- * at the start, as rendered, and each animation adds only the difference
- * from it. The bands behind the road cannot slide their pattern without
- * being repainted, so they are widened to the left and slide as a whole.
- *
- * It plays only while the scene is on screen, and not at all once the reader
- * has paused it.
+ * timeline. Where the browser can tie an animation to the scroll itself
+ * (ScrollTimeline), it moves them with the finger, off the page's script,
+ * and the script only writes the odometer; elsewhere the script sets the
+ * animations' place on each scroll step, which is still far less work than
+ * restyling the scene. The scene's custom properties stay at the start, as
+ * rendered, and each animation adds only the difference from it. The bands
+ * behind the road cannot slide their pattern without being repainted, so
+ * they are widened to the left and slide as a whole.
  */
 import { stanAt, start, stanVars, KM_U, type Stan } from "./trasa";
 
-/**
- * One loop: the scene fades in on the start frame, the drive takes most of
- * the loop, its last frame holds, and the scene fades out.
- */
-const PETLA_MS = 22000;
-const HISTORIA = 0.88;
-const ZANIK = 0.025;
-/** Where a new loop begins: faded in, on the start frame the page already shows. */
-export const POCZATEK_MS = ZANIK * PETLA_MS;
-/** Samples per loop; the browser draws straight lines between them. */
+/** Samples of the drive; the browser draws straight lines between them. */
 const PROBKI = 240;
+/** The animations' length where the script sets their place itself. */
+const CALOSC_MS = 1000;
 
 /** As in droga.css: how fast the forest and the verge pass, against the road. */
 const PARALAKSA = { las: 0.3, pola: 0.6 };
@@ -34,25 +28,64 @@ const WINDA_W_DOL = 22.4;
 
 type Ruch = [Element, (s: Stan) => Keyframe];
 
-/** The state at a point of the loop (0–1): the start frame while it fades in, the drive, then its last frame held. */
-const stanPetli = (offset: number) => stanAt(100 * Math.min(1, Math.max(0, (offset - ZANIK) / (HISTORIA - ZANIK))));
+/**
+ * Where the drive is along the page: pairs of a scroll position and a moment
+ * on the 0–100 clock, both growing. Before the first pair the scene stands
+ * at the start, after the last at the end, and between two pairs the drive
+ * moves evenly with the scroll.
+ */
+export type Os = [y: number, t: number][];
+
+/** The moment of the drive at scroll position `y`. */
+export function chwila(os: Os, y: number): number {
+  return poOsi(os, y, 0, 1);
+}
+
+/** The scroll position at which the drive reaches the moment `t`. */
+function miejsce(os: Os, t: number): number {
+  return poOsi(os, t, 1, 0);
+}
+
+/** Reads the axis from column `z` to column `na`, evenly between the pairs. */
+function poOsi(os: Os, x: number, z: 0 | 1, na: 0 | 1): number {
+  const pierwsza = os[0]!;
+  if (x <= pierwsza[z]) return pierwsza[na];
+  for (let i = 1; i < os.length; i++) {
+    const b = os[i]!;
+    if (x <= b[z]) {
+      const a = os[i - 1]!;
+      return b[z] === a[z] ? b[na] : a[na] + ((b[na] - a[na]) * (x - a[z])) / (b[z] - a[z]);
+    }
+  }
+  return os[os.length - 1]![na];
+}
+
+const clamp = (x: number) => Math.min(1, Math.max(0, x));
+
+/** The page's scroller, whose scroll timeline the drive runs on. */
+const strona = () => document.scrollingElement ?? document.documentElement;
+
+/** How far the page scrolls, in px. */
+export function zasiegStrony(): number {
+  const s = strona();
+  return Math.max(1, s.scrollHeight - s.clientHeight);
+}
 
 export interface Jazda {
-  /** The scene width it was set up for; another one needs a new setup. */
+  /** What it was set up for: the scene width, the axis and the page's scroll range; a change in any needs a new setup. */
   szerokosc: number;
-  /** Where in the loop it is, in ms, to carry over to a new setup. */
-  pozycja(): number;
-  /** Pauses the loop at the reader's request, or lets it play again. */
-  wstrzymaj(tak: boolean): void;
+  os: Os;
+  zasieg: number;
+  /** Follows the scroll position `y`. */
+  przewin(y: number): void;
   zatrzymaj(): void;
 }
 
 /**
- * Sets up the loop on the live scene (`[data-scena-live]`) from `odMs` and
- * plays it while `pudelko` (the box around the scene) is on screen.
- * `naKm` gets the odometer's whole km whenever it changes.
+ * Sets up the drive on the live scene (`[data-scena-live]`) along the axis
+ * `os`. `naKm` gets the odometer's whole km whenever it changes.
  */
-export function uruchomJazde(scena: HTMLElement, pudelko: HTMLElement, naKm: (km: number) => void, odMs = POCZATEK_MS): Jazda {
+export function uruchomJazde(scena: HTMLElement, os: Os, naKm: (km: number) => void): Jazda {
   for (const [k, v] of Object.entries(stanVars(start))) scena.style.setProperty(k, v);
   scena.style.setProperty("--z", "1");
 
@@ -92,87 +125,36 @@ export function uruchomJazde(scena: HTMLElement, pudelko: HTMLElement, naKm: (km
     [jeden(".winda-plyta"), (s) => ({ transform: `rotate(${s.fold * -90}deg)`, opacity: 1 - s.fold })],
   ];
 
-  const czasy = Array.from({ length: PROBKI + 1 }, (_, i) => i / PROBKI);
-  const stany = czasy.map(stanPetli);
-  const opcje: KeyframeAnimationOptions = { duration: PETLA_MS, iterations: Infinity };
+  // The keyframes stand at evenly spaced moments of the drive, each at the
+  // scroll position that shows it, as a share of the page's whole scroll
+  // range: that is what a scroll timeline of the page runs over.
+  const zasieg = zasiegStrony();
+  const chwile = Array.from({ length: PROBKI + 1 }, (_, i) => (100 * i) / PROBKI);
+  const offsety = [0, ...chwile.map((t) => clamp(miejsce(os, t) / zasieg)), 1];
+  const stany = [start, ...chwile.map(stanAt), stanAt(100)];
 
-  const animacje = ruchy.map(([el, klatka]) => el.animate(bezPowtorzen(czasy.map((offset, i) => ({ offset, ...klatka(stany[i]!) }))), opcje));
-  animacje.push(
-    scena.animate(
-      [
-        { offset: 0, opacity: 0 },
-        { offset: ZANIK, opacity: 1 },
-        { offset: 1 - ZANIK, opacity: 1 },
-        { offset: 1, opacity: 0 },
-      ],
-      opcje,
-    ),
-  );
-  for (const a of animacje) {
-    a.pause();
-    a.currentTime = odMs;
-  }
+  const timeline = typeof ScrollTimeline === "function" ? new ScrollTimeline({ source: strona(), axis: "block" }) : null;
+  const opcje: KeyframeAnimationOptions = timeline ? { timeline, fill: "both" } : { duration: CALOSC_MS, fill: "both" };
+  const animacje = ruchy.map(([el, klatka]) => el.animate(bezPowtorzen(offsety.map((offset, i) => ({ offset, ...klatka(stany[i]!) }))), opcje));
+  if (!timeline) for (const a of animacje) a.pause();
 
-  // All of them start from one moment of the timeline, so they stay in step.
-  const graj = () => {
-    const teraz = document.timeline.currentTime;
-    if (typeof teraz !== "number") return;
-    const od = teraz - Number(animacje[0]!.currentTime ?? 0);
-    for (const a of animacje) a.startTime = od;
-  };
-  const stoj = () => {
-    for (const a of animacje) a.pause();
-  };
-
-  // The odometer is text, so it is the one thing written from here: a few
-  // times a second, and only when the whole km changes.
-  const pozycja = () => Number(animacje[0]!.currentTime ?? 0) % PETLA_MS;
+  // The odometer is text, so it is written from here, only when the whole
+  // km changes.
   let km = -1;
-  const licz = () => {
-    const k = Math.round(stanPetli(pozycja() / PETLA_MS).km);
+  const przewin = (y: number) => {
+    if (!timeline) for (const a of animacje) a.currentTime = CALOSC_MS * clamp(y / zasieg);
+    const k = Math.round(stanAt(chwila(os, y)).km);
     if (k !== km) naKm(k);
     km = k;
   };
-  let licznik: number | undefined;
-
-  let naEkranie = false;
-  let wstrzymana = false;
-  const uaktualnij = () => {
-    if (naEkranie && !wstrzymana) {
-      graj();
-      licz();
-      licznik ??= window.setInterval(licz, 150);
-    } else {
-      stoj();
-      window.clearInterval(licznik);
-      licznik = undefined;
-    }
-  };
-
-  // Entries can arrive several at once; the newest one tells where the box is now.
-  const obserwator = new IntersectionObserver((wpisy) => {
-    naEkranie = wpisy.at(-1)?.isIntersecting ?? false;
-    uaktualnij();
-  });
-  obserwator.observe(pudelko);
+  przewin(window.scrollY);
 
   return {
     szerokosc,
-    pozycja,
-    wstrzymaj(tak) {
-      wstrzymana = tak;
-      uaktualnij();
-      if (!tak) return;
-      // Paused while the scene fades between loops, it would stay faded:
-      // it stops on the nearest frame shown in full instead.
-      const ms = Math.min(Math.max(pozycja(), ZANIK * PETLA_MS), (1 - ZANIK) * PETLA_MS);
-      if (ms === pozycja()) return;
-      for (const a of animacje) a.currentTime = ms;
-      licz();
-    },
+    os,
+    zasieg,
+    przewin,
     zatrzymaj() {
-      obserwator.disconnect();
-      window.clearInterval(licznik);
       for (const a of animacje) a.cancel();
       for (const [el] of pasma) el.style.removeProperty("left");
     },

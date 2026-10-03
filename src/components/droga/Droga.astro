@@ -8,13 +8,15 @@
  * as text, most with a still frame of the scene, which is all a reader who
  * asked for reduced motion or has no scripts gets. Otherwise the CSS in
  * `droga.css` picks one of two ways to move (both known before the first
- * paint), and the script below follows it:
+ * paint), and the script below follows it. Both are tied to the scroll: the
+ * same scroll position always shows the same frame.
  *
  * - On a wide landscape screen, one sticky stage with the scroll length
  *   reserved under it; the script sets the scene from the scroll position.
- * - Elsewhere, phones above all, one scene above the stops' texts that plays
- *   the drive by itself on a loop (`jazda.ts`), light enough for a phone,
- *   with a button to pause it.
+ * - Elsewhere, phones above all, one scene pinned under the header with the
+ *   stops' texts scrolling under it, each held below the scene for as long
+ *   as its part of the drive takes (`--udzial`); the scene moves by
+ *   animations tied to the scroll (`jazda.ts`), light enough for a phone.
  *
  * The slot is the hero. It sits in the same box as the stage, so the stage
  * can stand behind it from the first screen: the road starts under the hero.
@@ -72,6 +74,9 @@ const stopy: Stop[] = [
     kadr: kadry.naMiejscu,
   },
 ];
+
+/** The stop's share of the drive, from its moment to the next stop's or the end. */
+const udzial = (i: number) => Math.round(((stopy[i + 1]?.od ?? 100) - stopy[i]!.od) * 100) / 10000;
 ---
 
 <div class="podroz" data-podroz>
@@ -80,21 +85,15 @@ const stopy: Stop[] = [
   <section class="droga" aria-labelledby="droga-tytul" data-droga>
     <h2 id="droga-tytul" class="sr-only">Jak pellet jedzie do klienta</h2>
 
-    <div class="droga-scena" data-droga-scena>
+    <div class="droga-scena">
       <Scena stan={start} live />
       <p class="licznik" aria-hidden="true"><span data-licznik>0</span> km</p>
-      <button type="button" class="pauza" data-pauza aria-label="Zatrzymaj animację" hidden>
-        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <path class="pauza-stop" d="M6 4h4v16H6zM14 4h4v16h-4z" />
-          <path class="pauza-graj" d="M7 4l13 8-13 8z" />
-        </svg>
-      </button>
     </div>
 
     <ol class="stopy" role="list">
       {
-        stopy.map((s) => (
-          <li class="stop" data-stop data-od={s.od}>
+        stopy.map((s, i) => (
+          <li class="stop" data-stop data-od={s.od} style={`--udzial:${udzial(i)}`}>
             <div class="stop-tekst">
               {s.km !== undefined && (
                 <p class="slupek">
@@ -129,30 +128,27 @@ const stopy: Stop[] = [
 
 <script>
   import { stanAt, stanVars } from "./trasa";
-  import { uruchomJazde, POCZATEK_MS, type Jazda } from "./jazda";
+  import { uruchomJazde, zasiegStrony, type Jazda, type Os } from "./jazda";
 
   const podroz = document.querySelector<HTMLElement>("[data-podroz]");
   const hero = podroz?.firstElementChild as HTMLElement | null | undefined;
   const droga = podroz?.querySelector<HTMLElement>("[data-droga]");
-  const pudelko = podroz?.querySelector<HTMLElement>("[data-droga-scena]");
   const scena = podroz?.querySelector<HTMLElement>("[data-scena-live]");
   const rig = scena?.querySelector<HTMLElement>(".rig");
   const dystans = podroz?.querySelector<HTMLElement>("[data-dystans]");
   const licznik = podroz?.querySelector<HTMLElement>("[data-licznik]");
-  const pauza = podroz?.querySelector<HTMLButtonElement>("[data-pauza]");
   const stopy = [...(podroz?.querySelectorAll<HTMLElement>("[data-stop]") ?? [])];
+  const teksty = stopy.map((s) => s.querySelector<HTMLElement>(".stop-tekst"));
 
-  if (podroz && hero && droga && pudelko && scena && rig && dystans && licznik && pauza) {
-    // The CSS decides which version shows (droga.css): the spacer that gives
-    // the scroll length is there only in the live one, the scene's box also
-    // in the one that plays by itself. A turned tablet or a resized window
-    // can switch between them, so this is asked again on every refresh, and
-    // only then: asking while scrolling would force a layout.
-    let tryb: "live" | "sama" | "nieruchoma" | null = null;
+  if (podroz && hero && droga && scena && rig && dystans && licznik && stopy.length && teksty.every((t) => t)) {
+    // The CSS decides which version shows and names it in `--droga`
+    // (droga.css). A turned tablet or a resized window can switch between
+    // them, so this is asked again on every refresh, and only then: asking
+    // while scrolling would force a layout.
+    type Tryb = "live" | "przypieta" | "nieruchoma";
+    let tryb: Tryb | null = null;
     let live = false;
     let jazda: Jazda | null = null;
-    let jazdaOd = POCZATEK_MS;
-    let wstrzymana = false;
     const clamp = (x: number) => Math.min(1, Math.max(0, x));
     const od = stopy.map((s) => Number(s.dataset.od));
 
@@ -205,24 +201,40 @@ const stopy: Stop[] = [
       }
     };
 
+    // Pinned (droga.css): each stop's text is held under the scene, at its
+    // sticky `top`, while its part of the drive plays. The drive reaches a
+    // stop's moment as the stop's top comes to that line, and its end as the
+    // last text is about to be pushed away by the end of the drive.
+    const zmierzOs = (): Os => {
+      const linia = parseFloat(getComputedStyle(teksty[0]!).top);
+      const y = window.scrollY - linia;
+      const os: Os = stopy.map((s, i) => [Math.round(s.getBoundingClientRect().top + y), od[i]!]);
+      const ostatni = stopy.at(-1)!;
+      const koniec = ostatni.getBoundingClientRect().bottom - parseFloat(getComputedStyle(ostatni).paddingBottom) - teksty.at(-1)!.offsetHeight;
+      os.push([Math.max(os.at(-1)![0], Math.round(koniec + y)), 100]);
+      return os;
+    };
+    const takaSama = (a: Os, b: Os) => a.length === b.length && a.every(([y, t], i) => y === b[i]![0] && t === b[i]![1]);
+
     const refresh = () => {
-      const nowy = dystans.offsetParent !== null ? "live" : pudelko.offsetParent !== null ? "sama" : "nieruchoma";
+      const nowy = (getComputedStyle(podroz).getPropertyValue("--droga").trim() || "nieruchoma") as Tryb;
       live = nowy === "live";
 
-      // The loop is set up for one scene width; a new width, or another
-      // version, ends it, and a new loop goes on from the same moment.
-      if (jazda && (nowy !== "sama" || jazda.szerokosc !== scena.clientWidth)) {
-        jazdaOd = jazda.pozycja();
+      // The pinned drive is set up for one scene width, one placing of the
+      // stops and one page length; a change in any of them, or another
+      // version, sets it up again.
+      if (nowy === "przypieta") {
+        const os = zmierzOs();
+        if (!jazda || jazda.szerokosc !== scena.clientWidth || jazda.zasieg !== zasiegStrony() || !takaSama(jazda.os, os)) {
+          jazda?.zatrzymaj();
+          jazda = uruchomJazde(scena, os, (km) => (licznik.textContent = String(km)));
+        }
+      } else if (jazda) {
         jazda.zatrzymaj();
         jazda = null;
       }
-      if (nowy === "sama" && !jazda) {
-        jazda = uruchomJazde(scena, pudelko, (km) => (licznik.textContent = String(km)), jazdaOd);
-        jazda.wstrzymaj(wstrzymana);
-      }
-      pauza.hidden = nowy !== "sama";
       if (nowy !== tryb) {
-        podroz.classList.toggle("is-driving", nowy === "sama");
+        podroz.classList.toggle("is-driving", nowy === "przypieta");
         shownStop = -2;
         shownKm = -1;
         tryb = nowy;
@@ -234,21 +246,16 @@ const stopy: Stop[] = [
       }
       podroz.classList.add("is-ready");
     };
-    // A loop that plays by itself for longer than a few seconds needs a way
-    // to stop it (WCAG 2.2.2). It stays stopped until the reader plays it.
-    pauza.addEventListener("click", () => {
-      wstrzymana = !wstrzymana;
-      jazda?.wstrzymaj(wstrzymana);
-      pauza.classList.toggle("is-paused", wstrzymana);
-      pauza.setAttribute("aria-label", wstrzymana ? "Odtwórz animację" : "Zatrzymaj animację");
-    });
 
     refresh();
-    window.addEventListener("scroll", () => live && render(), { passive: true });
+    window.addEventListener("scroll", () => (live ? render() : jazda?.przewin(window.scrollY)), { passive: true });
     window.addEventListener("resize", refresh);
-    // Heights change when the font and the images arrive.
+    // Heights change when the font and the images arrive; the pinned drive
+    // also follows the length of the whole page.
     window.addEventListener("load", refresh);
     document.fonts?.ready.then(refresh);
-    new ResizeObserver(refresh).observe(podroz);
+    const obserwator = new ResizeObserver(refresh);
+    obserwator.observe(podroz);
+    obserwator.observe(document.body);
   }
 </script>
