@@ -5,11 +5,12 @@
  * with the end-of-zone sign ahead, while the reader scrolls.
  *
  * Built so the page is complete without it moving. The HTML holds every stop
- * as text, most with a still frame of the scene. When scripts run and the
- * reader has not asked for reduced motion (both known before the first
- * paint), the CSS in `droga.css` swaps the frames for one sticky stage and
- * reserves the scroll length under it, and the script below sets the scene
- * from the scroll position.
+ * as text, most with a still frame of the scene; phones and other narrow or
+ * upright screens keep it that way. On a wide landscape screen, when scripts
+ * run and the reader has not asked for reduced motion (all known before the
+ * first paint), the CSS in `droga.css` swaps the frames for one sticky stage
+ * and reserves the scroll length under it, and the script below sets the
+ * scene from the scroll position.
  *
  * The slot is the hero. It sits in the same box as the stage, so the stage
  * can stand behind it from the first screen: the road starts under the hero.
@@ -126,9 +127,13 @@ const stopy: Stop[] = [
   const dystans = podroz?.querySelector<HTMLElement>("[data-dystans]");
   const licznik = podroz?.querySelector<HTMLElement>("[data-licznik]");
   const stopy = [...(podroz?.querySelectorAll<HTMLElement>("[data-stop]") ?? [])];
-  const moving = window.matchMedia("(prefers-reduced-motion: no-preference)").matches;
 
-  if (podroz && hero && droga && scena && rig && dystans && licznik && moving) {
+  if (podroz && hero && droga && scena && rig && dystans && licznik) {
+    // The CSS decides which version shows (droga.css); the spacer that gives
+    // the scroll length is there only in the live one. A turned tablet or a
+    // resized window can switch between them, so this is asked again on every
+    // refresh, and only then: asking while scrolling would force a layout.
+    let live = false;
     const clamp = (x: number) => Math.min(1, Math.max(0, x));
     const od = stopy.map((s) => Number(s.dataset.od));
 
@@ -182,11 +187,13 @@ const stopy: Stop[] = [
     };
 
     const refresh = () => {
+      live = dystans.offsetParent !== null;
+      if (!live) return;
       measure();
       render();
     };
     refresh();
-    window.addEventListener("scroll", render, { passive: true });
+    window.addEventListener("scroll", () => live && render(), { passive: true });
     window.addEventListener("resize", refresh);
     // Heights change when the font and the images arrive.
     window.addEventListener("load", refresh);
