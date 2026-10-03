@@ -1,16 +1,21 @@
 /* ---------------------------------------------------------------------------
    The drive on the home page (Droga.astro, Scena.astro and the drawings).
 
-   Two ways to show it. By default: the stops one under another, most with
-   a still frame. That is what phones and other narrow or upright screens
-   get, and readers who asked for reduced motion or have no scripts. On a
-   wide landscape screen with scripts and motion allowed: one sticky stage
-   with the stops' texts on top of each other, and a spacer after it that
-   gives the scroll length. A phone has too little room for the stage, which
-   left most of each screen empty, and too little power to redraw the scene
-   on every scroll step. Every condition is known before the first paint
-   (`data-js` is set by an inline script in the head), so nothing jumps when
-   the script loads; the script follows whichever version the CSS shows.
+   Three ways to show it. By default, for readers who asked for reduced
+   motion or have no scripts: the stops one under another, most with a
+   still frame. With scripts and motion allowed:
+
+   - On a wide landscape screen: one sticky stage with the stops' texts on
+     top of each other, and a spacer after it that gives the scroll length.
+   - Elsewhere, phones above all: one scene above the stops' texts, playing
+     the drive by itself (jazda.ts). A phone has too little room for the
+     sticky stage, which left most of each screen empty, and too little
+     power to redraw the scene on every scroll step; the loop moves only
+     transforms, which the browser plays without the page's script.
+
+   Every condition is known before the first paint (`data-js` is set by an
+   inline script in the head), so nothing jumps when the script loads; the
+   script follows whichever version the CSS shows.
    ------------------------------------------------------------------------ */
 
 /* ---- The scene ---------------------------------------------------------- */
@@ -59,7 +64,7 @@
   inset-inline: 0;
   bottom: calc(11.5 * var(--u));
   height: calc(16 * var(--u));
-  background: var(--las) repeat-x;
+  background: var(--las-maly) repeat-x;
   background-size: auto 100%;
   background-position-x: calc(var(--shift) * 0.3);
 }
@@ -69,9 +74,18 @@
   inset-inline: 0;
   bottom: calc(9 * var(--u));
   height: calc(5 * var(--u));
-  background: var(--pobocze) repeat-x;
+  background: var(--pobocze-male) repeat-x;
   background-size: auto 100%;
   background-position-x: calc(var(--shift) * 0.6);
+}
+/* The two bands in their full size, from where the scene is no phone's (obrazy.ts). */
+@media (min-width: 48rem) {
+  .las {
+    background-image: var(--las);
+  }
+  .pola {
+    background-image: var(--pobocze);
+  }
 }
 /* The road: asphalt with the centre line, at the truck's speed. */
 .jezdnia {
@@ -240,6 +254,17 @@
   background: radial-gradient(closest-side, rgb(0 0 0 / 0.45), transparent);
 }
 
+/* The truck's photo over the pallet's drawing, the tail lift's drawing over
+   both (Ciezarowka.astro). */
+.auto-foto,
+.auto-winda {
+  position: absolute;
+  left: 0;
+}
+.auto-winda {
+  top: 0;
+}
+
 /* The truck's moving parts, driven by the same properties. SVG units. */
 .paleta {
   transform: translate(calc(var(--pal-x) * 1px), calc(var(--pal-y) * 1px));
@@ -387,6 +412,49 @@
   }
   .stop:not(:has(.kadr)) .stop-tekst {
     grid-column: 1;
+  }
+}
+
+/* ---- On its own: one scene that plays the drive by itself --------------- */
+
+@media (prefers-reduced-motion: no-preference) and ((width < 64rem) or (orientation: portrait)) {
+  html[data-js] .droga {
+    padding-top: 1.5rem;
+  }
+  /* Just tall enough for the direction boards high on their posts. */
+  html[data-js] .droga-scena {
+    display: block;
+    position: relative;
+    aspect-ratio: 9 / 4;
+    margin-bottom: 2rem;
+    --uh: 2;
+    --uw: 0.74;
+  }
+  html[data-js] .droga-scena > .scena {
+    height: 100%;
+  }
+  /* The scene shows every stop, so the stops are text alone, side by side
+     where there is room. */
+  html[data-js] .kadr {
+    display: none;
+  }
+  html[data-js] .stopy {
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: 2rem;
+  }
+  html[data-js] .stop {
+    display: block;
+  }
+  html[data-js] .licznik {
+    top: 0.5rem;
+    right: 0.75rem;
+    font-size: 0.9rem;
+  }
+  @media (min-width: 40rem) {
+    html[data-js] .droga-scena {
+      aspect-ratio: 3 / 1;
+      --uw: 0.9;
+    }
   }
 }
 

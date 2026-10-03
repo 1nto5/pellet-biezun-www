@@ -5,12 +5,15 @@
  * with the end-of-zone sign ahead, while the reader scrolls.
  *
  * Built so the page is complete without it moving. The HTML holds every stop
- * as text, most with a still frame of the scene; phones and other narrow or
- * upright screens keep it that way. On a wide landscape screen, when scripts
- * run and the reader has not asked for reduced motion (all known before the
- * first paint), the CSS in `droga.css` swaps the frames for one sticky stage
- * and reserves the scroll length under it, and the script below sets the
- * scene from the scroll position.
+ * as text, most with a still frame of the scene, which is all a reader who
+ * asked for reduced motion or has no scripts gets. Otherwise the CSS in
+ * `droga.css` picks one of two ways to move (both known before the first
+ * paint), and the script below follows it:
+ *
+ * - On a wide landscape screen, one sticky stage with the scroll length
+ *   reserved under it; the script sets the scene from the scroll position.
+ * - Elsewhere, phones above all, one scene above the stops' texts that plays
+ *   the drive by itself on a loop (`jazda.ts`), light enough for a phone.
  *
  * The slot is the hero. It sits in the same box as the stage, so the stage
  * can stand behind it from the first screen: the road starts under the hero.
@@ -75,7 +78,7 @@ const stopy: Stop[] = [
   <section class="droga" aria-labelledby="droga-tytul" data-droga>
     <h2 id="droga-tytul" class="sr-only">Jak pellet jedzie do klienta</h2>
 
-    <div class="droga-scena">
+    <div class="droga-scena" data-droga-scena>
       <Scena stan={start} live />
       <p class="licznik" aria-hidden="true"><span data-licznik>0</span> km</p>
     </div>
@@ -118,22 +121,28 @@ const stopy: Stop[] = [
 
 <script>
   import { stanAt, stanVars } from "./trasa";
+  import { uruchomJazde, type Jazda } from "./jazda";
 
   const podroz = document.querySelector<HTMLElement>("[data-podroz]");
   const hero = podroz?.firstElementChild as HTMLElement | null | undefined;
   const droga = podroz?.querySelector<HTMLElement>("[data-droga]");
+  const pudelko = podroz?.querySelector<HTMLElement>("[data-droga-scena]");
   const scena = podroz?.querySelector<HTMLElement>("[data-scena-live]");
   const rig = scena?.querySelector<HTMLElement>(".rig");
   const dystans = podroz?.querySelector<HTMLElement>("[data-dystans]");
   const licznik = podroz?.querySelector<HTMLElement>("[data-licznik]");
   const stopy = [...(podroz?.querySelectorAll<HTMLElement>("[data-stop]") ?? [])];
 
-  if (podroz && hero && droga && scena && rig && dystans && licznik) {
-    // The CSS decides which version shows (droga.css); the spacer that gives
-    // the scroll length is there only in the live one. A turned tablet or a
-    // resized window can switch between them, so this is asked again on every
-    // refresh, and only then: asking while scrolling would force a layout.
+  if (podroz && hero && droga && pudelko && scena && rig && dystans && licznik) {
+    // The CSS decides which version shows (droga.css): the spacer that gives
+    // the scroll length is there only in the live one, the scene's box also
+    // in the one that plays by itself. A turned tablet or a resized window
+    // can switch between them, so this is asked again on every refresh, and
+    // only then: asking while scrolling would force a layout.
+    let tryb: "live" | "sama" | "nieruchoma" | null = null;
     let live = false;
+    let jazda: Jazda | null = null;
+    let jazdaOd = 0;
     const clamp = (x: number) => Math.min(1, Math.max(0, x));
     const od = stopy.map((s) => Number(s.dataset.od));
 
@@ -187,7 +196,26 @@ const stopy: Stop[] = [
     };
 
     const refresh = () => {
-      live = dystans.offsetParent !== null;
+      const nowy = dystans.offsetParent !== null ? "live" : pudelko.offsetParent !== null ? "sama" : "nieruchoma";
+      live = nowy === "live";
+
+      // The loop is set up for one scene width; a new width, or another
+      // version, ends it, and a new loop goes on from the same moment.
+      if (jazda && (nowy !== "sama" || jazda.szerokosc !== scena.clientWidth)) {
+        jazdaOd = jazda.pozycja();
+        jazda.zatrzymaj();
+        jazda = null;
+      }
+      if (nowy === "sama" && !jazda) {
+        jazda = uruchomJazde(scena, pudelko, (km) => (licznik.textContent = String(km)), jazdaOd);
+      }
+      if (nowy !== tryb) {
+        podroz.classList.toggle("is-driving", nowy === "sama");
+        shownStop = -2;
+        shownKm = -1;
+        tryb = nowy;
+      }
+
       if (!live) return;
       measure();
       render();

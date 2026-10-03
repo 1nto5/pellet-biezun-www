@@ -7,9 +7,19 @@ import { Image } from "astro:assets";
 import { ladowarka } from "./obrazy";
 
 interface Props {
+  /** Loads at once in the live scene, after the headline's font (as Hala.astro). */
   eager?: boolean;
 }
 const { eager = false } = Astro.props;
 ---
 
-<Image src={ladowarka} width={520} widths={[160, 320, 520]} sizes="20vw" format="webp" alt="" loading={eager ? "eager" : "lazy"} />
+<Image
+  src={ladowarka}
+  width={520}
+  widths={[160, 320, 520]}
+  sizes="20vw"
+  format="webp"
+  alt=""
+  loading={eager ? "eager" : "lazy"}
+  fetchpriority={eager ? "low" : undefined}
+/>
