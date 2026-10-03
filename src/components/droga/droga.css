@@ -567,3 +567,36 @@
   min-width: 2ch;
   text-align: right;
 }
+
+/* The loop's pause button, in the corner across from the odometer and as
+   tall as it is there (sama). Shown by the script only while the loop plays
+   by itself. It answers taps a little around it too. */
+.pauza {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.75rem;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: calc(0.9rem * 1.2 + 0.45rem);
+  border-radius: var(--radius-sign);
+  background: var(--color-black);
+  color: var(--color-white);
+  cursor: pointer;
+}
+.pauza::before {
+  content: "";
+  position: absolute;
+  inset: -0.5rem;
+}
+.pauza svg {
+  width: 0.8rem;
+  height: 0.8rem;
+}
+.pauza-graj,
+.pauza.is-paused .pauza-stop {
+  display: none;
+}
+.pauza.is-paused .pauza-graj {
+  display: inline;
+}

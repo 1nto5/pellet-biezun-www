@@ -10,7 +10,8 @@
  * from it. The bands behind the road cannot slide their pattern without
  * being repainted, so they are widened to the left and slide as a whole.
  *
- * It plays only while the scene is on screen.
+ * It plays only while the scene is on screen, and not at all once the reader
+ * has paused it.
  */
 import { stanAt, start, stanVars, KM_U, type Stan } from "./trasa";
 
@@ -36,6 +37,8 @@ export interface Jazda {
   szerokosc: number;
   /** Where in the loop it is, in ms, to carry over to a new setup. */
   pozycja(): number;
+  /** Pauses the loop at the reader's request, or lets it play again. */
+  wstrzymaj(tak: boolean): void;
   zatrzymaj(): void;
 }
 
@@ -118,17 +121,19 @@ export function uruchomJazde(scena: HTMLElement, pudelko: HTMLElement, naKm: (km
 
   // The odometer is text, so it is the one thing written from here: a few
   // times a second, and only when the whole km changes.
+  const pozycja = () => Number(animacje[0]!.currentTime ?? 0) % PETLA_MS;
   let km = -1;
   const licz = () => {
-    const k = Math.round(stanPetli((Number(animacje[0]!.currentTime ?? 0) % PETLA_MS) / PETLA_MS).km);
+    const k = Math.round(stanPetli(pozycja() / PETLA_MS).km);
     if (k !== km) naKm(k);
     km = k;
   };
   let licznik: number | undefined;
 
-  // Entries can arrive several at once; the newest one tells where the box is now.
-  const obserwator = new IntersectionObserver((wpisy) => {
-    if (wpisy.at(-1)?.isIntersecting) {
+  let naEkranie = false;
+  let wstrzymana = false;
+  const uaktualnij = () => {
+    if (naEkranie && !wstrzymana) {
       graj();
       licz();
       licznik ??= window.setInterval(licz, 150);
@@ -137,12 +142,29 @@ export function uruchomJazde(scena: HTMLElement, pudelko: HTMLElement, naKm: (km
       window.clearInterval(licznik);
       licznik = undefined;
     }
+  };
+
+  // Entries can arrive several at once; the newest one tells where the box is now.
+  const obserwator = new IntersectionObserver((wpisy) => {
+    naEkranie = wpisy.at(-1)?.isIntersecting ?? false;
+    uaktualnij();
   });
   obserwator.observe(pudelko);
 
   return {
     szerokosc,
-    pozycja: () => Number(animacje[0]!.currentTime ?? 0) % PETLA_MS,
+    pozycja,
+    wstrzymaj(tak) {
+      wstrzymana = tak;
+      uaktualnij();
+      if (!tak) return;
+      // Paused while the scene fades between loops, it would stay faded:
+      // it stops on the nearest frame shown in full instead.
+      const ms = Math.min(Math.max(pozycja(), ZANIK * PETLA_MS), (1 - ZANIK) * PETLA_MS);
+      if (ms === pozycja()) return;
+      for (const a of animacje) a.currentTime = ms;
+      licz();
+    },
     zatrzymaj() {
       obserwator.disconnect();
       window.clearInterval(licznik);
