@@ -9,7 +9,7 @@ import { miejsca } from "../data/miejsca";
 ---
 
 <Base
-  title="Zamówienie"
+  title="Zamów pellet z dostawą"
   description="Zamów pellet drzewny z dostawą. Wypełnij formularz, oddzwonimy z potwierdzeniem ceny i terminu. Bez płatności online."
 >
   <PageShell>
@@ -124,10 +124,15 @@ import { miejsca } from "../data/miejsca";
 </Base>
 
 <script>
-  // A link from a product (/zamowienie/?produkt=hiton) picks it in the list.
+  // A link from a product (/zamowienie/?produkt=hiton) picks it in the list;
+  // one from a town's page (?miejscowosc=Płock) fills in the town.
+  const parametry = new URLSearchParams(location.search);
   const produkt = document.querySelector<HTMLSelectElement>("#produkt");
-  const wybrany = new URLSearchParams(location.search).get("produkt");
+  const wybrany = parametry.get("produkt");
   if (produkt && [...produkt.options].some((o) => o.value === wybrany)) produkt.value = wybrany!;
+  const miejscowosc = document.querySelector<HTMLInputElement>("#miejscowosc");
+  const podana = parametry.get("miejscowosc");
+  if (miejscowosc && podana && !miejscowosc.value) miejscowosc.value = podana;
 
   // No delivery date before today, in the reader's own time zone. Swedish
   // writes dates as YYYY-MM-DD, the form a date input takes.

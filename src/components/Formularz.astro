@@ -5,7 +5,10 @@
  *
  * - The trap field (honeypot): hidden from people, filled in by bots. The
  *   Pages Function in stage 3 drops any submission that has it filled.
- * - The consent checkbox, linking the privacy policy.
+ * - The privacy note: a consent checkbox where the data is used on consent
+ *   (the contact form), otherwise a line that says what the data is for (the
+ *   order, which needs it to be carried out). Both link the privacy policy,
+ *   which names the same legal bases.
  * - The place for the Cloudflare Turnstile widget (stage 3).
  * - The submit button and a status line for the reply.
  *
@@ -23,11 +26,13 @@ interface Props {
   /** The Pages Function's path, e.g. "/api/kontakt". */
   action: `/${string}`;
   submitLabel: string;
-  /** For the consent sentence: "złożenia zamówienia", "odpowiedzi na wiadomość". */
+  /** What the data is for, ending a sentence: "odpowiedzi na wiadomość". */
   purpose: string;
+  /** Ask for consent to that use; without it the form only says what the data is for. */
+  consent?: boolean;
 }
 
-const { action, submitLabel, purpose } = Astro.props;
+const { action, submitLabel, purpose, consent = false } = Astro.props;
 ---
 
 <form method="post" action={href(action)} class="space-y-6" data-form data-live={String(formularzeWlaczone)}>
@@ -40,13 +45,21 @@ const { action, submitLabel, purpose } = Astro.props;
     </label>
   </div>
 
-  <label class="check">
-    <input type="checkbox" name="zgoda" value="tak" required />
-    <span>
-      Zgadzam się na przetwarzanie moich danych w celu {purpose}. Szczegóły w
-      <a href={strony.polityka.href}>polityce prywatności</a>. <span class="req">*</span>
-    </span>
-  </label>
+  {
+    consent ? (
+      <label class="check">
+        <input type="checkbox" name="zgoda" value="tak" required />
+        <span>
+          Zgadzam się na przetwarzanie moich danych w celu {purpose}. Szczegóły w <a href={strony.polityka.href}>polityce prywatności</a>.{" "}
+          <span class="req">*</span>
+        </span>
+      </label>
+    ) : (
+      <p class="text-sm text-ink-soft">
+        Dane z formularza wykorzystamy do {purpose}. Szczegóły w <a href={strony.polityka.href}>polityce prywatności</a>.
+      </p>
+    )
+  }
 
   {/* Stage 3: the Turnstile widget renders here. */}
   <div data-turnstile></div>
