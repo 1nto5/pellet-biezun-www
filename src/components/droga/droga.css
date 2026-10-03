@@ -11,8 +11,9 @@
    - Elsewhere, phones above all: one scene pinned under the header, and
      the stops' texts scrolling under it, each held just below it while its
      part of the drive plays (jazda.ts). A phone has too little power to
-     redraw the scene on every scroll step, so there the drive moves only
-     transforms and opacity, set to the scroll's moment by the script.
+     redraw the scene on every scroll step, and an iPhone tells the script
+     of each step late, so there the drive moves only transforms and
+     opacity, played up to the scroll's moment by the browser itself.
 
    Every condition is known before the first paint (`data-js` is set by an
    inline script in the head), so the layout never jumps when the script
@@ -498,6 +499,15 @@
   }
   html[data-js] .droga-scena > .scena {
     height: 100%;
+  }
+  /* The moving parts keep layers of their own whether the drive plays or
+     stands (jazda.ts), so neither moving them nor stopping them repaints
+     the scene. */
+  html[data-js] .droga-scena :is(.scena-in, .las, .pola, .jezdnia, .swiat, .rig, .w-widlak) {
+    will-change: transform;
+  }
+  html[data-js] .droga-scena .w-tablica {
+    will-change: opacity;
   }
   /* A text going under the scene fades out on its way. */
   html[data-js] .droga-scena::after {

@@ -15,8 +15,9 @@
  *   reserved under it; the script sets the scene from the scroll position.
  * - Elsewhere, phones above all, one scene pinned under the header with the
  *   stops' texts scrolling under it, each held below the scene for as long
- *   as its part of the drive takes (`--udzial`); the script moves the
- *   scene's light, paused animations to the scroll's moment (`jazda.ts`).
+ *   as its part of the drive takes (`--udzial`); the scroll sets the moment
+ *   the scene should show, and its animations play there by themselves
+ *   (`jazda.ts`), so they stay smooth on an iPhone.
  *
  * The last stop carries the order button and the phone: the reader who has
  * followed the delivery to the garage is the one ready to order.
@@ -251,7 +252,8 @@ const udzial = (i: number) => Math.round(((stopy[i + 1]?.od ?? 100) - stopy[i]!.
       }
       return os.at(-1)![1];
     };
-    const przewin = () => jazda?.ustaw(chwila(window.scrollY));
+    // The scroll only sets where the drive goes; it plays there by itself.
+    const przewin = () => jazda?.jedz(chwila(window.scrollY));
 
     const refresh = () => {
       const nowy = (getComputedStyle(podroz).getPropertyValue("--droga").trim() || "nieruchoma") as Tryb;
@@ -264,6 +266,8 @@ const udzial = (i: number) => Math.round(((stopy[i + 1]?.od ?? 100) - stopy[i]!.
         if (!jazda || jazda.szerokosc !== scena.clientWidth) {
           jazda?.zatrzymaj();
           jazda = uruchomJazde(scena, (km) => (licznik.textContent = String(km)));
+          // A new scene starts where the scroll already is, not from the hall.
+          jazda.ustaw(chwila(window.scrollY));
         }
       } else if (jazda) {
         jazda.zatrzymaj();
