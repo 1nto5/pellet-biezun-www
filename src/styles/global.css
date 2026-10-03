@@ -1344,6 +1344,13 @@ html[data-galeria] .lightbox img {
   figure {
     break-inside: avoid;
   }
+  /* Boards and the drive's scene keep their colours: a board's white text
+     would otherwise print white on white. */
+  .sign,
+  .scena {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }
 
 /* A rail beside the content (the FAQ's contact, the order form's steps):
