@@ -56,7 +56,7 @@ export const produkty: Produkt[] = [
     id: "hiton",
     nazwa: "Pellet HITON",
     podtytul: "Pellet drzewny premium, 100% sosna",
-    opis: "Pellet z czystego surowca sosnowego, bez dodatków chemicznych i klejów. Nie powstają spieki. Popiół można wykorzystać jako nawóz w ogrodzie.",
+    opis: "Pellet z czystego surowca sosnowego, bez dodatków chemicznych i klejów. Nie tworzy spieków. Popiół można wykorzystać jako nawóz w ogrodzie.",
     workiKg: 15,
     workowNaPalecie: 65,
     kgNaPalecie: 975,
@@ -95,8 +95,8 @@ export const produkty: Produkt[] = [
       { nazwa: "Temperatura deformacji popiołu", wartosc: "1450 °C", wymaganie: "≥ 1200 °C" },
     ],
     zrodloParametrow:
-      "Sprawozdanie z badań nr DBL-2026-5826-01-BLS z 09.09.2026, Sieć Badawcza Łukasiewicz – Poznański Instytut Technologiczny (laboratorium akredytowane, PCA AB 053).",
-    zdjecie: { src: wielbarkZdjecie, alt: "Worek pelletu z napisem Wood Pellets" },
+      "sprawozdanie z badań nr DBL-2026-5826-01-BLS z 09.09.2026, Sieć Badawcza Łukasiewicz – Poznański Instytut Technologiczny (laboratorium akredytowane, PCA AB 053).",
+    zdjecie: { src: wielbarkZdjecie, alt: "Worek pelletu z napisem „Wood Pellets”" },
   },
 ];
 
@@ -106,7 +106,8 @@ export const produkty: Produkt[] = [
  * the price as "2200 zł" over "/ paleta", never after the slash.
  */
 export function cenyLabel(p: Produkt): string[] {
-  const zl = (n: number) => `${n.toLocaleString("pl-PL")} zł`;
+  // The number stays with its "zł"; a line may break only before the "/".
+  const zl = (n: number) => `${n.toLocaleString("pl-PL")}\u00a0zł`;
   const za = (unit: string) => `/\u00a0${unit}`;
   return [`${zl(p.cenaPaleta)} ${za("paleta")}`, ...(p.cenaTona ? [`${zl(p.cenaTona)} ${za("t")}`] : [])];
 }

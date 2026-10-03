@@ -35,6 +35,8 @@ const workiKg = [...new Set(produkty.map((p) => p.workiKg))].join(" i ");
       <h1 id="hero-title" class="wordmark">
         <span class="wordmark-pellet">{pellet}</span>
         <span class="wordmark-miasto">{miasto}</span>
+        <!-- Read aloud and indexed as "Pellet Bieżuń – pellet drzewny…", not one run of words. -->
+        <span class="sr-only"> – </span>
         <span class="wordmark-opis">pellet drzewny z dostawą</span>
       </h1>
       <div class="hero-dol">
@@ -313,11 +315,13 @@ const workiKg = [...new Set(produkty.map((p) => p.workiKg))].join(" i ");
       font-size: 1.35rem;
     }
   }
+  /* The narrowest phones keep the bag small, so "Wielbarku" fits its line
+     whole rather than break inside the word. */
   .produkt {
     display: grid;
-    grid-template-columns: 5.5rem minmax(0, 1fr);
+    grid-template-columns: 4.5rem minmax(0, 1fr);
     align-items: center;
-    gap: 1rem;
+    gap: 0.875rem;
   }
   @media (min-width: 24rem) {
     .produkt {

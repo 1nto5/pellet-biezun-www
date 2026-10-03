@@ -36,8 +36,10 @@ export const KM_DOJAZD = DARMOWA_DOSTAWA_KM - 6;
  * electric pallet truck shows, `wozDx` how far it has backed away from the
  * pallet, in the drawing's units; `park` 1 = the truck stands at a fixed
  * place near the right edge, so the house behind it and the sign ahead both
- * fit; `zoom` 1 = the camera close on the unloading; `odjazd` 1 = the truck
- * has driven off the left edge, leaving the house and the pallet behind.
+ * fit; `zoom` 1 = the camera close on the unloading; `gotowe` 1 = the
+ * "delivered" tag shows over the pallet in the garage; `odjazd` 1 = the
+ * truck has driven off the left edge, leaving the house and the pallet
+ * behind.
  */
 export interface Stan {
   km: number;
@@ -52,6 +54,7 @@ export interface Stan {
   wozDx: number;
   park: number;
   zoom: number;
+  gotowe: number;
   odjazd: number;
 }
 
@@ -181,6 +184,11 @@ const tory: Record<keyof Stan, Tor> = {
     [U + 32, 1],
     [U + 37, 0, lagodnie],
   ],
+  // The tag rises over the pallet as it comes to rest in the garage.
+  gotowe: [
+    [U + 22, 0],
+    [U + 24, 1, lagodnie],
+  ],
   odjazd: [
     [U + 36, 0],
     [U + 45, 1, przyspiesz],
@@ -229,6 +237,7 @@ export function stanVars(s: Stan): Record<string, string> {
     "--woz-dx": String(s.wozDx),
     "--park": String(s.park),
     "--zoom": String(s.zoom),
+    "--gotowe": String(s.gotowe),
     "--odjazd": String(s.odjazd),
   };
 }

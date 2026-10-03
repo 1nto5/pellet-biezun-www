@@ -41,7 +41,7 @@ interface Props {
 const { title, description, jsonLd = [], noindex: pageNoindex = false } = Astro.props;
 
 const canonical = pageNoindex ? undefined : new URL(Astro.url.pathname, Astro.site);
-const fullTitle = title ? `${title} | ${firma.name}` : `Pellet drzewny z dostawą gratis do ${DARMOWA_DOSTAWA_KM} km – ${firma.name}`;
+const fullTitle = title ? `${title} | ${firma.name}` : `Pellet drzewny z dostawą gratis do ok. ${DARMOWA_DOSTAWA_KM} km – ${firma.name}`;
 const desc = description ?? firma.description;
 const noindex = pageNoindex || przedStartem || isPreview;
 

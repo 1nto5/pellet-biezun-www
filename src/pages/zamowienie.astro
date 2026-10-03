@@ -10,7 +10,7 @@ import { miejsca } from "../data/miejsca";
 
 <Base
   title="Zamów pellet z dostawą"
-  description="Zamów pellet drzewny z dostawą. Wypełnij formularz, oddzwonimy z potwierdzeniem ceny i terminu. Bez płatności online."
+  description="Zamów pellet drzewny z dostawą. Wypełnij formularz, a oddzwonimy, żeby potwierdzić cenę i termin. Bez płatności online."
 >
   <PageShell>
     <PageHeader
@@ -39,7 +39,7 @@ import { miejsca } from "../data/miejsca";
           <div class="field sm:max-w-xs">
             <label for="termin">Preferowany termin dostawy</label>
             <input id="termin" name="termin" type="date" class="input" aria-describedby="termin-hint" />
-            <span id="termin-hint" class="hint">Postaramy się dopasować, potwierdzimy telefonicznie.</span>
+            <span id="termin-hint" class="hint">Postaramy się go uwzględnić i potwierdzimy telefonicznie.</span>
           </div>
         </fieldset>
 
@@ -98,7 +98,7 @@ import { miejsca } from "../data/miejsca";
             <div class="field">
               <label for="email">E-mail <span class="req">*</span></label>
               <input id="email" name="email" type="email" class="input" autocomplete="email" required aria-describedby="email-hint" />
-              <span id="email-hint" class="hint">Wyślemy na niego potwierdzenie zamówienia.</span>
+              <span id="email-hint" class="hint">Wyślemy na ten adres potwierdzenie przyjęcia zamówienia.</span>
             </div>
           </div>
           <div class="field">
@@ -112,7 +112,7 @@ import { miejsca } from "../data/miejsca";
       <aside class="rail ramka kroki-ramka space-y-4" aria-labelledby="jak-to-dziala">
         <h2 id="jak-to-dziala" class="text-2xl">Jak to działa</h2>
         <ol class="kroki">
-          <li>Wysyłasz formularz, na e-mail dostajesz potwierdzenie przyjęcia.</li>
+          <li>Wysyłasz formularz, a na e-mail dostajesz potwierdzenie jego przyjęcia.</li>
           <li>Oddzwaniamy, żeby potwierdzić cenę i termin dostawy.</li>
           <li>Przywozimy pellet i rozładowujemy go windą i elektrycznym wózkiem paletowym.</li>
         </ol>

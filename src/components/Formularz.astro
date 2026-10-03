@@ -75,7 +75,7 @@ const { action, submitLabel, purpose, consent = false } = Astro.props;
     // TODO(produkcja): goes with formularzeWlaczone once the forms send (stage 3).
     !formularzeWlaczone && (
       <template data-form-nie-wysyla>
-        Formularz chwilowo nie wysyła wiadomości. Zadzwoń:
+        Formularz chwilowo nie działa. Zadzwoń:
         <a href={firma.phone.href}>{firma.phone.label}</a>.
       </template>
     )

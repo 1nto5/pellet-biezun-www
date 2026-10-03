@@ -135,6 +135,14 @@ body {
     color: var(--color-ink);
   }
 
+  /* No paragraph ends on a word alone where the browser can help it. */
+  p,
+  li,
+  dd,
+  figcaption {
+    text-wrap: pretty;
+  }
+
   /* The line sits under the descenders and the ogonek of ą and ę. */
   a {
     color: var(--color-sign);
@@ -646,6 +654,22 @@ a.tablica:hover .tablica-nazwa {
 .tablica-km {
   flex: none;
   font-weight: 800;
+}
+/* On a phone two boards a row, the distance under the name: the list takes
+   half the scroll it would one board a row. */
+@media (width < 30rem) {
+  .tablice {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+  .tablica {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.1rem;
+    padding: 0.75rem 0.95rem 0.65rem;
+    font-size: 1.05rem;
+    line-height: 1.25;
+  }
 }
 
 /* The entry board by the road, as the company has it: green panel, the name,

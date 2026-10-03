@@ -26,7 +26,7 @@ export const GET: APIRoute = ({ site }) => {
     "",
     "## Oferta",
     "",
-    `Pellet w workach 15 kg na paletach, zapakowanych fabrycznie pod foliowym kapturem. Ceny z ${cenyZDnia}.`,
+    `Pellet w workach 15 kg na paletach, zapakowanych fabrycznie i przykrytych foliowym kapturem. Ceny z ${cenyZDnia}.`,
     "",
     ...produkty.flatMap((p) => [
       `### ${p.nazwa}`,
@@ -41,7 +41,7 @@ export const GET: APIRoute = ({ site }) => {
     "",
     `Dostawa gratis w promieniu ok. ${DARMOWA_DOSTAWA_KM} km od magazynu (w linii prostej), dalej warunki ustalamy indywidualnie. ` +
       "Własne samochody, każdy z windą i elektrycznym wózkiem paletowym: 2 × Iveco Daily 7,2 t (do 4 palet), Volvo FM 26 t (12–14 palet), Volvo FH (14–16 palet), Volvo FH16 z naczepą kurtynową (26 palet). " +
-      "Odbiór osobisty w magazynie po wcześniejszym telefonie. Przy większych ilościach cena do negocjacji.",
+      "Odbiór osobisty w magazynie po wcześniejszym telefonie. Przy większych zamówieniach cena do negocjacji.",
     "",
     ...podstrony.map((m) => `- [Pellet ${m.podstrona.wMiejscowosci}](${url(miejsceHref(m))})`),
     "",

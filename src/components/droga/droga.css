@@ -53,7 +53,7 @@
      on the garage door behind the parked truck, the road staying on the
      bottom edge. */
   transform: scale(calc(1 + var(--zoom, 0) * (var(--zoom-max, 1.4) - 1)));
-  transform-origin: calc(100% - 15 * var(--u)) 100%;
+  transform-origin: calc(100% - 11 * var(--u)) 100%;
 }
 .scena svg {
   display: block;
@@ -195,6 +195,8 @@
 .w-koniec {
   left: calc((-17 - var(--at) * 8) * var(--u));
   width: calc(16 * var(--u));
+  /* The camera closing in would cut it at the left edge: it fades instead. */
+  opacity: calc(1 - var(--zoom, 0));
 }
 /* A km post: white, black cap, the number on it. */
 .w-slupek {
@@ -300,6 +302,16 @@
 }
 .paleta-przed-domem {
   opacity: var(--przod);
+}
+/* "Delivered", over the pallet in the garage (Gotowe.astro). */
+.gotowe {
+  transform: translateY(calc((1 - var(--gotowe)) * 5px));
+  opacity: var(--gotowe);
+}
+.znak-gotowe {
+  font: 800 8.6px var(--font-display);
+  letter-spacing: 0.1px;
+  fill: #fff;
 }
 /* The electric pallet truck under the pallet, or backing away from it. */
 .wozek {

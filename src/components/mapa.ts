@@ -95,7 +95,7 @@ export async function narysujMape(el: HTMLElement): Promise<void> {
   for (const m of dane.miejsca) {
     const lines: (string | Node)[] = [
       strong(m.nazwa),
-      `ok. ${m.km} km od magazynu w linii prostej`,
+      `ok.\u00a0${m.km}\u00a0km od magazynu w\u00a0linii prostej`,
       m.wStrefie ? "dostawa gratis" : "dostawa po uzgodnieniu",
     ];
     if (m.href) lines.push(link(m.href, "Dostawa i ceny"));
@@ -123,7 +123,7 @@ export async function narysujMape(el: HTMLElement): Promise<void> {
   });
   L.marker([magazyn.lat, magazyn.lng], { icon, title: `Magazyn ${magazyn.nazwa}`, alt: `Magazyn ${magazyn.nazwa}` })
     .addTo(map)
-    .bindPopup(popup(strong(`Magazyn ${magazyn.nazwa}`), magazyn.adres, link(magazyn.telHref, `tel. ${magazyn.tel}`)));
+    .bindPopup(popup(strong(`Magazyn ${magazyn.nazwa}`), magazyn.adres, link(magazyn.telHref, `tel.\u00a0${magazyn.tel.replace(/ /g, "\u00a0")}`)));
 
   if (dane.miejsca.length === 0 && dane.promienKm === null) {
     map.setView([magazyn.lat, magazyn.lng], Number(el.dataset.zoom));

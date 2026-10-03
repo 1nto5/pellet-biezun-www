@@ -13,11 +13,11 @@ import { DARMOWA_DOSTAWA_KM } from "./miejsca";
 export const faq: { q: string; a: string }[] = [
   {
     q: "Ile worków jest na palecie?",
-    a: `${produkty.map((p) => `${p.nazwa}: ${paletaLabel(p)}`).join(". ")}. Pellet jest w workach po 15 kg, zapakowany fabrycznie na paletach.`,
+    a: `${produkty.map((p) => `${p.nazwa}: ${paletaLabel(p)}`).join(". ")}. Palety są zapakowane fabrycznie.`,
   },
   {
     q: "Ile kosztuje dostawa?",
-    a: `W promieniu ok. ${DARMOWA_DOSTAWA_KM} km od magazynu (w linii prostej) dostawa jest gratis. Dalej warunki ustalamy indywidualnie, zadzwoń: ${firma.phone.label}.`,
+    a: `W promieniu ok. ${DARMOWA_DOSTAWA_KM} km od magazynu (w linii prostej) dostawa jest gratis. Dalej warunki ustalamy indywidualnie – zadzwoń: ${firma.phone.label}.`,
   },
   {
     q: "Jak wygląda rozładunek?",
@@ -33,14 +33,14 @@ export const faq: { q: string; a: string }[] = [
   },
   {
     q: "Do jakich kotłów nadaje się ten pellet?",
-    a: "Oba rodzaje pelletu, które sprzedajemy, to wysokiej jakości certyfikowany pellet drzewny, doskonały do kotłów 5. generacji.",
+    a: "Oba rodzaje z naszej oferty to certyfikowany pellet drzewny wysokiej jakości, doskonały do kotłów 5. generacji.",
   },
   {
-    q: "Czy mogę odebrać pellet sam?",
+    q: "Czy mogę odebrać pellet osobiście?",
     a: `Tak, z magazynu: ${addressLine()}. Przed przyjazdem zadzwoń pod ${firma.phone.label}.`,
   },
   {
-    q: "Czy przy większej ilości cena jest niższa?",
+    q: "Czy przy większym zamówieniu cena jest niższa?",
     a: "Przy większych zamówieniach cena jest do negocjacji. Zadzwoń, a ustalimy warunki.",
   },
   {
