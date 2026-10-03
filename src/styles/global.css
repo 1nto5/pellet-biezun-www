@@ -1245,6 +1245,11 @@ html[data-galeria] .lightbox img {
   html[data-galeria]::view-transition-group(lightbox-foto) {
     animation-duration: 300ms;
   }
+  /* A second tap on an arrow during the slide goes to the arrow, not to the
+     slide's overlay. */
+  html[data-galeria]::view-transition {
+    pointer-events: none;
+  }
   html[data-galeria="dalej"]::view-transition-old(lightbox-foto) {
     animation: 300ms ease-out both droga-wyjazd;
   }

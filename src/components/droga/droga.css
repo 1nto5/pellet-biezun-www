@@ -14,8 +14,10 @@
      transforms, which the browser plays without the page's script.
 
    Every condition is known before the first paint (`data-js` is set by an
-   inline script in the head), so nothing jumps when the script loads; the
-   script follows whichever version the CSS shows.
+   inline script in the head), so the layout never jumps when the script
+   loads; the script follows whichever version the CSS shows. Only the
+   sticky stage waits for it, as its size on the first screen (`--z`) has
+   to be measured: it fades in once drawn rather than shrink in view.
    ------------------------------------------------------------------------ */
 
 /* ---- The scene ---------------------------------------------------------- */
@@ -495,6 +497,11 @@
     /* The truck about 40% of the window's width. */
     --uh: 1.45;
     --uw: 0.667;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  html[data-js] .is-ready .droga-scena {
+    opacity: 1;
   }
   html[data-js] .droga-scena > .scena {
     height: 100%;

@@ -14,6 +14,8 @@ import { KM_DOJAZD, CZAS, stanAt, czasKm } from "./trasa";
 
 /** Towns on one direction board. */
 const NA_TABLICY = 3;
+/** Road between two boards, in km; a board is about 4.25 km of road wide. */
+const MIN_ODSTEP_KM = 5;
 
 export interface Tablica {
   /** The odometer reading at which the board stands. */
@@ -41,6 +43,11 @@ export const tablice: Tablica[] = (() => {
   const od = 16;
   const doKm = KM_DOJAZD - 34;
   const krok = rzedy.length > 1 ? (doKm - od) / (rzedy.length - 1) : 0;
+  // A smaller free zone or more towns would stand the boards on top of each
+  // other: better a failed build than a broken scene.
+  if (rzedy.length > 1 && krok < MIN_ODSTEP_KM) {
+    throw new Error(`${rzedy.length} direction boards do not fit between km ${od} and ${doKm}; show fewer towns (tablice.ts).`);
+  }
   return rzedy.map((miasta, i) => ({ naDrodze: Math.round(od + i * krok), miasta }));
 })();
 

@@ -158,16 +158,20 @@ const items = await Promise.all(
   }
 
   // A swipe can end with a click on whatever is under the finger; when that
-  // is the dialog's own padding it must not count as a click on the backdrop.
+  // is the backdrop it must not close the dialog.
   let swipedAt = 0;
 
   document.addEventListener("click", (event) => {
     const target = event.target instanceof Element ? event.target : null;
     if (!target) return;
 
-    // A click on the backdrop lands on the dialog itself, never on its contents.
+    // A click on the backdrop lands on the dialog itself, outside its box. One
+    // on the dialog's own padding lands there too, inside the box, and must
+    // not close it.
     if (target instanceof HTMLDialogElement && target.closest("[data-gallery]")) {
-      if (performance.now() - swipedAt > 500) target.close();
+      const r = target.getBoundingClientRect();
+      const obok = event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom;
+      if (obok && performance.now() - swipedAt > 500) target.close();
       return;
     }
 

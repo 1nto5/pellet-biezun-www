@@ -15,10 +15,15 @@
  */
 import { stanAt, start, stanVars, KM_U, type Stan } from "./trasa";
 
-/** One loop. The drive takes the first part of it; then the last frame holds, and the scene fades out and back in at the start. */
+/**
+ * One loop: the scene fades in on the start frame, the drive takes most of
+ * the loop, its last frame holds, and the scene fades out.
+ */
 const PETLA_MS = 22000;
 const HISTORIA = 0.88;
 const ZANIK = 0.025;
+/** Where a new loop begins: faded in, on the start frame the page already shows. */
+export const POCZATEK_MS = ZANIK * PETLA_MS;
 /** Samples per loop; the browser draws straight lines between them. */
 const PROBKI = 240;
 
@@ -29,8 +34,8 @@ const WINDA_W_DOL = 22.4;
 
 type Ruch = [Element, (s: Stan) => Keyframe];
 
-/** The state at a point of the loop (0–1): the drive, then its last frame held. */
-const stanPetli = (offset: number) => stanAt(Math.min(100, (offset / HISTORIA) * 100));
+/** The state at a point of the loop (0–1): the start frame while it fades in, the drive, then its last frame held. */
+const stanPetli = (offset: number) => stanAt(100 * Math.min(1, Math.max(0, (offset - ZANIK) / (HISTORIA - ZANIK))));
 
 export interface Jazda {
   /** The scene width it was set up for; another one needs a new setup. */
@@ -47,7 +52,7 @@ export interface Jazda {
  * plays it while `pudelko` (the box around the scene) is on screen.
  * `naKm` gets the odometer's whole km whenever it changes.
  */
-export function uruchomJazde(scena: HTMLElement, pudelko: HTMLElement, naKm: (km: number) => void, odMs = 0): Jazda {
+export function uruchomJazde(scena: HTMLElement, pudelko: HTMLElement, naKm: (km: number) => void, odMs = POCZATEK_MS): Jazda {
   for (const [k, v] of Object.entries(stanVars(start))) scena.style.setProperty(k, v);
   scena.style.setProperty("--z", "1");
 

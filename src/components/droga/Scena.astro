@@ -4,8 +4,11 @@
  * km posts, direction boards and the end-of-zone sign along the way, the
  * road, the truck, and the customer's house on the near side of the road.
  * The truck faces left and the world passes it to the right. `stan` sets
- * where everything stands (see `trasa.ts`); the live drive changes the same
- * custom properties as the reader scrolls, the static frames keep them fixed.
+ * where everything stands (see `trasa.ts`), as custom properties: the drive
+ * scrubbed by the scroll changes them as the reader scrolls, the still frames
+ * keep them fixed. The loop on phones (`jazda.ts`) leaves them at the start
+ * and moves each part by a transform of its own, so a new moving part needs
+ * a line in its `ruchy` list too.
  *
  * Only a picture: the story it shows is told in text next to it. Its few
  * words (the km posts, the towns on the boards) are drawn by CSS from data
@@ -25,7 +28,7 @@ import { DARMOWA_DOSTAWA_KM } from "../../data/miejsca";
 
 interface Props {
   stan: Stan;
-  /** Marks the scene the scroll script drives. */
+  /** The scene the scripts move (Droga.astro), drawn with its images loaded first. */
   live?: boolean;
 }
 

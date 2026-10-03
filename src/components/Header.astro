@@ -109,14 +109,21 @@ const current = (href: string) =>
     // stays inside; the pinned row above stays live.
     const behind = [...document.querySelectorAll<HTMLElement>("main, footer")];
 
+    // The drawer starts under the pinned row, wherever that is now; a turned
+    // phone can unpin the row (global.css), so it is placed again on resize.
+    const place = () => {
+      const top = Math.max(0, surface.getBoundingClientRect().bottom);
+      menu.style.setProperty("--drawer-top", `${top}px`);
+      backdrop.style.setProperty("--drawer-top", `${top}px`);
+    };
+    window.addEventListener("resize", () => menu.open && place());
+
     open.addEventListener("click", () => {
       if (menu.open) {
         close();
         return;
       }
-      const top = Math.max(0, surface.getBoundingClientRect().bottom);
-      menu.style.setProperty("--drawer-top", `${top}px`);
-      backdrop.style.setProperty("--drawer-top", `${top}px`);
+      place();
       backdrop.hidden = false;
       menu.show();
       for (const el of behind) el.inert = true;

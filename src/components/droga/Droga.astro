@@ -129,7 +129,7 @@ const stopy: Stop[] = [
 
 <script>
   import { stanAt, stanVars } from "./trasa";
-  import { uruchomJazde, type Jazda } from "./jazda";
+  import { uruchomJazde, POCZATEK_MS, type Jazda } from "./jazda";
 
   const podroz = document.querySelector<HTMLElement>("[data-podroz]");
   const hero = podroz?.firstElementChild as HTMLElement | null | undefined;
@@ -151,7 +151,7 @@ const stopy: Stop[] = [
     let tryb: "live" | "sama" | "nieruchoma" | null = null;
     let live = false;
     let jazda: Jazda | null = null;
-    let jazdaOd = 0;
+    let jazdaOd = POCZATEK_MS;
     let wstrzymana = false;
     const clamp = (x: number) => Math.min(1, Math.max(0, x));
     const od = stopy.map((s) => Number(s.dataset.od));
@@ -228,9 +228,11 @@ const stopy: Stop[] = [
         tryb = nowy;
       }
 
-      if (!live) return;
-      measure();
-      render();
+      if (live) {
+        measure();
+        render();
+      }
+      podroz.classList.add("is-ready");
     };
     // A loop that plays by itself for longer than a few seconds needs a way
     // to stop it (WCAG 2.2.2). It stays stopped until the reader plays it.
