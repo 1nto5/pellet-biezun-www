@@ -9,7 +9,7 @@ import { miejsca } from "../data/miejsca";
 ---
 
 <Base
-  title="Zamówienie"
+  title="Zamów pellet z dostawą"
   description="Zamów pellet drzewny z dostawą. Wypełnij formularz, oddzwonimy z potwierdzeniem ceny i terminu. Bez płatności online."
 >
   <PageShell>
@@ -60,10 +60,11 @@ import { miejsca } from "../data/miejsca";
                 inputmode="numeric"
                 autocomplete="postal-code"
                 pattern="[0-9]{2}-[0-9]{3}"
-                placeholder="09-320"
                 title="Kod w formacie 00-000"
                 required
+                aria-describedby="kod-hint"
               />
+              <span id="kod-hint" class="hint">Np. 09-320.</span>
             </div>
             <div class="field">
               <label for="miejscowosc">Miejscowość <span class="req">*</span></label>
@@ -108,7 +109,7 @@ import { miejsca } from "../data/miejsca";
         </fieldset>
       </Formularz>
 
-      <aside class="rail kroki-ramka space-y-4" aria-labelledby="jak-to-dziala">
+      <aside class="rail ramka kroki-ramka space-y-4" aria-labelledby="jak-to-dziala">
         <h2 id="jak-to-dziala" class="text-2xl">Jak to działa</h2>
         <ol class="kroki">
           <li>Wysyłasz formularz, na e-mail dostajesz potwierdzenie przyjęcia.</li>
@@ -124,10 +125,15 @@ import { miejsca } from "../data/miejsca";
 </Base>
 
 <script>
-  // A link from a product (/zamowienie/?produkt=hiton) picks it in the list.
+  // A link from a product (/zamowienie/?produkt=hiton) picks it in the list;
+  // one from a town's page (?miejscowosc=Płock) fills in the town.
+  const parametry = new URLSearchParams(location.search);
   const produkt = document.querySelector<HTMLSelectElement>("#produkt");
-  const wybrany = new URLSearchParams(location.search).get("produkt");
+  const wybrany = parametry.get("produkt");
   if (produkt && [...produkt.options].some((o) => o.value === wybrany)) produkt.value = wybrany!;
+  const miejscowosc = document.querySelector<HTMLInputElement>("#miejscowosc");
+  const podana = parametry.get("miejscowosc");
+  if (miejscowosc && podana && !miejscowosc.value) miejscowosc.value = podana;
 
   // No delivery date before today, in the reader's own time zone. Swedish
   // writes dates as YYYY-MM-DD, the form a date input takes.
@@ -136,12 +142,10 @@ import { miejsca } from "../data/miejsca";
 </script>
 
 <style>
-  /* The three steps, in order, on a white panel with the banner's yellow
-     frame; it stays in view beside the long form. */
+  /* The three steps, in order, in the banner's yellow frame (`.ramka`); it
+     stays in view beside the long form. */
   .kroki-ramka {
     padding: 1.5rem 1.5rem 1.25rem;
-    border: 0.3rem solid var(--color-yellow);
-    border-radius: 1rem;
   }
   .kroki {
     display: grid;

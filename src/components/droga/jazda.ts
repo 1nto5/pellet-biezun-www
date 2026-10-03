@@ -10,14 +10,20 @@
  * from it. The bands behind the road cannot slide their pattern without
  * being repainted, so they are widened to the left and slide as a whole.
  *
- * It plays only while the scene is on screen.
+ * It plays only while the scene is on screen, and not at all once the reader
+ * has paused it.
  */
 import { stanAt, start, stanVars, KM_U, type Stan } from "./trasa";
 
-/** One loop. The drive takes the first part of it; then the last frame holds, and the scene fades out and back in at the start. */
+/**
+ * One loop: the scene fades in on the start frame, the drive takes most of
+ * the loop, its last frame holds, and the scene fades out.
+ */
 const PETLA_MS = 22000;
 const HISTORIA = 0.88;
 const ZANIK = 0.025;
+/** Where a new loop begins: faded in, on the start frame the page already shows. */
+export const POCZATEK_MS = ZANIK * PETLA_MS;
 /** Samples per loop; the browser draws straight lines between them. */
 const PROBKI = 240;
 
@@ -28,14 +34,16 @@ const WINDA_W_DOL = 22.4;
 
 type Ruch = [Element, (s: Stan) => Keyframe];
 
-/** The state at a point of the loop (0–1): the drive, then its last frame held. */
-const stanPetli = (offset: number) => stanAt(Math.min(100, (offset / HISTORIA) * 100));
+/** The state at a point of the loop (0–1): the start frame while it fades in, the drive, then its last frame held. */
+const stanPetli = (offset: number) => stanAt(100 * Math.min(1, Math.max(0, (offset - ZANIK) / (HISTORIA - ZANIK))));
 
 export interface Jazda {
   /** The scene width it was set up for; another one needs a new setup. */
   szerokosc: number;
   /** Where in the loop it is, in ms, to carry over to a new setup. */
   pozycja(): number;
+  /** Pauses the loop at the reader's request, or lets it play again. */
+  wstrzymaj(tak: boolean): void;
   zatrzymaj(): void;
 }
 
@@ -44,7 +52,7 @@ export interface Jazda {
  * plays it while `pudelko` (the box around the scene) is on screen.
  * `naKm` gets the odometer's whole km whenever it changes.
  */
-export function uruchomJazde(scena: HTMLElement, pudelko: HTMLElement, naKm: (km: number) => void, odMs = 0): Jazda {
+export function uruchomJazde(scena: HTMLElement, pudelko: HTMLElement, naKm: (km: number) => void, odMs = POCZATEK_MS): Jazda {
   for (const [k, v] of Object.entries(stanVars(start))) scena.style.setProperty(k, v);
   scena.style.setProperty("--z", "1");
 
@@ -118,17 +126,19 @@ export function uruchomJazde(scena: HTMLElement, pudelko: HTMLElement, naKm: (km
 
   // The odometer is text, so it is the one thing written from here: a few
   // times a second, and only when the whole km changes.
+  const pozycja = () => Number(animacje[0]!.currentTime ?? 0) % PETLA_MS;
   let km = -1;
   const licz = () => {
-    const k = Math.round(stanPetli((Number(animacje[0]!.currentTime ?? 0) % PETLA_MS) / PETLA_MS).km);
+    const k = Math.round(stanPetli(pozycja() / PETLA_MS).km);
     if (k !== km) naKm(k);
     km = k;
   };
   let licznik: number | undefined;
 
-  // Entries can arrive several at once; the newest one tells where the box is now.
-  const obserwator = new IntersectionObserver((wpisy) => {
-    if (wpisy.at(-1)?.isIntersecting) {
+  let naEkranie = false;
+  let wstrzymana = false;
+  const uaktualnij = () => {
+    if (naEkranie && !wstrzymana) {
       graj();
       licz();
       licznik ??= window.setInterval(licz, 150);
@@ -137,12 +147,29 @@ export function uruchomJazde(scena: HTMLElement, pudelko: HTMLElement, naKm: (km
       window.clearInterval(licznik);
       licznik = undefined;
     }
+  };
+
+  // Entries can arrive several at once; the newest one tells where the box is now.
+  const obserwator = new IntersectionObserver((wpisy) => {
+    naEkranie = wpisy.at(-1)?.isIntersecting ?? false;
+    uaktualnij();
   });
   obserwator.observe(pudelko);
 
   return {
     szerokosc,
-    pozycja: () => Number(animacje[0]!.currentTime ?? 0) % PETLA_MS,
+    pozycja,
+    wstrzymaj(tak) {
+      wstrzymana = tak;
+      uaktualnij();
+      if (!tak) return;
+      // Paused while the scene fades between loops, it would stay faded:
+      // it stops on the nearest frame shown in full instead.
+      const ms = Math.min(Math.max(pozycja(), ZANIK * PETLA_MS), (1 - ZANIK) * PETLA_MS);
+      if (ms === pozycja()) return;
+      for (const a of animacje) a.currentTime = ms;
+      licz();
+    },
     zatrzymaj() {
       obserwator.disconnect();
       window.clearInterval(licznik);

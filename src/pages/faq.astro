@@ -19,14 +19,14 @@ const faqPage = {
 ---
 
 <Base
-  title="Częste pytania"
+  title="Częste pytania o pellet i dostawę"
   description="Odpowiedzi na częste pytania o pellet: palety, koszt dostawy, rozładunek, przechowywanie, certyfikaty, odbiór z magazynu."
   jsonLd={[faqPage]}
 >
   <PageShell>
     <PageHeader slot="header" title="Częste pytania" />
 
-    <div class="grid gap-12 lg:grid-cols-[minmax(0,1fr)_22rem]">
+    <div class="grid grid-cols-[minmax(0,1fr)] gap-12 lg:grid-cols-[minmax(0,1fr)_22rem]">
       <div class="faq max-w-prose" data-ruch-grupa>
         {
           faq.map((item, i) => (

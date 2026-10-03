@@ -14,14 +14,15 @@ import { firma } from "../data/firma";
 
 const section = activeSection(Astro.url.pathname);
 /** "Pellet Bieżuń" → the two lines of the sign. */
-const wordmark = firma.name.split(" ") as [string, string];
-const current = (href: string) =>
-  href === section?.href || href === Astro.url.pathname ? "page" : undefined;
+const wordmark = firma.znak;
+// "page" for the page itself; "true" for the section a deeper page belongs
+// to, such as "Mapa dystrybucji" on a town's page.
+const current = (href: string) => (href === Astro.url.pathname ? "page" : href === section?.href ? "true" : undefined);
 ---
 
 <header class="site-header">
   <div class="header-surface" data-surface>
-    <div class="pinned-row page-wrap flex items-center justify-between gap-x-6">
+    <div class="pinned-row page-wrap flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
       <a href={strony.home.href} class="marka" aria-label={firma.name}>
         <span class="marka-pellet" aria-hidden="true">{wordmark[0]}</span>
         <span class="marka-miasto" aria-hidden="true">{wordmark[1]}</span>
@@ -42,7 +43,7 @@ const current = (href: string) =>
           </ul>
         </nav>
 
-        <div class="flex items-center gap-3">
+        <div class="akcje flex items-center gap-3">
           <a
             href={orderLink.href}
             class="btn btn-primary btn-sm"
@@ -109,14 +110,21 @@ const current = (href: string) =>
     // stays inside; the pinned row above stays live.
     const behind = [...document.querySelectorAll<HTMLElement>("main, footer")];
 
+    // The drawer starts under the pinned row, wherever that is now; a turned
+    // phone can unpin the row (global.css), so it is placed again on resize.
+    const place = () => {
+      const top = Math.max(0, surface.getBoundingClientRect().bottom);
+      menu.style.setProperty("--drawer-top", `${top}px`);
+      backdrop.style.setProperty("--drawer-top", `${top}px`);
+    };
+    window.addEventListener("resize", () => menu.open && place());
+
     open.addEventListener("click", () => {
       if (menu.open) {
         close();
         return;
       }
-      const top = Math.max(0, surface.getBoundingClientRect().bottom);
-      menu.style.setProperty("--drawer-top", `${top}px`);
-      backdrop.style.setProperty("--drawer-top", `${top}px`);
+      place();
       backdrop.hidden = false;
       menu.show();
       for (const el of behind) el.inert = true;

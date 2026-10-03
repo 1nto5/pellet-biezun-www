@@ -65,14 +65,25 @@ function initPrzyjazdy(): void {
         .map((w) => w.target as HTMLElement);
       const krok = Math.min(KROK_MS, MAKS_OPOZNIENIE_MS / Math.max(1, przyjezdza.length - 1));
       przyjezdza.forEach((el, i) => {
-        el.style.transitionDelay = `${Math.round(i * krok)}ms`;
-        el.classList.remove("czeka");
-        obserwator.unobserve(el);
+        // A custom property, so a part that moves inside the element (a
+        // truck on its strip of road) waits its turn too.
+        el.style.setProperty("--opoznienie", `${Math.round(i * krok)}ms`);
+        pokaz(el);
       });
     },
     // A little above the bottom edge, so the arrival is seen, not missed.
     { rootMargin: "0px 0px -6% 0px" },
   );
+  const pokaz = (el: HTMLElement) => {
+    el.classList.remove("czeka");
+    obserwator.unobserve(el);
+  };
+
+  // A link reached with Tab can be in view while its element still waits in
+  // that bottom strip: focus brings it, and anything around it, at once.
+  document.addEventListener("focusin", (e) => {
+    for (let el = (e.target as Element).closest<HTMLElement>(".czeka"); el; el = el.parentElement?.closest<HTMLElement>(".czeka") ?? null) pokaz(el);
+  });
 
   // Every position is read before any element moves, so the page is laid
   // out once, not once per element.

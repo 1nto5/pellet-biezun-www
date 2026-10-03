@@ -9,15 +9,15 @@ import { firma, hoursRange } from "../data/firma";
 ---
 
 <Base
-  title="Kontakt"
-  description={`Adres magazynu we Władysławowie pod Bieżuniem, telefon i godziny otwarcia ${firma.name}. Formularz kontaktowy.`}
+  title="Kontakt i dojazd do magazynu pod Bieżuniem"
+  description={`${firma.name}: magazyn we Władysławowie pod Bieżuniem, telefon ${firma.phone.label}, godziny otwarcia i formularz kontaktowy.`}
 >
   <PageShell>
     <PageHeader slot="header" title="Kontakt" lead="Zadzwoń albo napisz. Pellet odbierzesz też w magazynie we Władysławowie pod Bieżuniem, po wcześniejszym telefonie." />
 
-    <div class="grid gap-12 lg:grid-cols-2">
+    <div class="grid grid-cols-[minmax(0,1fr)] gap-12 lg:grid-cols-2">
       <div class="space-y-10">
-        <div data-ruch="tablica"><TablicaWjazdowa /></div>
+        <div class="max-w-[26rem]" data-ruch="tablica"><TablicaWjazdowa /></div>
         <section aria-labelledby="dane" data-ruch>
           <h2 id="dane" class="text-3xl">{firma.name}</h2>
           <address class="mt-3 text-lg">
@@ -34,6 +34,9 @@ import { firma, hoursRange } from "../data/firma";
               )
             }
           </address>
+          <p class="mt-3">
+            <a href={firma.googleMaps} class="link-strong">Dojazd w Mapach Google</a>
+          </p>
           <p class="mt-2 text-sm text-ink-soft">{firma.legalName}{firma.nip && `, NIP ${firma.nip}`}</p>
         </section>
 
@@ -59,7 +62,7 @@ import { firma, hoursRange } from "../data/firma";
 
       <section aria-labelledby="napisz">
         <h2 id="napisz" class="mb-6 text-3xl">Napisz do nas</h2>
-        <Formularz action="/api/kontakt" submitLabel="Wyślij wiadomość" purpose="odpowiedzi na wiadomość">
+        <Formularz action="/api/kontakt" submitLabel="Wyślij wiadomość" purpose="odpowiedzi na wiadomość" consent>
           <div class="field">
             <label for="imie">Imię <span class="req">*</span></label>
             <input id="imie" name="imie" type="text" class="input" autocomplete="given-name" required />

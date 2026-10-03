@@ -14,8 +14,10 @@
      transforms, which the browser plays without the page's script.
 
    Every condition is known before the first paint (`data-js` is set by an
-   inline script in the head), so nothing jumps when the script loads; the
-   script follows whichever version the CSS shows.
+   inline script in the head), so the layout never jumps when the script
+   loads; the script follows whichever version the CSS shows. Only the
+   sticky stage waits for it, as its size on the first screen (`--z`) has
+   to be measured: it fades in once drawn rather than shrink in view.
    ------------------------------------------------------------------------ */
 
 /* ---- The scene ---------------------------------------------------------- */
@@ -202,6 +204,9 @@
   line-height: 1;
   text-align: center;
 }
+.w-slupek::before {
+  content: attr(data-km);
+}
 /* A direction board on two posts. */
 .w-tablica {
   left: calc((30 - 17 - var(--at) * 8) * var(--u));
@@ -234,7 +239,11 @@
   justify-content: space-between;
   gap: 1em;
 }
-.w-tablica p span:last-child {
+.w-tablica p::before {
+  content: attr(data-nazwa);
+}
+.w-tablica p::after {
+  content: attr(data-km);
   font-weight: 800;
 }
 
@@ -417,7 +426,7 @@
 
 /* ---- On its own: one scene that plays the drive by itself --------------- */
 
-@media (prefers-reduced-motion: no-preference) and ((width < 64rem) or (orientation: portrait)) {
+@media screen and (prefers-reduced-motion: no-preference) and ((width < 64rem) or (orientation: portrait)) {
   html[data-js] .droga {
     padding-top: 1.5rem;
   }
@@ -460,7 +469,7 @@
 
 /* ---- Live: one sticky stage, scrubbed by the scroll ---------------------- */
 
-@media (prefers-reduced-motion: no-preference) and (min-width: 64rem) and (orientation: landscape) {
+@media screen and (prefers-reduced-motion: no-preference) and (min-width: 64rem) and (orientation: landscape) {
   html[data-js] .podroz {
     position: relative;
   }
@@ -488,6 +497,11 @@
     /* The truck about 40% of the window's width. */
     --uh: 1.45;
     --uw: 0.667;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  html[data-js] .is-ready .droga-scena {
+    opacity: 1;
   }
   html[data-js] .droga-scena > .scena {
     height: 100%;
@@ -566,4 +580,37 @@
   display: inline-block;
   min-width: 2ch;
   text-align: right;
+}
+
+/* The loop's pause button, in the corner across from the odometer and as
+   tall as it is there (sama). Shown by the script only while the loop plays
+   by itself. It answers taps a little around it too. */
+.pauza {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.75rem;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: calc(0.9rem * 1.2 + 0.45rem);
+  border-radius: var(--radius-sign);
+  background: var(--color-black);
+  color: var(--color-white);
+  cursor: pointer;
+}
+.pauza::before {
+  content: "";
+  position: absolute;
+  inset: -0.5rem;
+}
+.pauza svg {
+  width: 0.8rem;
+  height: 0.8rem;
+}
+.pauza-graj,
+.pauza.is-paused .pauza-stop {
+  display: none;
+}
+.pauza.is-paused .pauza-graj {
+  display: inline;
 }

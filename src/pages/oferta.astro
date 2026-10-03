@@ -48,12 +48,12 @@ const flota = [
     alt: "Czerwone Volvo FH z białą zabudową PELLET, z boku",
   },
   {
-    opis: "Volvo FH z naczepą kurtynową (firanką): 26 palet",
+    opis: "Volvo FH16 z naczepą kurtynową (firanką): 26 palet",
     min: 26,
     max: 26,
     m: 16.5,
     zdjecie: fotoVolvoFhNaczepa,
-    alt: "Czerwony ciągnik Volvo FH z czarną naczepą kurtynową, z boku",
+    alt: "Czerwony ciągnik Volvo FH16 z czarną naczepą kurtynową, z boku",
   },
 ];
 const najdluzszy = Math.max(...flota.map((f) => f.m));
@@ -77,6 +77,7 @@ const produktyLd = await Promise.all(
       priceCurrency: "PLN",
       eligibleQuantity: { "@type": "QuantitativeValue", value: 1, unitText: "paleta" },
       itemCondition: "https://schema.org/NewCondition",
+      // TODO(produkcja): availability (schema.org/InStock) once the client says how stock is kept.
       seller: { "@id": firmaId },
     },
   })),
@@ -109,6 +110,7 @@ const produktyLd = await Promise.all(
                 width={800}
                 widths={[480, 800]}
                 sizes="(min-width: 64rem) 26rem, 100vw"
+                loading={i === 0 ? "eager" : "lazy"}
                 class="w-full"
               />
             </span>
@@ -122,7 +124,7 @@ const produktyLd = await Promise.all(
 
             <div class="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
               {cenyLabel(p).map((c, j) => (
-                <p class:list={["cena-tag", j === 0 ? "text-3xl" : "text-xl"]}>{c}</p>
+                <p class:list={["cena-tag", j === 0 ? "text-2xl sm:text-3xl" : "text-xl"]}>{c}</p>
               ))}
             </div>
             <p class="mt-4 font-semibold">Paleta: {paletaLabel(p)}</p>
@@ -136,7 +138,9 @@ const produktyLd = await Promise.all(
             <p class="mt-4 max-w-prose">{p.certyfikat}</p>
 
             <h3 class="mt-10 text-2xl">Parametry</h3>
-            <div class="mt-3 overflow-x-auto">
+            {/* A narrow screen scrolls the table sideways; the box takes focus so
+                a keyboard can scroll it too. */}
+            <div class="mt-3 overflow-x-auto" tabindex="0" role="region" aria-label={`Parametry: ${p.nazwa}`}>
               <table class="table">
                 {p.parametry.some((x) => x.wymaganie) && (
                   <thead>
@@ -152,7 +156,7 @@ const produktyLd = await Promise.all(
                     <tr>
                       <th scope="row">{x.nazwa}</th>
                       <td>{x.wartosc}</td>
-                      {p.parametry.some((y) => y.wymaganie) && <td class="!font-normal">{x.wymaganie}</td>}
+                      {p.parametry.some((y) => y.wymaganie) && <td class="wymaganie">{x.wymaganie}</td>}
                     </tr>
                   ))}
                 </tbody>
@@ -219,6 +223,7 @@ const produktyLd = await Promise.all(
 <style>
   .produkt-sekcja {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 2.5rem;
   }
   @media (min-width: 64rem) {

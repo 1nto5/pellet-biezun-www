@@ -26,7 +26,7 @@ const grupy = wojewodztwa
 ---
 
 <Base
-  title="Mapa dystrybucji"
+  title="Mapa dystrybucji – dokąd dowozimy pellet"
   description={`Dokąd dowozimy pellet z magazynu we Władysławowie pod Bieżuniem: gratis w promieniu ok. ${DARMOWA_DOSTAWA_KM} km, dalej po uzgodnieniu. ${miejsca.length} miejscowości w ${wojewodztwa.length} województwach.`}
 >
   <PageShell>
@@ -77,13 +77,13 @@ const grupy = wojewodztwa
               <h3 id={`wojewodztwo-${i}`} class="text-xl">Województwo {g.wojewodztwo}</h3>
               <ul role="list" class="mt-3">
                 {g.miejsca.map((m) => (
-                  <li class="flex justify-between gap-4 border-b border-line py-1">
+                  <li class="flex items-baseline justify-between gap-4 border-b border-line py-1">
                     <span>
                       <NazwaMiejsca miejsce={m} />
                     </span>
                     <span class="shrink-0 text-sm">
                       {wStrefieDarmowej(m) && <span class="tag-gratis mr-2">gratis</span>}
-                      <span class="font-semibold">{odlegloscKm(m)} km</span>
+                      <span class="inline-block min-w-[3.6em] text-right font-semibold tabular-nums">{odlegloscKm(m)} km</span>
                     </span>
                   </li>
                 ))}
@@ -95,9 +95,9 @@ const grupy = wojewodztwa
     </section>
 
     <p class="mt-12 max-w-prose text-ink-soft">
-      Dowozimy też do okolicznych wsi, a na Mazury praktycznie wszędzie. Nie ma Twojej miejscowości?
-      Wszystko jest kwestią dogadania: zadzwoń pod{" "}
-      <a href={firma.phone.href} class="link-strong">{firma.phone.label}</a>.
+      Dowozimy też do okolicznych wsi, a na Mazurach praktycznie wszędzie. Nie ma Twojej miejscowości?
+      Zadzwoń pod <a href={firma.phone.href} class="link-strong">{firma.phone.label}</a>, ustalimy
+      szczegóły.
     </p>
   </PageShell>
 </Base>

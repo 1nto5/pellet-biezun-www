@@ -13,14 +13,16 @@ import "../components/ruch/ruch.css";
 import { getImage } from "astro:assets";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
-import { firma, firmaId, addressLine } from "../data/firma";
+import { firma, firmaId } from "../data/firma";
 import { miejsca, DARMOWA_DOSTAWA_KM } from "../data/miejsca";
+import { produkty } from "../data/oferta";
 import { breadcrumbsFor } from "../data/nav";
 import { przedStartem } from "../data/strona";
 import { isPreview } from "../lib/env";
 import { nazwaWlasna } from "../lib/miejsce";
 import { href, absoluteUrl } from "../lib/url";
-import ogSource from "../assets/og.jpg";
+// The link preview shows the fleet, the same photo as in the gallery.
+import ogSource from "../assets/galeria/17-flota-trzy-auta.jpg";
 // Preloaded, so the text does not wait for the stylesheet to ask for them.
 // The same files global.css declares; Polish text needs both subsets.
 import fontLatin from "@fontsource-variable/league-spartan/files/league-spartan-latin-wght-normal.woff2?url";
@@ -47,6 +49,8 @@ const og = await getImage({ src: ogSource, width: 1200, height: 630, format: "jp
 const ogUrl = new URL(og.src, Astro.site);
 
 const home = absoluteUrl("/");
+const cenyPalet = produkty.map((p) => p.cenaPaleta);
+const [najtaniej, najdrozej] = [Math.min(...cenyPalet), Math.max(...cenyPalet)];
 const localBusiness = {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
@@ -59,11 +63,13 @@ const localBusiness = {
   telephone: firma.phone.href.replace("tel:", ""),
   email: firma.email,
   taxID: firma.nip,
+  priceRange: `${najtaniej === najdrozej ? najtaniej : `${najtaniej}–${najdrozej}`} zł za paletę`,
   address: {
     "@type": "PostalAddress",
     streetAddress: firma.address.street,
     postalCode: firma.address.postalCode,
     addressLocality: firma.address.city,
+    addressRegion: firma.address.region,
     addressCountry: "PL",
   },
   geo: { "@type": "GeoCoordinates", latitude: firma.geo.lat, longitude: firma.geo.lng },
@@ -73,7 +79,12 @@ const localBusiness = {
     opens: h.opens,
     closes: h.closes,
   })),
-  areaServed: miejsca.map((m) => ({ "@type": "City", name: nazwaWlasna(m) })),
+  // The voivodeship tells apart towns that share a name with others.
+  areaServed: miejsca.map((m) => ({
+    "@type": "City",
+    name: nazwaWlasna(m),
+    containedInPlace: { "@type": "AdministrativeArea", name: `województwo ${m.wojewodztwo}` },
+  })),
   hasMap: firma.googleMaps,
   sameAs: [firma.googleMaps],
 };
@@ -116,7 +127,7 @@ const structuredData = [localBusiness, ...(breadcrumbList ? [breadcrumbList] : [
     <meta property="og:image" content={ogUrl} />
     <meta property="og:image:width" content={String(og.options.width)} />
     <meta property="og:image:height" content={String(og.options.height)} />
-    <meta property="og:image:alt" content={`${firma.name}, ${addressLine()}`} />
+    <meta property="og:image:alt" content={`Samochody ${firma.name}: dwie czerwone ciężarówki Volvo i Iveco Daily z zabudową PELLET na placu przy silosach`} />
     <meta name="twitter:card" content="summary_large_image" />
     {
       structuredData.map((data) => (
@@ -139,6 +150,42 @@ const structuredData = [localBusiness, ...(breadcrumbList ? [breadcrumbList] : [
             if (p === "materialy") document.documentElement.dataset.paleta = "materialy";
           })();
         </script>
+      )
+    }
+    {
+      import.meta.env.DEV && (
+        <style is:inline>
+          {`
+          /* Palette comparison (2026-10-01): the variant measured in the
+             client's own material. Sign green from the printer's banner, red
+             from the fleet photos. Remove with the switch once one palette
+             is chosen. */
+          :root[data-paleta="materialy"] {
+            --color-sign: #1d6a05;
+            --color-sign-deep: #134803;
+            --color-red: #a8101c;
+          }
+          .paleta-przelacznik {
+            position: fixed;
+            left: 0.75rem;
+            bottom: 0.75rem;
+            z-index: 1000;
+            padding: 0.4rem 0.7rem;
+            background: var(--color-black);
+            color: var(--color-white);
+            font-size: 0.85rem;
+            border-radius: var(--radius-sign);
+          }
+          .paleta-przelacznik a {
+            color: var(--color-white);
+          }
+          :root:not([data-paleta="materialy"]) .paleta-obecna,
+          :root[data-paleta="materialy"] .paleta-materialy {
+            color: var(--color-yellow);
+            font-weight: 800;
+          }
+          `}
+        </style>
       )
     }
   </head>

@@ -40,7 +40,7 @@ export const mainNav: readonly NavItem[] = [
 export const orderLink: NavItem = { href: strony.zamowienie.href, label: "Zamów pellet" };
 
 /** Pages outside the header: reached from the footer and from forms. */
-export const otherPages: readonly NavItem[] = [strony.zamowienie, strony.polityka];
+const otherPages: readonly NavItem[] = [strony.zamowienie, strony.polityka];
 
 const tree: readonly NavItem[] = [...mainNav, ...otherPages];
 

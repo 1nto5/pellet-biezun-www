@@ -13,7 +13,7 @@ import { produkty, cenyLabel, paletaLabel } from "../data/oferta";
 import { DARMOWA_DOSTAWA_KM, grupyPodstron, miejsceHref } from "../data/miejsca";
 
 /** "Pellet Bieżuń" → the two lines of the sign. */
-const [pellet, miasto] = firma.name.split(" ");
+const [pellet, miasto] = firma.znak;
 
 /** The site itself, so search results show the company's name as the site's. */
 const webSite = {
@@ -58,13 +58,13 @@ const workiKg = [...new Set(produkty.map((p) => p.workiKg))].join(" i ");
   </Droga>
 
   <section class="page-wrap pt-10 pb-16 md:pt-14 md:pb-24" aria-labelledby="oferta-skrot">
-    <div class="baner">
+    <div class="baner ramka">
       <p class="naklejka">
         <span>Większe zamówienie?</span>
         <strong>Cena do negocjacji</strong>
       </p>
       <h2 id="oferta-skrot" class="text-3xl md:text-4xl">Co przywozimy</h2>
-      <ul role="list" class="mt-8 grid gap-10 md:grid-cols-2" data-ruch-grupa>
+      <ul role="list" class="mt-8 grid gap-10 lg:grid-cols-2" data-ruch-grupa>
         {
           produkty.map((p) => {
             const [cena, cenaTona] = cenyLabel(p);
@@ -127,8 +127,8 @@ const workiKg = [...new Set(produkty.map((p) => p.workiKg))].join(" i ");
   </section>
 
   <section class="kontakt" aria-labelledby="kontakt-skrot">
-    <div class="page-wrap grid gap-10 py-16 md:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] md:items-center md:gap-16 md:py-20">
-      <div data-ruch="tablica"><TablicaWjazdowa /></div>
+    <div class="page-wrap grid grid-cols-[minmax(0,1fr)] gap-10 py-16 md:py-20 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:items-center lg:gap-16">
+      <div class="max-w-[26rem]" data-ruch="tablica"><TablicaWjazdowa /></div>
       <div>
         <h2 id="kontakt-skrot" class="text-3xl md:text-4xl">Magazyn i kontakt</h2>
         <address class="mt-4 text-lg">
@@ -165,9 +165,9 @@ const workiKg = [...new Set(produkty.map((p) => p.workiKg))].join(" i ");
     font-weight: 900;
     line-height: 0.8;
     letter-spacing: -0.045em;
-    white-space: nowrap;
-    overflow-wrap: normal;
-    text-wrap: nowrap;
+    /* One word a line; a reader's wider letter spacing may still break a
+       word rather than push it out of the page. */
+    overflow-wrap: anywhere;
   }
   .wordmark-pellet {
     font-size: var(--wm);
@@ -208,16 +208,27 @@ const workiKg = [...new Set(produkty.map((p) => p.workiKg))].join(" i ");
     align-items: center;
     gap: 0.75rem 1.5rem;
   }
-  /* Wide windows: the facts and the two actions beside the wordmark, at its
-     foot. */
-  @media (min-width: 56rem) {
+  /* Wide landscape windows: the facts and the two actions beside the
+     wordmark, at its foot. The wordmark leaves them at least 17rem: PELLET
+     is about 3.2 times its font size wide. Should they still not fit (a
+     reader's own wider letter spacing), they go under it. An upright window
+     keeps the phone's layout, which suits its height. */
+  @media (min-width: 56rem) and (min-aspect-ratio: 1 / 1) {
     .hero {
-      display: grid;
-      grid-template-columns: auto minmax(0, 24rem);
-      align-items: end;
-      column-gap: clamp(2rem, 5vw, 4.5rem);
+      --odstep: clamp(2rem, 5vw, 4.5rem);
+      container-type: inline-size;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 1.25rem var(--odstep);
+    }
+    .wordmark {
+      --wm: min(30svh, 17rem, (100cqi - 17rem - var(--odstep)) / 3.2);
+      flex: none;
     }
     .hero-dol {
+      flex: 1 0 17rem;
+      max-width: 24rem;
       margin-top: 0;
       padding-bottom: 0.3rem;
     }
@@ -249,12 +260,10 @@ const workiKg = [...new Set(produkty.map((p) => p.workiKg))].join(" i ");
     height: 1.1em;
   }
 
-  /* The banner: white, thin rounded yellow frame. */
+  /* The banner: the offer in a yellow frame (`.ramka`), with a sticker. */
   .baner {
     position: relative;
     padding: 1.75rem 1.25rem;
-    border: 0.3rem solid var(--color-yellow);
-    border-radius: 1rem;
   }
   @media (min-width: 40rem) {
     .baner {
@@ -306,9 +315,15 @@ const workiKg = [...new Set(produkty.map((p) => p.workiKg))].join(" i ");
   }
   .produkt {
     display: grid;
-    grid-template-columns: 7rem minmax(0, 1fr);
+    grid-template-columns: 5.5rem minmax(0, 1fr);
     align-items: center;
-    gap: 1.25rem;
+    gap: 1rem;
+  }
+  @media (min-width: 24rem) {
+    .produkt {
+      grid-template-columns: 7rem minmax(0, 1fr);
+      gap: 1.25rem;
+    }
   }
   @media (min-width: 40rem) {
     .produkt {

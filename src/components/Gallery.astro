@@ -17,13 +17,20 @@ interface Props {
 
 const { photos } = Astro.props;
 
-/** The grid is four columns from `lg`, three from `sm`, two below that. */
-const sizes = "(min-width: 64rem) 15rem, (min-width: 40rem) 33vw, 50vw";
+/**
+ * The grid is four columns from `lg`, three from `sm`, two below that, inside
+ * the page's gutters (36px on phones, 72px from `sm`); the first photo takes
+ * two by two.
+ */
+const sizes = "(min-width: 64rem) 17rem, (min-width: 40rem) calc(33vw - 24px), calc(50vw - 18px)";
+const sizesPierwsze = "(min-width: 64rem) 35rem, (min-width: 40rem) calc(66vw - 48px), calc(100vw - 36px)";
+/** About as many photos as the first screen shows; they load at once. */
+const OD_RAZU = 3;
 
 const items = await Promise.all(
   photos.map(async (photo) => ({
     ...photo,
-    full: await getImage({ src: photo.src, width: 1600, format: "webp" }),
+    full: await getImage({ src: photo.src, width: 1600, format: "webp", quality: 75 }),
   })),
 );
 ---
@@ -31,11 +38,36 @@ const items = await Promise.all(
 <div data-gallery>
   <ul class="gallery" role="list" data-ruch-grupa>
     {
-      items.map((photo) => (
+      items.map((photo, i) => (
         <li>
-          <button type="button" data-full={photo.full.src} data-alt={photo.alt}>
+          <button
+            type="button"
+            data-full={photo.full.src}
+            data-alt={photo.alt}
+            data-proporcja={(Number(photo.full.attributes.width) / Number(photo.full.attributes.height)).toFixed(4)}
+          >
             <span class="gallery-media">
-              <Image src={photo.src} alt={photo.alt} width={700} widths={[400, 700]} sizes={sizes} loading="lazy" />
+              {i === 0 ? (
+                <Image
+                  src={photo.src}
+                  alt={photo.alt}
+                  width={1400}
+                  widths={[700, 1000, 1400]}
+                  quality={70}
+                  sizes={sizesPierwsze}
+                  loading="eager"
+                  fetchpriority="high"
+                />
+              ) : (
+                <Image
+                  src={photo.src}
+                  alt={photo.alt}
+                  width={700}
+                  widths={[400, 700]}
+                  sizes={sizes}
+                  loading={i < OD_RAZU ? "eager" : "lazy"}
+                />
+              )}
             </span>
             <span class="sr-only">Powiększ zdjęcie</span>
           </button>
@@ -78,7 +110,7 @@ const items = await Promise.all(
     const thumbs = thumbsOf(dialog);
     const n = thumbs.length;
     index = ((index % n) + n) % n;
-    const thumb = thumbs[index];
+    const thumb = thumbs[index]!;
     dialog.dataset.index = String(index);
 
     let image = dialog.querySelector("img");
@@ -86,12 +118,17 @@ const items = await Promise.all(
       image = document.createElement("img");
       dialog.prepend(image);
     }
+    image.style.setProperty("--proporcja", thumb.dataset.proporcja ?? "");
     image.src = thumb.dataset.full!;
     image.alt = thumb.dataset.alt ?? "";
-    dialog.querySelector(".lightbox-count")!.textContent = `${index + 1} / ${n}`;
+    // The count is announced on every step; with the photo's description, a
+    // screen reader user also hears what the new photo shows.
+    const count = dialog.querySelector(".lightbox-count")!;
+    const opis = Object.assign(document.createElement("span"), { className: "sr-only", textContent: `: ${image.alt}` });
+    count.replaceChildren(`${index + 1} / ${n}`, opis);
 
     // The neighbours load in the background, so a step to either is instant.
-    for (const near of [index - 1, index + 1]) new Image().src = thumbs[(near + n) % n].dataset.full!;
+    for (const near of [index - 1, index + 1]) new Image().src = thumbs[(near + n) % n]!.dataset.full!;
     return image;
   }
 
@@ -133,16 +170,20 @@ const items = await Promise.all(
   }
 
   // A swipe can end with a click on whatever is under the finger; when that
-  // is the dialog's own padding it must not count as a click on the backdrop.
+  // is the backdrop it must not close the dialog.
   let swipedAt = 0;
 
   document.addEventListener("click", (event) => {
     const target = event.target instanceof Element ? event.target : null;
     if (!target) return;
 
-    // A click on the backdrop lands on the dialog itself, never on its contents.
+    // A click on the backdrop lands on the dialog itself, outside its box. One
+    // on the dialog's own padding lands there too, inside the box, and must
+    // not close it.
     if (target instanceof HTMLDialogElement && target.closest("[data-gallery]")) {
-      if (performance.now() - swipedAt > 500) target.close();
+      const r = target.getBoundingClientRect();
+      const obok = event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom;
+      if (obok && performance.now() - swipedAt > 500) target.close();
       return;
     }
 

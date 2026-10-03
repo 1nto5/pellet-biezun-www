@@ -47,8 +47,9 @@
    Light only: everything the company prints sits on white, and the site
    follows it. Contrast on white: black 21:1, ink-soft 9.5:1, sign green
    5.5:1 (white on it the same). Black on brand green 11:1, on yellow 13.9:1.
-   White on asphalt 13:1. Brand green is never behind white text, truck red
-   only in the drawings.
+   White on asphalt 13:1, on truck red 5:1 (the home page's sticker; the red
+   is otherwise only in the drawings). Brand green is never behind white
+   text.
 
    `ink`, `sand` and `line` are the text, panel and hairline colours the
    pages use as classes.
@@ -89,16 +90,6 @@
   --text-3xl--line-height: 1.1;
   --text-4xl--line-height: 1.02;
   --text-5xl--line-height: 0.98;
-}
-
-/* Palette comparison (2026-10-01): the variant measured in the client's own
-   material. Sign green from the printer's banner, red from the fleet photos.
-   Only the dev server sets `data-paleta` (Base.astro); remove this block once
-   one palette is chosen. */
-:root[data-paleta="materialy"] {
-  --color-sign: #1d6a05;
-  --color-sign-deep: #134803;
-  --color-red: #a8101c;
 }
 
 /* ---------------------------------------------------------------------------
@@ -169,6 +160,13 @@ body {
 .link-strong {
   font-weight: 700;
 }
+/* A link inside a sentence is underlined, not told apart by its colour
+   alone; menus, boards and buttons are links of their own kind. */
+main :where(p, address, dd, td) > a:not(.btn),
+.check a {
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+}
 
 :focus-visible {
   outline: 3px solid var(--color-black);
@@ -206,9 +204,17 @@ body {
   border-radius: var(--radius-sign);
   box-shadow: inset 0 0 0 0.2rem var(--color-sign), inset 0 0 0 0.3rem var(--color-white);
 }
-.sign :focus-visible,
-.sign:focus-visible {
+/* Inside a board the ring is yellow on green; round a board that is itself
+   a link it stays black, on the page. */
+.sign :focus-visible {
   outline-color: var(--color-yellow);
+}
+
+/* A white panel in the banner's thin, rounded yellow frame: the home page's
+   offer, the order form's steps. The contents decide the padding. */
+.ramka {
+  border: 0.3rem solid var(--color-yellow);
+  border-radius: 1rem;
 }
 
 /* The livery's slanted yellow stripes, as a divider. Three bars that get
@@ -280,8 +286,9 @@ body {
 .btn-primary::before {
   background: var(--color-yellow);
 }
+.btn-primary[aria-current="page"]::before,
 .btn-primary:hover::before {
-  background: #ffd83d;
+  background: color-mix(in srgb, var(--color-yellow) 75%, var(--color-white));
   box-shadow: inset 0 -0.2rem 0 var(--color-black);
 }
 .btn-secondary::before {
@@ -294,6 +301,7 @@ body {
   min-height: 2.3rem;
   padding: 0.45rem 1.05rem 0.35rem;
   font-size: var(--text-sm);
+  white-space: nowrap;
 }
 
 /* The menu button in the header row, below `lg`. */
@@ -377,6 +385,17 @@ body {
   font-weight: 800;
   letter-spacing: 0.29em;
 }
+/* The narrowest phones: the logo, the order button and the menu button
+   still fit on one line. */
+@media (width < 22rem) {
+  .pinned-row,
+  .pinned-row .akcje {
+    column-gap: 0.5rem;
+  }
+  .pinned-row .btn-sm {
+    padding-inline: 0.6rem;
+  }
+}
 
 .nav-board {
   padding: 0.3rem 0.45rem;
@@ -395,7 +414,7 @@ body {
   border-bottom-color: var(--color-white);
   text-decoration: none;
 }
-.nav-link[aria-current="page"] {
+.nav-link[aria-current] {
   border-bottom-color: var(--color-yellow);
   font-weight: 800;
 }
@@ -454,7 +473,7 @@ body {
   color: var(--color-white);
   text-decoration-color: currentColor;
 }
-.menu nav a[aria-current="page"] {
+.menu nav a[aria-current] {
   text-decoration-color: var(--color-yellow);
   text-decoration-thickness: 0.2rem;
 }
@@ -543,6 +562,10 @@ body {
 .table td {
   font-weight: 600;
 }
+/* A column of norms beside the results: plain, so the results stand out. */
+.table .wymaganie {
+  font-weight: 400;
+}
 
 /* A price in a product's summary. */
 .price {
@@ -616,8 +639,9 @@ a.tablica:hover .tablica-nazwa {
   text-decoration: underline;
   text-decoration-thickness: 2px;
 }
-.tablica .text-ink-soft {
-  color: var(--color-white);
+/* A town's muted note ("czasem") stays white on a board. */
+.sign .text-ink-soft {
+  color: inherit;
 }
 .tablica-km {
   flex: none;
@@ -792,13 +816,17 @@ textarea.input {
   overflow: hidden;
 }
 /* The form's reply under the button: a note with a yellow bar on its left. */
-.form-status:empty {
-  display: none;
-}
 .form-status {
   padding: 0.75rem 1rem 0.65rem;
   border-left: 0.4rem solid var(--color-yellow);
   background: var(--color-sand);
+}
+/* Empty, it takes no room but stays on the page: a screen reader announces
+   a status region's new text only if the region was there before it. */
+.form-status:empty {
+  padding: 0;
+  border: 0;
+  background: none;
 }
 
 /* ---------------------------------------------------------------------------
@@ -819,32 +847,35 @@ textarea.input {
     aspect-ratio: 16 / 9;
   }
 }
+/* Beside the text on a town's page. */
+.mapa.mapa-kwadrat {
+  aspect-ratio: 1;
+}
 /* The warehouse: a green pin with a white rim and a black edge, the sign's
    colours. */
 .pin {
-  width: 1.4rem;
-  height: 1.4rem;
-  border: 3px solid #fff;
+  width: 1.7rem;
+  height: 1.7rem;
+  border: 3px solid var(--color-white);
   border-radius: 50% 50% 50% 0;
   background: var(--color-sign);
   transform: rotate(-45deg);
   box-shadow:
-    0 0 0 2px #000,
+    0 0 0 2px var(--color-black),
     0 2px 6px rgb(0 0 0 / 0.35);
 }
-.pin-punkt {
-  width: 1.7rem;
-  height: 1.7rem;
-}
-.leaflet-container {
+/* Leaflet's own stylesheet arrives with the map (mapa.ts), after this one;
+   these win over it by being more specific. */
+.mapa.leaflet-container {
   font: inherit;
+  background: var(--color-sand);
 }
-.leaflet-popup-content {
+.mapa .leaflet-popup-content {
   font-size: 0.95rem;
   line-height: 1.45;
 }
-.leaflet-popup-content-wrapper,
-.leaflet-popup-tip {
+.mapa .leaflet-popup-content-wrapper,
+.mapa .leaflet-popup-tip {
   border-radius: var(--radius-sign);
   box-shadow: 0 0 0 2px var(--color-black);
 }
@@ -858,7 +889,7 @@ textarea.input {
 }
 .legend-pin-magazyn {
   background: var(--color-sign);
-  box-shadow: 0 0 0 2px #000;
+  box-shadow: 0 0 0 2px var(--color-black);
 }
 
 /* The free-delivery zone and the town dots. Leaflet draws them as SVG paths
@@ -968,8 +999,10 @@ textarea.input {
   overflow: hidden;
   border-radius: var(--radius-sign);
 }
+/* The white frame fits the photo; a sideways finger move is a swipe to the
+   next photo, not a pan. */
 .lightbox {
-  width: min(64rem, 92vw);
+  width: fit-content;
   max-width: 92vw;
   max-height: 92vh;
   margin: auto;
@@ -978,14 +1011,19 @@ textarea.input {
   border-radius: var(--radius-sign);
   background: var(--color-white);
   color: var(--color-ink);
+  touch-action: pan-y pinch-zoom;
 }
 .lightbox::backdrop {
   background: color-mix(in srgb, var(--color-asphalt) 92%, transparent);
 }
+/* As large as fits the window, 72vh high at most, in the photo's own
+   proportions (`--proporcja`, set by the script), so the frame has its size
+   before the photo arrives. */
 .lightbox img {
   display: block;
-  width: 100%;
-  max-height: 72vh;
+  width: min(92vw - 2rem, 62rem, 72vh * var(--proporcja, 1.333));
+  height: auto;
+  aspect-ratio: var(--proporcja, 4 / 3);
   object-fit: contain;
   border-radius: var(--radius-sign);
 }
@@ -1006,9 +1044,11 @@ textarea.input {
   gap: 0.5rem;
   margin-left: auto;
 }
+.lightbox-tools .tool {
+  min-height: 2.75rem;
+}
 .lightbox-tools [data-lightbox-step] {
   min-width: 2.75rem;
-  min-height: 2.75rem;
 }
 .lightbox-count {
   min-width: 4.5ch;
@@ -1017,11 +1057,6 @@ textarea.input {
   font-variant-numeric: tabular-nums;
   text-align: center;
 }
-/* A sideways finger move is a swipe to the next photo, not a pan. */
-.lightbox {
-  touch-action: pan-y pinch-zoom;
-}
-
 /* FAQ: each question a <details>, the answer under it. The marker is a black
    square with a plus that turns into a minus when open. */
 .faq details {
@@ -1049,13 +1084,14 @@ textarea.input {
   flex: none;
   display: inline-grid;
   place-items: center;
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 1.6rem;
+  height: 1.6rem;
   padding-top: 0.15rem;
   border-radius: 0.2rem;
   background: var(--color-black);
   color: var(--color-white);
-  font-size: 1.1rem;
+  font-size: 1.4rem;
+  font-weight: 900;
   line-height: 1;
 }
 .faq details[open] summary::before {
@@ -1092,8 +1128,9 @@ textarea.input {
 .site-footer :focus-visible {
   outline-color: var(--color-yellow);
 }
+/* Secondary text on asphalt, 8.5:1. */
 .site-footer .soft {
-  color: #c9ccce;
+  color: color-mix(in srgb, var(--color-white) 77%, var(--color-asphalt));
 }
 /* The road's centre line along the top edge. */
 .site-footer::before {
@@ -1242,6 +1279,11 @@ html[data-galeria] .lightbox img {
   html[data-galeria]::view-transition-group(lightbox-foto) {
     animation-duration: 300ms;
   }
+  /* A second tap on an arrow during the slide goes to the arrow, not to the
+     slide's overlay. */
+  html[data-galeria]::view-transition {
+    pointer-events: none;
+  }
   html[data-galeria="dalej"]::view-transition-old(lightbox-foto) {
     animation: 300ms ease-out both droga-wyjazd;
   }
@@ -1281,14 +1323,38 @@ html[data-galeria] .lightbox img {
   }
 }
 
+/* On paper: the facts, without what only works on a screen, and no heading
+   left alone at the foot of a page. */
 @media print {
   .site-header {
     position: static;
   }
+  .skip-link,
   [data-menu-open],
+  .pasek,
+  .pauza,
   .mapa,
+  .btn,
+  form,
   footer nav {
     display: none !important;
+  }
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
+  }
+  tr,
+  li,
+  figure {
+    break-inside: avoid;
+  }
+  /* Boards and the drive's scene keep their colours: a board's white text
+     would otherwise print white on white. */
+  .sign,
+  .scena {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }
 
@@ -1315,23 +1381,3 @@ html[data-galeria] .lightbox img {
   letter-spacing: -0.035em;
 }
 
-/* Dev-only palette switch (see Base.astro). */
-.paleta-przelacznik {
-  position: fixed;
-  left: 0.75rem;
-  bottom: 0.75rem;
-  z-index: 1000;
-  padding: 0.4rem 0.7rem;
-  background: var(--color-black);
-  color: var(--color-white);
-  font-size: 0.85rem;
-  border-radius: var(--radius-sign);
-}
-.paleta-przelacznik a {
-  color: var(--color-white);
-}
-:root:not([data-paleta="materialy"]) .paleta-obecna,
-:root[data-paleta="materialy"] .paleta-materialy {
-  color: var(--color-yellow);
-  font-weight: 800;
-}

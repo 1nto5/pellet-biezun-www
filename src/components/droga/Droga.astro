@@ -13,7 +13,8 @@
  * - On a wide landscape screen, one sticky stage with the scroll length
  *   reserved under it; the script sets the scene from the scroll position.
  * - Elsewhere, phones above all, one scene above the stops' texts that plays
- *   the drive by itself on a loop (`jazda.ts`), light enough for a phone.
+ *   the drive by itself on a loop (`jazda.ts`), light enough for a phone,
+ *   with a button to pause it.
  *
  * The slot is the hero. It sits in the same box as the stage, so the stage
  * can stand behind it from the first screen: the road starts under the hero.
@@ -22,7 +23,8 @@ import "./droga.css";
 import Scena from "./Scena.astro";
 import { firma } from "../../data/firma";
 import { DARMOWA_DOSTAWA_KM } from "../../data/miejsca";
-import { tablice, miastaWStrefie, kadry, start, czasKm, CZAS, KM_DOJAZD, type Stan } from "./trasa";
+import { start, czasKm, CZAS, KM_DOJAZD, type Stan } from "./trasa";
+import { tablice, miastaWStrefie, kadry } from "./tablice";
 
 interface Stop {
   id: string;
@@ -43,7 +45,7 @@ const stopy: Stop[] = [
     km: 0,
     od: 0,
     tytul: `Załadunek: ${firma.address.street}`,
-    tekst: "Pellet czeka w hali we Władysławowie koło Bieżunia. Stąd ładujemy palety na auta.",
+    tekst: "Pellet czeka w hali we Władysławowie pod Bieżuniem. Stąd ładujemy palety na auta.",
     kadr: kadry.zaladunek,
   },
   {
@@ -81,6 +83,12 @@ const stopy: Stop[] = [
     <div class="droga-scena" data-droga-scena>
       <Scena stan={start} live />
       <p class="licznik" aria-hidden="true"><span data-licznik>0</span> km</p>
+      <button type="button" class="pauza" data-pauza aria-label="Zatrzymaj animację" hidden>
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path class="pauza-stop" d="M6 4h4v16H6zM14 4h4v16h-4z" />
+          <path class="pauza-graj" d="M7 4l13 8-13 8z" />
+        </svg>
+      </button>
     </div>
 
     <ol class="stopy" role="list">
@@ -121,7 +129,7 @@ const stopy: Stop[] = [
 
 <script>
   import { stanAt, stanVars } from "./trasa";
-  import { uruchomJazde, type Jazda } from "./jazda";
+  import { uruchomJazde, POCZATEK_MS, type Jazda } from "./jazda";
 
   const podroz = document.querySelector<HTMLElement>("[data-podroz]");
   const hero = podroz?.firstElementChild as HTMLElement | null | undefined;
@@ -131,9 +139,10 @@ const stopy: Stop[] = [
   const rig = scena?.querySelector<HTMLElement>(".rig");
   const dystans = podroz?.querySelector<HTMLElement>("[data-dystans]");
   const licznik = podroz?.querySelector<HTMLElement>("[data-licznik]");
+  const pauza = podroz?.querySelector<HTMLButtonElement>("[data-pauza]");
   const stopy = [...(podroz?.querySelectorAll<HTMLElement>("[data-stop]") ?? [])];
 
-  if (podroz && hero && droga && pudelko && scena && rig && dystans && licznik) {
+  if (podroz && hero && droga && pudelko && scena && rig && dystans && licznik && pauza) {
     // The CSS decides which version shows (droga.css): the spacer that gives
     // the scroll length is there only in the live one, the scene's box also
     // in the one that plays by itself. A turned tablet or a resized window
@@ -142,7 +151,8 @@ const stopy: Stop[] = [
     let tryb: "live" | "sama" | "nieruchoma" | null = null;
     let live = false;
     let jazda: Jazda | null = null;
-    let jazdaOd = 0;
+    let jazdaOd = POCZATEK_MS;
+    let wstrzymana = false;
     const clamp = (x: number) => Math.min(1, Math.max(0, x));
     const od = stopy.map((s) => Number(s.dataset.od));
 
@@ -208,7 +218,9 @@ const stopy: Stop[] = [
       }
       if (nowy === "sama" && !jazda) {
         jazda = uruchomJazde(scena, pudelko, (km) => (licznik.textContent = String(km)), jazdaOd);
+        jazda.wstrzymaj(wstrzymana);
       }
+      pauza.hidden = nowy !== "sama";
       if (nowy !== tryb) {
         podroz.classList.toggle("is-driving", nowy === "sama");
         shownStop = -2;
@@ -216,10 +228,21 @@ const stopy: Stop[] = [
         tryb = nowy;
       }
 
-      if (!live) return;
-      measure();
-      render();
+      if (live) {
+        measure();
+        render();
+      }
+      podroz.classList.add("is-ready");
     };
+    // A loop that plays by itself for longer than a few seconds needs a way
+    // to stop it (WCAG 2.2.2). It stays stopped until the reader plays it.
+    pauza.addEventListener("click", () => {
+      wstrzymana = !wstrzymana;
+      jazda?.wstrzymaj(wstrzymana);
+      pauza.classList.toggle("is-paused", wstrzymana);
+      pauza.setAttribute("aria-label", wstrzymana ? "Odtwórz animację" : "Zatrzymaj animację");
+    });
+
     refresh();
     window.addEventListener("scroll", () => live && render(), { passive: true });
     window.addEventListener("resize", refresh);
