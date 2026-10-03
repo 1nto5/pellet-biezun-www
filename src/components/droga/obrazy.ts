@@ -24,7 +24,14 @@ export { default as hala } from "../../assets/droga/hala.png";
 export { default as dom } from "../../assets/droga/dom.png";
 export { default as ladowarka } from "../../assets/droga/ladowarka.png";
 
-const webp = (src: ImageMetadata, width: number) => getImage({ src, width, format: "webp", quality: 75 }).then((i) => i.src);
+const webp = (src: ImageMetadata, width: number, quality = 75) => getImage({ src, width, format: "webp", quality }).then((i) => i.src);
+const avif = (src: ImageMetadata, width: number) => getImage({ src, width, format: "avif", quality: 50 }).then((i) => i.src);
+/**
+ * The forest and the verge are busy texture, seen in passing behind the
+ * truck: a lower quality does not show. They also come as AVIF, about half
+ * the WebP's size, for the browsers that take it (droga.css).
+ */
+const TLO = 55;
 
 /**
  * The widths are written out because reading them from the import makes the
@@ -32,8 +39,15 @@ const webp = (src: ImageMetadata, width: number) => getImage({ src, width, forma
  * the verge about 45 device pixels tall.
  */
 export const obrazy = {
+  /** A tiny AVIF: the page decodes it to learn whether the browser takes the AVIF bands (Droga.astro). */
+  probaAvif: (await getImage({ src: paleta, width: 2, format: "avif" })).src,
   paleta: await webp(paleta, 100),
   wozek: await webp(wozek, 180),
-  las: { duzy: await webp(las, 1500), maly: await webp(las, 640) },
-  pobocze: { duzy: await webp(pobocze, 800), maly: await webp(pobocze, 320) },
+  las: { duzy: await webp(las, 1500, TLO), maly: await webp(las, 640, TLO), duzyAvif: await avif(las, 1500), malyAvif: await avif(las, 640) },
+  pobocze: {
+    duzy: await webp(pobocze, 800, TLO),
+    maly: await webp(pobocze, 320, TLO),
+    duzyAvif: await avif(pobocze, 800),
+    malyAvif: await avif(pobocze, 320),
+  },
 };

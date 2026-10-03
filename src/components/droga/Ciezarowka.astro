@@ -26,7 +26,10 @@ import Paleta from "./Paleta.astro";
 import auto from "../../assets/droga/auto-fm.png";
 
 interface Props {
-  /** Loads at once in the live scene, after the headline's font (as Hala.astro). */
+  /**
+   * Loads at once in the live scene, at the browser's own priority: the
+   * scene waits for the truck before it shows (Droga.astro).
+   */
   eager?: boolean;
 }
 const { eager = false } = Astro.props;
@@ -50,14 +53,13 @@ const gora = `${Math.round((Y0 / 108) * 10000) / 100}%`;
 <Image
   src={auto}
   width={1800}
-  widths={[600, 1100, 1800]}
+  widths={[600, 800, 1100, 1800]}
   sizes="(min-width: 64rem) 56vw, 90vw"
   format="webp"
   alt=""
   class="auto-foto"
   style={`top:${gora}`}
   loading={eager ? "eager" : "lazy"}
-  fetchpriority={eager ? "low" : undefined}
 />
 <svg class="auto auto-winda" viewBox="0 0 240 108" overflow="visible" aria-hidden="true" focusable="false">
   <!-- Tail lift, hinged at the box's back bottom corner (239, 82.6). The

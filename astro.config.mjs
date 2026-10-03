@@ -32,6 +32,12 @@ export default defineConfig({
   // tag the way React does: "09-320\n{city}" came out as "09-320Bieżuń".
   // `true` keeps HTML's own rule, that a line break is a space.
   compressHTML: true,
+  // The whole stylesheet goes into each page, about 13 kB compressed: the
+  // first paint then waits for no request after the HTML. Pages are few and
+  // short, so the lost caching between them costs less than the wait.
+  build: {
+    inlineStylesheets: "always",
+  },
   vite: {
     plugins: [tailwindcss()],
   },

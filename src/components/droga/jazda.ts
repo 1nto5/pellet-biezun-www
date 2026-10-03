@@ -23,8 +23,8 @@
  */
 import { stanAt, start, stanVars, KM_U, type Stan } from "./trasa";
 
-/** Samples of the 0–100 clock; the browser draws straight lines between them. */
-const PROBKI = 400;
+/** Samples of the 0–100 clock, two per moment; the browser draws straight lines between them. */
+const PROBKI = 200;
 /** The whole drive at its own pace, in ms. */
 const CALOSC_MS = 20000;
 /**
@@ -43,8 +43,9 @@ const WINDA_W_DOL = 22.4;
 type Ruch = [Element, (s: Stan) => Keyframe];
 
 export interface Jazda {
-  /** The scene width it was set up for; another one needs a new setup. */
+  /** The scene width and unit (px) it was set up for; others need a new setup. */
   szerokosc: number;
+  u: number;
   /** Shows the moment `t` (0–100) of the drive at once. */
   ustaw(t: number): void;
   /** Plays the drive on to the moment `t` (0–100), or back to it. */
@@ -54,9 +55,11 @@ export interface Jazda {
 
 /**
  * Sets up the drive on the live scene (`[data-scena-live]`), at its start.
- * `naKm` gets the odometer's whole km whenever it changes.
+ * `naKm` gets the odometer's whole km whenever it changes. `margines` widens
+ * the bands behind the road by that many px on both sides, for a scene the
+ * page draws smaller (Droga.astro), so they still reach its edges.
  */
-export function uruchomJazde(scena: HTMLElement, naKm: (km: number) => void): Jazda {
+export function uruchomJazde(scena: HTMLElement, naKm: (km: number) => void, margines = 0): Jazda {
   for (const [k, v] of Object.entries(stanVars(start))) scena.style.setProperty(k, v);
   scena.style.setProperty("--z", "1");
 
@@ -74,14 +77,18 @@ export function uruchomJazde(scena: HTMLElement, naKm: (km: number) => void): Ja
   const jeden = <T extends Element>(selektor: string) => scena.querySelector<T>(selektor)!;
   const wszystkie = (selektor: string) => [...scena.querySelectorAll<HTMLElement | SVGElement>(selektor)];
 
-  // The bands reach as far to the left as they will slide.
+  // The bands reach as far to the left as they will slide, and the margin
+  // beyond on both sides.
   const najdalej = przesuniecie(stanAt(100));
   const pasma: [HTMLElement, number][] = [
     [jeden(".las"), PARALAKSA.las],
     [jeden(".pola"), PARALAKSA.pola],
     [jeden(".jezdnia"), 1],
   ];
-  for (const [el, ile] of pasma) el.style.left = px(-najdalej * ile);
+  for (const [el, ile] of pasma) {
+    el.style.left = px(-najdalej * ile - margines);
+    el.style.right = px(-margines);
+  }
 
   // Each moving part and its frame for a given state.
   const ruchy: Ruch[] = [
@@ -185,22 +192,22 @@ export function uruchomJazde(scena: HTMLElement, naKm: (km: number) => void): Ja
 
   return {
     szerokosc,
+    u,
     ustaw,
     jedz,
     zatrzymaj() {
       if (klatka !== undefined) cancelAnimationFrame(klatka);
       for (const a of animacje) a.cancel();
-      for (const [el] of pasma) el.style.removeProperty("left");
+      for (const [el] of pasma) {
+        el.style.removeProperty("left");
+        el.style.removeProperty("right");
+      }
     },
   };
 }
 
 /** Leaves out a keyframe that only repeats both its neighbours: the browser has less to step through. */
 function bezPowtorzen(klatki: Keyframe[]): Keyframe[] {
-  const wartosc = ({ offset: _offset, ...reszta }: Keyframe) => JSON.stringify(reszta);
-  return klatki.filter((k, i) => {
-    if (i === 0 || i === klatki.length - 1) return true;
-    const w = wartosc(k);
-    return w !== wartosc(klatki[i - 1]!) || w !== wartosc(klatki[i + 1]!);
-  });
+  const wartosci = klatki.map((k) => `${k.transform ?? ""}|${k.opacity ?? ""}`);
+  return klatki.filter((_k, i) => i === 0 || i === klatki.length - 1 || wartosci[i] !== wartosci[i - 1] || wartosci[i] !== wartosci[i + 1]);
 }

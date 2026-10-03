@@ -14,8 +14,15 @@
  *
  * `action` is the Pages Function that will receive the form. Until
  * `formularzeWlaczone` is on, the script below stops the submit once the
- * browser has checked the fields and gives the phone number instead, so a
- * reader never takes an unsent form for a sent one.
+ * fields are checked and gives the phone number instead, so a reader never
+ * takes an unsent form for a sent one.
+ *
+ * The script checks the fields itself, by the browser's own rules (required,
+ * type, pattern, min), and writes what is wrong in Polish under each field,
+ * all at once, then takes the reader to the first: the browser's bubbles
+ * come one at a time, briefly, and in the browser's language. A field's
+ * `data-blad` gives its own message for a wrong format. Without scripts the
+ * browser's checks stay as they are.
  */
 import { formularzeWlaczone } from "../data/strona";
 import { firma } from "../data/firma";
@@ -83,11 +90,62 @@ const { action, submitLabel, purpose, consent = false } = Astro.props;
 </form>
 
 <script>
+  type Pole = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+
+  function komunikat(pole: Pole): string {
+    const v = pole.validity;
+    if (v.valueMissing) return pole.type === "checkbox" ? "Zaznacz zgodę, żeby wysłać wiadomość." : "Uzupełnij to pole.";
+    if (v.typeMismatch && pole.type === "email") return "Wpisz adres e-mail, np. jan.kowalski@poczta.pl.";
+    if (v.rangeUnderflow) return pole.dataset.blad ?? "Wybierz dzisiejszą lub późniejszą datę.";
+    if (v.patternMismatch) return pole.dataset.blad ?? "Sprawdź, czy wszystko jest wpisane poprawnie.";
+    return v.valid ? "" : "Sprawdź, czy wszystko jest wpisane poprawnie.";
+  }
+
+  /** Shows the field's message under it, or takes it away once it is right. */
+  function pokaz(pole: Pole) {
+    const id = `${pole.id || pole.name}-blad`;
+    const tresc = komunikat(pole);
+    let blad = document.getElementById(id);
+    if (!tresc) {
+      blad?.remove();
+      pole.removeAttribute("aria-invalid");
+      pole.setAttribute("aria-describedby", (pole.getAttribute("aria-describedby") ?? "").replace(id, "").trim());
+      if (!pole.getAttribute("aria-describedby")) pole.removeAttribute("aria-describedby");
+      return;
+    }
+    if (!blad) {
+      blad = Object.assign(document.createElement("span"), { id, className: "blad" });
+      // Last in the field's own box, which may be a cell of a grid; after a
+      // checkbox's label, whose own grid has no room for it.
+      const pudelko = pole.closest(".field");
+      if (pudelko) pudelko.append(blad);
+      else (pole.closest(".check") ?? pole).after(blad);
+      pole.setAttribute("aria-describedby", `${pole.getAttribute("aria-describedby") ?? ""} ${id}`.trim());
+    }
+    blad.textContent = tresc;
+    pole.setAttribute("aria-invalid", "true");
+  }
+
   for (const form of document.querySelectorAll<HTMLFormElement>("[data-form]")) {
-    if (form.dataset.live === "true") continue;
-    // `submit` only fires once the browser's own checks have passed, so the
-    // reader sees every required field and format error first.
+    form.noValidate = true;
+    const pola = [...form.querySelectorAll<Pole>("input, select, textarea")].filter((p) => p.name !== "strona_www" && p.willValidate);
+
+    // A field already marked wrong is checked again as the reader fixes it.
+    form.addEventListener("input", (e) => {
+      const pole = e.target as Pole;
+      if (pole.getAttribute("aria-invalid")) pokaz(pole);
+    });
+    form.addEventListener("change", (e) => pokaz(e.target as Pole));
+
     form.addEventListener("submit", (event) => {
+      const zle = pola.filter((p) => !p.checkValidity());
+      for (const p of pola) pokaz(p);
+      if (zle.length) {
+        event.preventDefault();
+        zle[0]!.focus();
+        return;
+      }
+      if (form.dataset.live === "true") return;
       event.preventDefault();
       const status = form.querySelector("[data-form-status]");
       const message = form.querySelector<HTMLTemplateElement>("template[data-form-nie-wysyla]");

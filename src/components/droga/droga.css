@@ -10,10 +10,12 @@
      top of each other, and a spacer after it that gives the scroll length.
    - Elsewhere, phones above all: one scene pinned under the header, and
      the stops' texts scrolling under it, each held just below it while its
-     part of the drive plays (jazda.ts). A phone has too little power to
-     redraw the scene on every scroll step, and an iPhone tells the script
-     of each step late, so there the drive moves only transforms and
-     opacity, played up to the scroll's moment by the browser itself.
+     part of the drive plays.
+
+   In both the drive moves only transforms and opacity, played up to the
+   scroll's moment by the browser itself (jazda.ts): restyling the scene on
+   every scroll step was too much for a phone, an iPhone tells the script of
+   each step late, and a scene laid out anew shifted the page's layout.
 
    Every condition is known before the first paint (`data-js` is set by an
    inline script in the head), so the layout never jumps when the script
@@ -34,7 +36,9 @@
   position: relative;
   container-type: size;
   overflow: hidden;
-  background: var(--color-white);
+  /* A faint sky over the forest, white higher up like the page: the photos
+     stand on something rather than float on white. */
+  background: linear-gradient(to top, #dfe9ef 0%, #f3f7f9 38%, var(--color-white) 70%);
 }
 .scena-in {
   --u: calc(min(var(--uh, 1) * 1cqh, var(--uw, 0.9) * 1cqw) * var(--z, 1));
@@ -95,6 +99,23 @@
   }
   .pola {
     background-image: var(--pobocze);
+  }
+}
+/* AVIF where the browser can choose by type; the WebP above otherwise. */
+@supports (background-image: image-set(url("x.avif") type("image/avif"))) {
+  .las {
+    background-image: image-set(var(--las-maly-avif) type("image/avif"), var(--las-maly) type("image/webp"));
+  }
+  .pola {
+    background-image: image-set(var(--pobocze-male-avif) type("image/avif"), var(--pobocze-male) type("image/webp"));
+  }
+  @media (min-width: 48rem) {
+    .las {
+      background-image: image-set(var(--las-avif) type("image/avif"), var(--las) type("image/webp"));
+    }
+    .pola {
+      background-image: image-set(var(--pobocze-avif) type("image/avif"), var(--pobocze) type("image/webp"));
+    }
   }
 }
 /* The road: asphalt with the centre line, at the truck's speed. */
@@ -413,6 +434,9 @@
   margin-top: 1rem;
 }
 .stop-telefon {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.45rem;
   color: var(--color-black);
   font-size: 1.3rem;
   font-weight: 900;
@@ -432,6 +456,17 @@
 .droga-scena,
 .droga-dystans {
   display: none;
+}
+/* The pinned scene's track (below); elsewhere only a wrapper. */
+.droga-tor {
+  display: contents;
+}
+/* A moving scene shows once its photos are in (Droga.astro), not piece by
+   piece; should the script never say so, after 3 s anyway. */
+@keyframes droga-pokaz {
+  to {
+    opacity: 1;
+  }
 }
 .droga {
   padding-block: 2.5rem 1rem;
@@ -497,6 +532,16 @@
   html[data-js] .droga {
     padding-top: 1.5rem;
   }
+  /* The scene's track: the scene stays pinned while the track goes by. As
+     tall as the scene and its pinned stretch (`--tor`, set by the script so
+     the scene leaves together with the last text), the stops pulled back up
+     under it by as much. */
+  html[data-js] .droga-tor {
+    display: block;
+    height: calc(var(--scena-h) + var(--tor, 0px));
+    margin-bottom: calc(1rem - var(--tor, 0px));
+    pointer-events: none;
+  }
   html[data-js] .droga-scena {
     --zoom-max: 2;
     display: block;
@@ -504,10 +549,15 @@
     z-index: 1;
     top: var(--header-height);
     height: var(--scena-h);
-    margin-bottom: 1rem;
     background: var(--color-white);
     --uh: 2;
     --uw: 0.74;
+    opacity: 0;
+    transition: opacity 0.4s;
+    animation: droga-pokaz 0s 3s forwards;
+  }
+  html[data-js] .is-ready .droga-scena {
+    opacity: 1;
   }
   html[data-js] .droga-scena > .scena {
     height: 100%;
@@ -621,12 +671,20 @@
     --uw: 0.667;
     opacity: 0;
     transition: opacity 0.3s;
+    animation: droga-pokaz 0s 3s forwards;
   }
   html[data-js] .is-ready .droga-scena {
     opacity: 1;
   }
   html[data-js] .droga-scena > .scena {
     height: 100%;
+  }
+  /* As in the pinned version: layers of their own for the moving parts. */
+  html[data-js] .droga-scena :is(.scena-in, .las, .pola, .jezdnia, .swiat, .rig, .w-widlak) {
+    will-change: transform;
+  }
+  html[data-js] .droga-scena .w-tablica {
+    will-change: opacity;
   }
   html[data-js] .droga-dystans {
     display: block;
@@ -644,17 +702,21 @@
     padding-inline: 2rem;
     pointer-events: none;
   }
-  /* One stop's text at a time, swapped at once: no fade, so an old text
-     never shows under the new one. Hidden with opacity, not visibility, so
-     screen readers still get the whole story. */
+  /* One stop's text at a time: the old one fades out, then the new one in,
+     so an old text never shows under the new. Hidden with opacity, not
+     visibility, so screen readers still get the whole story. */
   html[data-js] .stop {
     grid-area: 1 / 1;
     display: block;
     max-width: 44rem;
     opacity: 0;
+    transition: opacity 0.15s;
   }
+  /* The new text comes in once the old one is out, so the two never show
+     on top of each other. */
   html[data-js] .stop.is-active {
     opacity: 1;
+    transition-delay: 0.12s;
   }
   html[data-js] .stop h3 {
     font-size: clamp(1.8rem, 3.4vw, 3.4rem);

@@ -45,10 +45,14 @@ const pasy = [
   `--las-maly:url(${obrazy.las.maly})`,
   `--pobocze:url(${obrazy.pobocze.duzy})`,
   `--pobocze-male:url(${obrazy.pobocze.maly})`,
+  `--las-avif:url(${obrazy.las.duzyAvif})`,
+  `--las-maly-avif:url(${obrazy.las.malyAvif})`,
+  `--pobocze-avif:url(${obrazy.pobocze.duzyAvif})`,
+  `--pobocze-male-avif:url(${obrazy.pobocze.malyAvif})`,
 ].join(";");
 ---
 
-<div class="scena" aria-hidden="true" style={pasy}>
+<div class="scena" aria-hidden="true" style={pasy} data-proba-avif={live ? obrazy.probaAvif : undefined}>
   <div class="scena-in" style={stanStyle(stan)} data-scena-live={live ? "" : undefined}>
     <div class="las"></div>
     <div class="pola"></div>

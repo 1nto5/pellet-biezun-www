@@ -11,8 +11,8 @@ import { defineMiddleware } from "astro:middleware";
  *   signs (ok. 80 km, tel. 792…, art. 6 ust. 1, ≥ 5,0, < 0,08);
  * - before a dash and a "×", which never start a line;
  * - inside a phone number (792 360 360), which must never break.
- * A postal code (09-320) and an opening-hours range (7:00–17:00) are kept
- * whole, as they would otherwise break at their hyphen or dash.
+ * A postal code (09-320), an opening-hours range (7:00–17:00) and "e-mail"
+ * are kept whole, as they would otherwise break at their hyphen or dash.
  * Only text between tags is touched; scripts, styles, SVG, form fields, the
  * title and select options are left alone.
  */
@@ -34,7 +34,7 @@ function typografia(text: string): string {
     .replace(/(?<=^|[\s(])(ok\.|tel\.|nr|art\.|ust\.|lit\.|k\.|[≥≤±]|&lt;|&gt;)\s+(?=\S|$)/g, `$1${NBSP}`)
     .replace(/\s+([–×])\s/g, `${NBSP}$1 `)
     .replace(/\b(\d{3}) (\d{3}) (\d{3})\b/g, `$1${NBSP}$2${NBSP}$3`)
-    .replace(/\b(\d{2}-\d{3}|\d{1,2}:\d{2}–\d{1,2}:\d{2})\b/g, (t) => CALOSC(t));
+    .replace(/\b(\d{2}-\d{3}|\d{1,2}:\d{2}–\d{1,2}:\d{2}|e-mail\p{Ll}*)(?![\p{L}\d])/gu, (t) => CALOSC(t));
 }
 
 export const onRequest = defineMiddleware(async (_context, next) => {

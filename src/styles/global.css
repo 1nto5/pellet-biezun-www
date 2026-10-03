@@ -99,9 +99,20 @@ html {
   /* The pinned header's height, refined by the header script. */
   --header-height: 4.5rem;
   font-size: 112.5%; /* 18px */
-  scroll-padding-top: calc(var(--header-height) + 1.5rem);
   -webkit-text-size-adjust: 100%;
   color-scheme: light;
+  /* No grey box over a tapped link or a slanted button: they answer a tap
+     with their own pressed look (`:active`). */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* What a link jumps to, or the focus moves to, stops clear of the pinned
+   header. Set on the page's own content rather than as the root's
+   scroll-padding, which also made the browser scroll the page when the
+   fixed menu drawer took the focus. */
+:where(main, footer) *,
+:target {
+  scroll-margin-top: calc(var(--header-height) + 1.5rem);
 }
 
 body {
@@ -305,8 +316,21 @@ main :where(p, address, dd, td) > a:not(.btn),
 .btn-secondary:hover::before {
   background: var(--color-sand);
 }
+/* Pressed, the tag sinks a little. */
+.btn:active::before {
+  transform: skewX(-14deg) translateY(1px) scale(0.98);
+}
+.btn-primary:active::before {
+  background: color-mix(in srgb, var(--color-yellow) 85%, var(--color-black));
+}
+/* The slant reaches past the box by tan 14° × half its height on either
+   side; the margin brings the slanted edge, not the box, to the text's edge. */
+.btn {
+  margin-inline: 0.36rem;
+}
 .btn-sm {
   min-height: 2.3rem;
+  margin-inline: 0.29rem;
   padding: 0.45rem 1.05rem 0.35rem;
   font-size: var(--text-sm);
   white-space: nowrap;
@@ -329,13 +353,38 @@ main :where(p, address, dd, td) > a:not(.btn),
   line-height: 1.2;
   cursor: pointer;
 }
-.tool:hover {
-  background: var(--color-sand);
+@media (hover: hover) {
+  .tool:hover {
+    background: var(--color-sand);
+  }
+}
+.tool:active {
+  background: color-mix(in srgb, var(--color-sand) 80%, var(--color-black));
 }
 .tool svg {
   width: 1.15rem;
   height: 1.15rem;
 }
+/* Under a finger every target is at least 44 px tall, the size a fingertip
+   hits without care (Apple's guide; WCAG 2.5.5). */
+@media (pointer: coarse) {
+  .btn-sm,
+  .tool {
+    min-height: 2.45rem;
+  }
+  .tool {
+    min-width: 2.45rem;
+  }
+  .site-footer ul a {
+    padding-block: 0.55rem;
+  }
+  .leaflet-touch .leaflet-bar a {
+    width: 44px;
+    height: 44px;
+    line-height: 44px;
+  }
+}
+
 /* The menu button shows a cross while the drawer is open. */
 .menu-toggle[aria-expanded="true"] .menu-ikona-otworz,
 .menu-toggle[aria-expanded="false"] .menu-ikona-zamknij {
@@ -393,12 +442,17 @@ main :where(p, address, dd, td) > a:not(.btn),
   font-weight: 800;
   letter-spacing: 0.29em;
 }
+/* The header's order button keeps no optical margin: the row is tight on a
+   phone, and nothing in it lines up with its slanted edge. */
+.pinned-row .btn-sm {
+  margin-inline: 0;
+}
 /* The narrowest phones: the logo, the order button and the menu button
    still fit on one line. */
 @media (width < 22rem) {
   .pinned-row,
   .pinned-row .akcje {
-    column-gap: 0.5rem;
+    column-gap: 0.4rem;
   }
   .pinned-row .btn-sm {
     padding-inline: 0.6rem;
@@ -588,6 +642,8 @@ main :where(p, address, dd, td) > a:not(.btn),
   position: relative;
   isolation: isolate;
   display: inline-block;
+  /* As a button's: the slanted edge, not the box, meets the text's edge. */
+  margin-inline: 0.3rem;
   padding: 0.5rem 1.4rem 0.3rem;
   color: var(--color-black);
   font-weight: 900;
@@ -802,19 +858,41 @@ textarea.input {
   min-height: 7rem;
   resize: vertical;
 }
-.input:hover {
-  background: var(--color-sand);
+/* iOS draws a date field centred and shorter than the others. */
+input[type="date"].input {
+  appearance: none;
+  display: block;
+  text-align: start;
+}
+input[type="date"].input::-webkit-date-and-time-value {
+  text-align: start;
+}
+/* What is wrong with a field, under it (Formularz.astro). */
+.blad {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--color-danger);
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+@media (hover: hover) {
+  .input:hover {
+    background: var(--color-sand);
+  }
 }
 .input:focus-visible {
   outline: 3px solid var(--color-yellow);
   outline-offset: 0;
   box-shadow: 0 0 0 5px var(--color-black);
 }
-.input:user-invalid {
+.input:user-invalid,
+.input[aria-invalid="true"] {
   border-color: var(--color-danger);
   box-shadow: inset 0.35rem 0 0 var(--color-danger);
 }
-.input:user-invalid:focus-visible {
+.input:user-invalid:focus-visible,
+.input[aria-invalid="true"]:focus-visible {
   box-shadow:
     inset 0.35rem 0 0 var(--color-danger),
     0 0 0 5px var(--color-black);
@@ -870,6 +948,37 @@ textarea.input {
   .mapa {
     aspect-ratio: 16 / 9;
   }
+}
+/* Until Leaflet draws, the box says what is coming. */
+.mapa:empty {
+  display: grid;
+  place-items: center;
+}
+.mapa:empty::after {
+  content: "Ładowanie mapy…" / "";
+  color: var(--color-ink-soft);
+  font-weight: 600;
+}
+/* "Two fingers move the map", over it for a moment (mapa.ts). */
+.mapa-wskazowka {
+  position: absolute;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: 1rem;
+  background: rgb(0 0 0 / 0.55);
+  color: var(--color-white);
+  font-size: 1.1rem;
+  font-weight: 800;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.25s;
+  pointer-events: none;
+}
+.mapa-wskazowka.is-widoczna {
+  opacity: 1;
 }
 /* Beside the text on a town's page. */
 .mapa.mapa-kwadrat {
@@ -1022,6 +1131,27 @@ textarea.input {
   height: 100%;
   overflow: hidden;
   border-radius: var(--radius-sign);
+  /* What shows until the photo arrives. */
+  background: var(--color-sand);
+}
+/* The first photo takes two by two, so with the rest the last row would
+   hold one photo alone at every width; it takes the whole row instead, two
+   rows high (Gallery.astro). */
+.gallery > li:last-child:not(:first-child) {
+  grid-column: 1 / -1;
+}
+.gallery > li:last-child:not(:first-child) img {
+  aspect-ratio: 4 / 3;
+}
+@media (min-width: 40rem) {
+  .gallery > li:last-child:not(:first-child) img {
+    aspect-ratio: 2 / 1;
+  }
+}
+@media (min-width: 64rem) {
+  .gallery > li:last-child:not(:first-child) img {
+    aspect-ratio: 8 / 3;
+  }
 }
 /* The white frame fits the photo; a sideways finger move is a swipe to the
    next photo, not a pan. */
@@ -1037,6 +1167,14 @@ textarea.input {
   color: var(--color-ink);
   touch-action: pan-y pinch-zoom;
 }
+/* The page behind an open photo stays put; the scrollbar's room stays too,
+   so nothing behind shifts sideways. */
+html {
+  scrollbar-gutter: stable;
+}
+html:has(.lightbox[open]) {
+  overflow: hidden;
+}
 .lightbox::backdrop {
   background: color-mix(in srgb, var(--color-asphalt) 92%, transparent);
 }
@@ -1045,6 +1183,7 @@ textarea.input {
    before the photo arrives. */
 .lightbox img {
   display: block;
+  background: var(--color-sand) center / cover no-repeat;
   width: min(92vw - 2rem, 62rem, 72vh * var(--proporcja, 1.333));
   height: auto;
   aspect-ratio: var(--proporcja, 4 / 3);
@@ -1172,6 +1311,27 @@ textarea.input {
    has its own rules next to it. Off for a reader who asked for reduced motion.
    ------------------------------------------------------------------------ */
 @media screen and (prefers-reduced-motion: no-preference) {
+  /* An FAQ answer opens and closes rather than jump, where the browser can
+     size `auto` in a transition; elsewhere it simply shows. */
+  :root {
+    interpolate-size: allow-keywords;
+  }
+  .faq details::details-content {
+    block-size: 0;
+    overflow: clip;
+    transition:
+      block-size 250ms ease,
+      content-visibility 250ms allow-discrete;
+  }
+  .faq details[open]::details-content {
+    block-size: auto;
+  }
+  .faq summary::before {
+    transition:
+      background-color 200ms ease,
+      color 200ms ease;
+  }
+
   html {
     scroll-behavior: smooth;
   }
@@ -1179,6 +1339,7 @@ textarea.input {
   a,
   .btn::before,
   .tool,
+  .input,
   .nav-link,
   .menu nav a {
     transition:
@@ -1187,7 +1348,8 @@ textarea.input {
       border-color 150ms ease,
       box-shadow 150ms ease,
       text-decoration-thickness 200ms ease,
-      text-decoration-color 200ms ease;
+      text-decoration-color 200ms ease,
+      transform 100ms ease;
   }
 
   .menu-backdrop {
@@ -1211,7 +1373,15 @@ textarea.input {
       overlay 260ms allow-discrete,
       display 260ms allow-discrete;
   }
-  .lightbox::backdrop {
+  /* The page behind an open photo stays put; the scrollbar's room stays too,
+   so nothing behind shifts sideways. */
+html {
+  scrollbar-gutter: stable;
+}
+html:has(.lightbox[open]) {
+  overflow: hidden;
+}
+.lightbox::backdrop {
     transition:
       opacity 200ms ease,
       overlay 260ms allow-discrete,

@@ -47,7 +47,7 @@ import { miejsca } from "../data/miejsca";
           <legend class="mb-4 text-3xl">Adres dostawy</legend>
           <div class="field">
             <label for="ulica">Ulica i numer <span class="req">*</span></label>
-            <input id="ulica" name="ulica" type="text" class="input" autocomplete="address-line1" required />
+            <input id="ulica" name="ulica" type="text" class="input" autocomplete="address-line1" autocapitalize="words" required />
           </div>
           <div class="grid gap-5 sm:grid-cols-[10rem_1fr]">
             <div class="field">
@@ -59,8 +59,10 @@ import { miejsca } from "../data/miejsca";
                 class="input"
                 inputmode="numeric"
                 autocomplete="postal-code"
-                pattern="[0-9]{2}-[0-9]{3}"
+                pattern="[0-9]{2}-?[0-9]{3}"
+                maxlength="6"
                 title="Kod w formacie 00-000"
+                data-blad="Wpisz kod w formacie 00-000."
                 required
                 aria-describedby="kod-hint"
               />
@@ -74,6 +76,7 @@ import { miejsca } from "../data/miejsca";
                 type="text"
                 class="input"
                 autocomplete="address-level2"
+                autocapitalize="words"
                 list="miejscowosci"
                 required
               />
@@ -88,7 +91,7 @@ import { miejsca } from "../data/miejsca";
           <legend class="mb-4 text-3xl">Dane kontaktowe</legend>
           <div class="field">
             <label for="imie">Imię i nazwisko <span class="req">*</span></label>
-            <input id="imie" name="imie" type="text" class="input" autocomplete="name" required />
+            <input id="imie" name="imie" type="text" class="input" autocomplete="name" autocapitalize="words" required />
           </div>
           <div class="grid gap-5 sm:grid-cols-2">
             <div class="field">
@@ -139,6 +142,15 @@ import { miejsca } from "../data/miejsca";
   // writes dates as YYYY-MM-DD, the form a date input takes.
   const termin = document.querySelector<HTMLInputElement>("#termin");
   if (termin) termin.min = new Date().toLocaleDateString("sv-SE");
+
+  // A phone's number pad has no hyphen: the code takes digits and puts the
+  // hyphen in itself, 09320 → 09-320.
+  const kod = document.querySelector<HTMLInputElement>("#kod");
+  kod?.addEventListener("input", () => {
+    const cyfry = kod.value.replace(/\D/g, "").slice(0, 5);
+    const nowy = cyfry.length > 2 ? `${cyfry.slice(0, 2)}-${cyfry.slice(2)}` : cyfry;
+    if (nowy !== kod.value) kod.value = nowy;
+  });
 </script>
 
 <style>
@@ -155,5 +167,11 @@ import { miejsca } from "../data/miejsca";
   }
   .kroki li::marker {
     font-weight: 900;
+  }
+  /* On a phone the steps come before the form, not after its button. */
+  @media (width < 64rem) {
+    .kroki-ramka {
+      order: -1;
+    }
   }
 </style>

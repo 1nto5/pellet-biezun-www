@@ -12,12 +12,15 @@
  * same scroll position always shows the same frame.
  *
  * - On a wide landscape screen, one sticky stage with the scroll length
- *   reserved under it; the script sets the scene from the scroll position.
+ *   reserved under it, the stops' texts one at a time on top of the scene.
  * - Elsewhere, phones above all, one scene pinned under the header with the
  *   stops' texts scrolling under it, each held below the scene for as long
- *   as its part of the drive takes (`--udzial`); the scroll sets the moment
- *   the scene should show, and its animations play there by themselves
- *   (`jazda.ts`), so they stay smooth on an iPhone.
+ *   as its part of the drive takes (`--udzial`).
+ *
+ * In both the scroll only sets the moment the scene should show, and its
+ * animations play there by themselves (`jazda.ts`): they move nothing but
+ * transforms, so they stay smooth on an iPhone and never shift the page's
+ * layout.
  *
  * The last stop carries the order button and the phone: the reader who has
  * followed the delivery to the garage is the one ready to order.
@@ -98,9 +101,11 @@ const udzial = (i: number) => Math.round(((stopy[i + 1]?.od ?? 100) - stopy[i]!.
   <section class="droga" aria-labelledby="droga-tytul" data-droga>
     <h2 id="droga-tytul" class="sr-only">Jak pellet jedzie do klienta</h2>
 
-    <div class="droga-scena">
-      <Scena stan={start} live />
-      <p class="licznik" aria-hidden="true"><span data-licznik>0</span> km</p>
+    <div class="droga-tor" data-droga-tor>
+      <div class="droga-scena" data-droga-scena>
+        <Scena stan={start} live />
+        <p class="licznik" aria-hidden="true"><span data-licznik>0</span> km</p>
+      </div>
     </div>
 
     <ol class="stopy" role="list">
@@ -149,7 +154,6 @@ const udzial = (i: number) => Math.round(((stopy[i + 1]?.od ?? 100) - stopy[i]!.
 </div>
 
 <script>
-  import { stanAt, stanVars } from "./trasa";
   import { uruchomJazde, type Jazda } from "./jazda";
 
   const podroz = document.querySelector<HTMLElement>("[data-podroz]");
@@ -158,11 +162,13 @@ const udzial = (i: number) => Math.round(((stopy[i + 1]?.od ?? 100) - stopy[i]!.
   const scena = podroz?.querySelector<HTMLElement>("[data-scena-live]");
   const rig = scena?.querySelector<HTMLElement>(".rig");
   const dystans = podroz?.querySelector<HTMLElement>("[data-dystans]");
+  const tor = podroz?.querySelector<HTMLElement>("[data-droga-tor]");
+  const pudelko = podroz?.querySelector<HTMLElement>("[data-droga-scena]");
   const licznik = podroz?.querySelector<HTMLElement>("[data-licznik]");
   const stopy = [...(podroz?.querySelectorAll<HTMLElement>("[data-stop]") ?? [])];
   const teksty = stopy.map((s) => s.querySelector<HTMLElement>(".stop-tekst"));
 
-  if (podroz && hero && droga && scena && rig && dystans && licznik && stopy.length && teksty.every((t) => t)) {
+  if (podroz && hero && droga && scena && rig && dystans && tor && pudelko && licznik && stopy.length && teksty.every((t) => t)) {
     // The CSS decides which version shows and names it in `--droga`
     // (droga.css). A turned tablet or a resized window can switch between
     // them, so this is asked again on every refresh, and only then: asking
@@ -180,36 +186,47 @@ const udzial = (i: number) => Math.round(((stopy[i + 1]?.od ?? 100) - stopy[i]!.
     // on load, resize and layout changes, never while scrolling.
     let driveStart = 1;
     let driveEnd = 2;
-    // While the hero is on screen the scene is drawn smaller (`--z`), so the
-    // hall and the truck fit under the hero; it grows to full size as the
-    // hero scrolls away.
+    // While the hero is on screen the scene is drawn smaller, so the hall
+    // and the truck fit under the hero; it grows to full size as the hero
+    // scrolls away. A scale about the scene's bottom centre, as a transform:
+    // drawn smaller by its layout, the scene moved the page's layout on
+    // every scroll step (layout shift). The camera's own zoom is the
+    // scene's `transform`; this is its `scale` and `translate`, which the
+    // browser applies on top, so it is written about the camera's origin
+    // (`transform-origin` in droga.css) and moved back to the centre.
     let z0 = 1;
+    let u1 = 1;
+    let szerokosc = 1;
+    let shownZ = -1;
 
     const measure = () => {
       const top = dystans.getBoundingClientRect().top + window.scrollY;
       driveStart = Math.max(1, top - window.innerHeight);
       driveEnd = Math.max(driveStart + 1, top + dystans.offsetHeight - window.innerHeight);
 
-      scena.style.setProperty("--z", "1");
-      // The layout width: the camera's zoom, a transform, must not count.
-      const u1 = rig.offsetWidth / 60;
+      szerokosc = scena.clientWidth;
+      u1 = rig.offsetWidth / 60;
       // The tallest thing at the start, the hall, reaches 34 units up.
       const room = droga.clientHeight - hero.offsetHeight - 12;
       z0 = Math.min(1, Math.max(0.35, room / (34 * u1)));
+      shownZ = -1;
+    };
+    const pomniejsz = (z: number) => {
+      if (z === shownZ) return;
+      scena.style.scale = String(z);
+      scena.style.translate = `${Math.round((1 - z) * (11 * u1 - szerokosc / 2) * 100) / 100}px 0`;
+      shownZ = z;
     };
 
-    // The whole scene is a function of the scroll position, set at once:
-    // the same position always gives the same frame, whichever way the
-    // reader came from.
+    // The scroll position sets the moment of the drive; the scene plays
+    // there by itself (jazda.ts), the stop's text and the size follow the
+    // scroll at once.
     let shownStop = -2;
-    let shownKm = -1;
     const render = () => {
       const y = window.scrollY;
-      const z = z0 + (1 - z0) * clamp(y / driveStart);
+      pomniejsz(Math.round((z0 + (1 - z0) * clamp(y / driveStart)) * 1000) / 1000);
       const t = 100 * clamp((y - driveStart) / (driveEnd - driveStart));
-      const stan = stanAt(t);
-      for (const [k, v] of Object.entries(stanVars(stan))) scena.style.setProperty(k, v);
-      scena.style.setProperty("--z", String(z));
+      jazda?.jedz(t);
 
       const index = y < driveStart + 2 ? -1 : od.findLastIndex((o) => t >= o);
       if (index !== shownStop) {
@@ -217,12 +234,8 @@ const udzial = (i: number) => Math.round(((stopy[i + 1]?.od ?? 100) - stopy[i]!.
         podroz.classList.toggle("is-driving", index >= 0);
         shownStop = index;
       }
-      const km = Math.round(stan.km);
-      if (km !== shownKm) {
-        licznik.textContent = String(km);
-        shownKm = km;
-      }
     };
+    const chwilaLive = () => 100 * clamp((window.scrollY - driveStart) / (driveEnd - driveStart));
 
     // Pinned (droga.css): each stop's text is held under the scene, at its
     // sticky `top`, while its part of the drive plays. The drive reaches a
@@ -239,6 +252,12 @@ const udzial = (i: number) => Math.round(((stopy[i + 1]?.od ?? 100) - stopy[i]!.
       const ostatni = stopy.at(-1)!;
       const koniec = ostatni.getBoundingClientRect().bottom - parseFloat(getComputedStyle(ostatni).paddingBottom) - teksty.at(-1)!.offsetHeight;
       os.push([Math.max(os.at(-1)![0], Math.round(koniec + y)), 100]);
+
+      // The scene stays pinned through its track (`--tor`, droga.css) and
+      // leaves as the drive ends, when the last text starts to go too: they
+      // scroll away together, the order button never cut by the scene.
+      const torOd = tor.getBoundingClientRect().top + window.scrollY - parseFloat(getComputedStyle(pudelko).top);
+      tor.style.setProperty("--tor", `${Math.max(0, Math.round(os.at(-1)![0] - torOd))}px`);
       return os;
     };
     const chwila = (y: number): number => {
@@ -253,41 +272,82 @@ const udzial = (i: number) => Math.round(((stopy[i + 1]?.od ?? 100) - stopy[i]!.
       return os.at(-1)![1];
     };
     // The scroll only sets where the drive goes; it plays there by itself.
-    const przewin = () => jazda?.jedz(chwila(window.scrollY));
+    // The odometer shows once the drive has begun.
+    let jedzie: boolean | null = null;
+    const przewin = () => {
+      const t = chwila(window.scrollY);
+      jazda?.jedz(t);
+      if (t > 0 !== jedzie) {
+        jedzie = t > 0;
+        podroz.classList.toggle("is-driving", jedzie);
+      }
+    };
 
     const refresh = () => {
       const nowy = (getComputedStyle(podroz).getPropertyValue("--droga").trim() || "nieruchoma") as Tryb;
       live = nowy === "live";
 
-      // The pinned drive is set up for one scene width; another width, or
-      // another version, sets it up again.
-      if (nowy === "przypieta") {
-        os = zmierzOs();
-        if (!jazda || jazda.szerokosc !== scena.clientWidth) {
-          jazda?.zatrzymaj();
-          jazda = uruchomJazde(scena, (km) => (licznik.textContent = String(km)));
-          // A new scene starts where the scroll already is, not from the hall.
-          jazda.ustaw(chwila(window.scrollY));
-        }
-      } else if (jazda) {
-        jazda.zatrzymaj();
+      // Either moving version sets the drive up for one scene size; another
+      // size, or another version, sets it up again. The live scene, drawn
+      // smaller at first, has its bands widened to still reach its edges.
+      if (nowy !== tryb || (jazda && (jazda.szerokosc !== scena.clientWidth || Math.abs(jazda.u - rig.offsetWidth / 60) > 0.05))) {
+        jazda?.zatrzymaj();
         jazda = null;
-      }
-      if (nowy !== tryb) {
-        podroz.classList.toggle("is-driving", nowy === "przypieta");
+        scena.style.removeProperty("scale");
+        scena.style.removeProperty("translate");
+        tor.style.removeProperty("--tor");
+        podroz.classList.remove("is-driving");
+        jedzie = null;
         shownStop = -2;
-        shownKm = -1;
         tryb = nowy;
       }
+      if (live) measure();
+      else if (nowy === "przypieta") os = zmierzOs();
+      if (!jazda && nowy !== "nieruchoma") zbuduj();
 
-      if (live) {
-        measure();
-        render();
-      } else {
-        przewin();
-      }
-      podroz.classList.add("is-ready");
+      if (live) render();
+      else przewin();
     };
+
+    // Setting the drive up takes a moment of the page's script, so it waits
+    // until the browser is idle (or a second at most); till then the scene
+    // shows its start as drawn. A new scene starts where the scroll already
+    // is, not from the hall.
+    let czeka = false;
+    const zbuduj = () => {
+      if (czeka) return;
+      czeka = true;
+      const teraz = () => {
+        czeka = false;
+        if (jazda || tryb === "nieruchoma" || tryb === null) return;
+        jazda = uruchomJazde(scena, (km) => (licznik.textContent = String(km)), live ? szerokosc : 0);
+        jazda.ustaw(live ? chwilaLive() : chwila(window.scrollY));
+      };
+      if ("requestIdleCallback" in window) requestIdleCallback(teraz, { timeout: 1000 });
+      else setTimeout(teraz, 300);
+    };
+
+    // The scene shows once its photos are in, not piece by piece: the
+    // truck, the hall, the loader and the forest band this screen gets;
+    // 2.5 s on at the latest. The band is a CSS background, so the script
+    // loads the same file to know: AVIF where the browser takes it and the
+    // CSS offers it (droga.css), else WebP; the phone's size or the full one.
+    const wczytaj = (src: string) => Object.assign(new Image(), { src }).decode();
+    const scenaBox = scena.parentElement!;
+    const adres = (zmienna: string) => scenaBox.style.getPropertyValue(zmienna).match(/url\((.*)\)/)?.[1] ?? "";
+    const probaAvif = scenaBox.dataset.probaAvif;
+    const avif =
+      probaAvif && CSS.supports("background-image", 'image-set(url("x.avif") type("image/avif"))')
+        ? wczytaj(probaAvif).then(() => true, () => false)
+        : Promise.resolve(false);
+    const pasmo = avif.then((tak) =>
+      wczytaj(adres(`--las${window.matchMedia("(min-width: 48rem)").matches ? "" : "-maly"}${tak ? "-avif" : ""}`)),
+    );
+    const zdjecia = [...scena.querySelectorAll<HTMLImageElement>(".auto-foto, .w-hala img, .w-widlak img")];
+    Promise.race([
+      Promise.allSettled([...zdjecia.map((img) => img.decode()), pasmo]),
+      new Promise((gotowe) => setTimeout(gotowe, 2500)),
+    ]).then(() => podroz.classList.add("is-ready"));
 
     refresh();
     window.addEventListener("scroll", () => (live ? render() : przewin()), { passive: true });

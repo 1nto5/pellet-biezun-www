@@ -29,7 +29,7 @@ import fontLatin from "@fontsource-variable/league-spartan/files/league-spartan-
 import fontLatinExt from "@fontsource-variable/league-spartan/files/league-spartan-latin-ext-wght-normal.woff2?url";
 
 interface Props {
-  /** Left out on the home page, whose title is the company name alone. */
+  /** Left out on the home page, whose title says what the company offers, then its name. */
   title?: string;
   description?: string;
   /** Extra JSON-LD objects for this page, e.g. FAQPage. */
@@ -41,7 +41,7 @@ interface Props {
 const { title, description, jsonLd = [], noindex: pageNoindex = false } = Astro.props;
 
 const canonical = pageNoindex ? undefined : new URL(Astro.url.pathname, Astro.site);
-const fullTitle = title ? `${title} | ${firma.name}` : `Pellet drzewny z dostawą gratis do ok. ${DARMOWA_DOSTAWA_KM} km – ${firma.name}`;
+const fullTitle = title ? `${title} | ${firma.name}` : `Pellet drzewny z dostawą gratis do ok. ${DARMOWA_DOSTAWA_KM} km | ${firma.name}`;
 const desc = description ?? firma.description;
 const noindex = pageNoindex || przedStartem || isPreview;
 
@@ -49,6 +49,7 @@ const og = await getImage({ src: ogSource, width: 1200, height: 630, format: "jp
 const ogUrl = new URL(og.src, Astro.site);
 
 const home = absoluteUrl("/");
+const zMiastami = [href("/"), href("/mapa-dystrybucji/")].includes(Astro.url.pathname);
 const cenyPalet = produkty.map((p) => p.cenaPaleta);
 const [najtaniej, najdrozej] = [Math.min(...cenyPalet), Math.max(...cenyPalet)];
 const localBusiness = {
@@ -79,12 +80,16 @@ const localBusiness = {
     opens: h.opens,
     closes: h.closes,
   })),
+  // The towns served, over 90 of them, only where the page is about them
+  // (the home page, the map): elsewhere they would be a fifth of the page.
   // The voivodeship tells apart towns that share a name with others.
-  areaServed: miejsca.map((m) => ({
-    "@type": "City",
-    name: nazwaWlasna(m),
-    containedInPlace: { "@type": "AdministrativeArea", name: `województwo ${m.wojewodztwo}` },
-  })),
+  ...(zMiastami && {
+    areaServed: miejsca.map((m) => ({
+      "@type": "City",
+      name: nazwaWlasna(m),
+      containedInPlace: { "@type": "AdministrativeArea", name: `województwo ${m.wojewodztwo}` },
+    })),
+  }),
   hasMap: firma.googleMaps,
   sameAs: [firma.googleMaps],
 };
@@ -114,6 +119,8 @@ const structuredData = [localBusiness, ...(breadcrumbList ? [breadcrumbList] : [
     {noindex && <meta name="robots" content="noindex" />}
     <link rel="preload" href={fontLatin} as="font" type="font/woff2" crossorigin />
     <link rel="preload" href={fontLatinExt} as="font" type="font/woff2" crossorigin />
+    <!-- The .ico for browsers and tools that ask for no other; the SVG for the rest. -->
+    <link rel="icon" href={href("/favicon.ico")} sizes="32x32" />
     <link rel="icon" href={href("/favicon.svg")} type="image/svg+xml" />
     <link rel="apple-touch-icon" href={href("/apple-touch-icon.png")} />
     <meta name="theme-color" content="#ffffff" />

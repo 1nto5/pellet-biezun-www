@@ -27,11 +27,17 @@ const sizesPierwsze = "(min-width: 64rem) 35rem, (min-width: 40rem) calc(66vw - 
 /** About as many photos as the first screen shows; they load at once. */
 const OD_RAZU = 3;
 
+/**
+ * The enlarged photo, uncropped, in three sizes: a phone takes the 1200 px
+ * file, not a 1600 px one it cannot show.
+ */
+const DUZE = [800, 1200, 1600];
 const items = await Promise.all(
-  photos.map(async (photo) => ({
-    ...photo,
-    full: await getImage({ src: photo.src, width: 1600, format: "webp", quality: 75 }),
-  })),
+  photos.map(async (photo) => {
+    const duze = await Promise.all(DUZE.map((width) => getImage({ src: photo.src, width, format: "webp", quality: 75 })));
+    const full = duze.at(-1)!;
+    return { ...photo, full, srcset: duze.map((d) => `${d.src} ${d.attributes.width}w`).join(", ") };
+  }),
 );
 ---
 
@@ -43,17 +49,32 @@ const items = await Promise.all(
           <button
             type="button"
             data-full={photo.full.src}
+            data-srcset={photo.srcset}
             data-alt={photo.alt}
             data-proporcja={(Number(photo.full.attributes.width) / Number(photo.full.attributes.height)).toFixed(4)}
           >
             <span class="gallery-media">
-              {i === 0 ? (
+              {i === items.length - 1 && items.length > 1 ? (
+                // The last photo takes the whole last row, which would
+                // otherwise hold it alone: a wide view of the long trailer.
                 <Image
                   src={photo.src}
                   alt={photo.alt}
                   width={1400}
                   widths={[700, 1000, 1400]}
-                  quality={70}
+                  quality={65}
+                  sizes="(min-width: 64rem) 70rem, calc(100vw - 36px)"
+                  loading="lazy"
+                />
+              ) : i === 0 ? (
+                <Image
+                  src={photo.src}
+                  alt={photo.alt}
+                  width={1400}
+                  height={1050}
+                  fit="cover"
+                  widths={[560, 700, 1000, 1400]}
+                  quality={65}
                   sizes={sizesPierwsze}
                   loading="eager"
                   fetchpriority="high"
@@ -63,7 +84,10 @@ const items = await Promise.all(
                   src={photo.src}
                   alt={photo.alt}
                   width={700}
+                  height={525}
+                  fit="cover"
                   widths={[400, 700]}
+                  quality={65}
                   sizes={sizes}
                   loading={i < OD_RAZU ? "eager" : "lazy"}
                 />
@@ -119,6 +143,11 @@ const items = await Promise.all(
       dialog.prepend(image);
     }
     image.style.setProperty("--proporcja", thumb.dataset.proporcja ?? "");
+    // Until the large photo arrives, its thumbnail stands in under it.
+    const maly = thumb.querySelector("img")?.currentSrc;
+    image.style.backgroundImage = maly ? `url("${maly}")` : "";
+    image.sizes = "100vw";
+    image.srcset = thumb.dataset.srcset ?? "";
     image.src = thumb.dataset.full!;
     image.alt = thumb.dataset.alt ?? "";
     // The count is announced on every step; with the photo's description, a
@@ -128,7 +157,10 @@ const items = await Promise.all(
     count.replaceChildren(`${index + 1} / ${n}`, opis);
 
     // The neighbours load in the background, so a step to either is instant.
-    for (const near of [index - 1, index + 1]) new Image().src = thumbs[(near + n) % n]!.dataset.full!;
+    for (const near of [index - 1, index + 1]) {
+      const sasiad = thumbs[(near + n) % n]!;
+      Object.assign(new Image(), { sizes: "100vw", srcset: sasiad.dataset.srcset ?? "", src: sasiad.dataset.full! });
+    }
     return image;
   }
 
@@ -238,5 +270,13 @@ const items = await Promise.all(
       start = null;
     });
     dialog.addEventListener("pointercancel", () => (start = null));
+
+    // Closed, the focus goes back to the photo last shown, not the one the
+    // reader opened, and the page brings it into view.
+    dialog.addEventListener("close", () => {
+      const thumb = thumbsOf(dialog)[Number(dialog.dataset.index ?? 0)];
+      thumb?.focus({ preventScroll: true });
+      thumb?.scrollIntoView({ block: "nearest" });
+    });
   }
 </script>

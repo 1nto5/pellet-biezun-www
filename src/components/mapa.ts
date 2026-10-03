@@ -130,4 +130,25 @@ export async function narysujMape(el: HTMLElement): Promise<void> {
   } else {
     map.fitBounds(bounds, { padding: [24, 24] });
   }
+
+  if (!L.Browser.mobile) return;
+  // One finger scrolls the page past the map; a reader who meant to move
+  // the map is told how, for a moment, as on other maps.
+  const wskazowka = Object.assign(document.createElement("p"), {
+    className: "mapa-wskazowka",
+    textContent: "Mapę przesuniesz dwoma palcami",
+  });
+  wskazowka.setAttribute("aria-hidden", "true");
+  el.append(wskazowka);
+  let zgas: number | undefined;
+  el.addEventListener(
+    "touchmove",
+    (e) => {
+      const jeden = e.touches.length === 1;
+      wskazowka.classList.toggle("is-widoczna", jeden);
+      window.clearTimeout(zgas);
+      if (jeden) zgas = window.setTimeout(() => wskazowka.classList.remove("is-widoczna"), 1200);
+    },
+    { passive: true },
+  );
 }

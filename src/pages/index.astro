@@ -69,7 +69,9 @@ const workiKg = [...new Set(produkty.map((p) => p.workiKg))].join(" i ");
       <ul role="list" class="mt-8 grid gap-10 lg:grid-cols-2" data-ruch-grupa>
         {
           produkty.map((p) => {
-            const [cena, cenaTona] = cenyLabel(p);
+            const [cena = "", cenaTona] = cenyLabel(p);
+            // "2200 zł" and "/ paleta", the second set smaller.
+            const [kwota, za] = cena.split(" /");
             return (
               <li class="produkt">
                 <Image
@@ -83,7 +85,10 @@ const workiKg = [...new Set(produkty.map((p) => p.workiKg))].join(" i ");
                 <div>
                   <h3 class="text-xl md:text-2xl">{p.nazwa}</h3>
                   <p class="mt-1 text-ink-soft">{paletaLabel(p)}</p>
-                  <p class="price mt-3 text-xl sm:text-2xl">{cena}</p>
+                  <p class="price mt-3 text-xl sm:text-2xl">
+                    {kwota}
+                    <span class="price-za">/{za}</span>
+                  </p>
                   {cenaTona && <p class="text-ink-soft">{cenaTona}</p>}
                 </div>
               </li>
@@ -244,6 +249,8 @@ const workiKg = [...new Set(produkty.map((p) => p.workiKg))].join(" i ");
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
+    /* A finger's target, 44 px, though the text is shorter. */
+    min-height: 2.45rem;
     color: var(--color-black);
     font-size: clamp(1.3rem, 5vw, 1.5rem);
     font-weight: 900;
@@ -346,5 +353,10 @@ const workiKg = [...new Set(produkty.map((p) => p.workiKg))].join(" i ");
 
   .kontakt {
     background: var(--color-sand);
+  }
+  /* "/ paleta" smaller than the sum, so the price keeps to one line. */
+  .price-za {
+    font-size: 0.72em;
+    font-weight: 700;
   }
 </style>

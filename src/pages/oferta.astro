@@ -108,9 +108,10 @@ const produktyLd = await Promise.all(
                 src={p.zdjecie.src}
                 alt={p.zdjecie.alt}
                 width={800}
-                widths={[480, 800]}
-                sizes="(min-width: 64rem) 26rem, 100vw"
+                widths={[400, 640, 800]}
+                sizes="(min-width: 64rem) 26rem, 15rem"
                 loading={i === 0 ? "eager" : "lazy"}
+                fetchpriority={i === 0 ? "high" : undefined}
                 class="w-full"
               />
             </span>
@@ -189,7 +190,13 @@ const produktyLd = await Promise.all(
             <li class="flota-auto">
               <span class="flota-pas">
                 <span class="flota-foto" style={`--dl:${f.m / najdluzszy}`} data-ruch-auto>
-                  <Image src={f.zdjecie} alt={f.alt} width={1200} widths={[400, 800, 1200]} sizes="(min-width: 64rem) 34rem, 92vw" />
+                  <Image
+                    src={f.zdjecie}
+                    alt={f.alt}
+                    width={1200}
+                    widths={[300, 400, 600, 800, 1200]}
+                    sizes={`(min-width: 64rem) calc(${f.m / najdluzszy} * 34rem), calc(${f.m / najdluzszy} * 92vw)`}
+                  />
                 </span>
               </span>
               <div>
@@ -232,8 +239,10 @@ const produktyLd = await Promise.all(
       gap: 4rem;
     }
   }
+  /* On a phone the bag stays small enough that its name and price show on
+     the first screen with it. */
   .produkt-zdjecia {
-    max-width: 24rem;
+    max-width: 15rem;
   }
   @media (min-width: 64rem) {
     .produkt-zdjecia {

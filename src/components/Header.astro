@@ -70,7 +70,7 @@ const current = (href: string) => (href === Astro.url.pathname ? "page" : href =
   <div class="menu-backdrop" data-menu-backdrop hidden></div>
   <dialog class="menu" data-menu aria-label="Menu główne" tabindex="-1">
     <p class="pb-3">
-      Telefon: <a href={firma.phone.href} class="text-xl font-extrabold">{firma.phone.label}</a>
+      Telefon: <a href={firma.phone.href} class="inline-block py-2 text-xl font-extrabold">{firma.phone.label}</a>
     </p>
     <nav aria-label="Menu" class="mt-2">
       <ul role="list">
@@ -97,11 +97,13 @@ const current = (href: string) => (href === Astro.url.pathname ? "page" : href =
   const surface = document.querySelector<HTMLElement>("[data-surface]");
 
   // `--header-height` is the pinned row's height: same-page links and the
-  // drawer sit below it. It changes with the window as lines wrap.
+  // drawer sit below it. It changes with the window as lines wrap. The
+  // observer reports the first size itself, after the page's first layout;
+  // reading it here, mid-parse, would force one more.
   if (surface) {
-    const measure = () => doc.style.setProperty("--header-height", `${surface.offsetHeight}px`);
-    new ResizeObserver(measure).observe(surface);
-    measure();
+    new ResizeObserver(([entry]) => {
+      if (entry) doc.style.setProperty("--header-height", `${(entry.target as HTMLElement).offsetHeight}px`);
+    }).observe(surface);
   }
 
   if (menu && backdrop && open && surface) {
@@ -130,7 +132,9 @@ const current = (href: string) => (href === Astro.url.pathname ? "page" : href =
       for (const el of behind) el.inert = true;
       doc.style.overflow = "hidden";
       open.setAttribute("aria-expanded", "true");
-      menu.focus();
+      // The drawer is fixed under the pinned row: focusing it must not
+      // scroll the page behind it.
+      menu.focus({ preventScroll: true });
     });
     menu.addEventListener("close", () => {
       backdrop.hidden = true;
@@ -139,7 +143,7 @@ const current = (href: string) => (href === Astro.url.pathname ? "page" : href =
       open.setAttribute("aria-expanded", "false");
       // Not when the drawer closed because the window grew past `lg` and
       // the button went with it.
-      if (open.offsetParent !== null) open.focus();
+      if (open.offsetParent !== null) open.focus({ preventScroll: true });
     });
 
     backdrop.addEventListener("click", close);
