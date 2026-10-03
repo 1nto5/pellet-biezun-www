@@ -404,13 +404,10 @@
   html[data-js] .droga {
     position: sticky;
     z-index: 1;
-    /* Short by the draft strip's height (`--probka-h`, 0 without it), so the
-       whole stage fits the first screen under the strip. Once the strip has
-       scrolled away the stage keeps its place at the bottom; the band left
-       above it is white on white. */
-    top: calc(var(--header-height) + var(--probka-h, 0px));
+    /* The whole stage fits the first screen under the pinned header. */
+    top: var(--header-height);
     bottom: 0;
-    height: calc(100svh - var(--header-height) - var(--probka-h, 0px));
+    height: calc(100svh - var(--header-height));
     min-height: 22rem;
     padding: 0;
     overflow: hidden;

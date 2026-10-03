@@ -1,9 +1,10 @@
 ---
 /**
- * PRZYKŁAD: a draft built from how the site works (forms sent by e-mail
- * through Resend, hosting and Turnstile at Cloudflare, map tiles from
- * OpenStreetMap, no cookies, no analytics). The client must confirm it,
- * and it must change if any of those change.
+ * A draft built from how the site works (forms sent by e-mail through
+ * Resend, hosting and Turnstile at Cloudflare, map tiles from OpenStreetMap,
+ * no cookies, no analytics). It must change if any of those change.
+ *
+ * TODO(produkcja): the client confirms the text.
  */
 import Base from "../layouts/Base.astro";
 import PageShell from "../components/PageShell.astro";
@@ -19,13 +20,16 @@ import { firma, addressLine } from "../data/firma";
     <PageHeader slot="header" title="Polityka prywatności" />
 
     <div class="prose">
-      <p class="form-note">Szkic do sprawdzenia przez właściciela firmy przed publikacją strony.</p>
-
       <h2>Administrator danych</h2>
       <p>
-        Administratorem danych osobowych jest {firma.legalName}, {addressLine()}, NIP {firma.nip}.
-        Kontakt w sprawie danych: <a href={`mailto:${firma.email}`}>{firma.email}</a>, tel.
-        {firma.phone.label}.
+        Administratorem danych osobowych jest {firma.legalName}, {addressLine()}{firma.nip && `, NIP ${firma.nip}`}.
+        Kontakt w sprawie danych: {
+          firma.email && (
+            <>
+              <a href={`mailto:${firma.email}`}>{firma.email}</a>,{" "}
+            </>
+          )
+        }tel. {firma.phone.label}.
       </p>
 
       <h2>Jakie dane i po co</h2>
@@ -69,8 +73,8 @@ import { firma, addressLine } from "../data/firma";
       <h2>Twoje prawa</h2>
       <p>
         Masz prawo do dostępu do swoich danych, ich sprostowania, usunięcia, ograniczenia
-        przetwarzania, przeniesienia oraz sprzeciwu. Zgodę możesz wycofać w każdej chwili, pisząc na
-        adres powyżej. Możesz też złożyć skargę do Prezesa Urzędu Ochrony Danych Osobowych.
+        przetwarzania, przeniesienia oraz sprzeciwu. Zgodę możesz wycofać w każdej chwili, kontaktując
+        się z nami jak wyżej. Możesz też złożyć skargę do Prezesa Urzędu Ochrony Danych Osobowych.
       </p>
 
       <h2>Ciasteczka i mapa</h2>

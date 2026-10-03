@@ -2,8 +2,7 @@
 /**
  * The only layout. Every page renders through it: the head with the meta tags
  * and the JSON-LD (the company on every page, the breadcrumb trail where there
- * is one), the sample-data strip, the skip link, the header, one
- * <main id="tresc"> and the footer.
+ * is one), the skip link, the header, one <main id="tresc"> and the footer.
  *
  * The Content-Security-Policy is not here but in `public/_headers`, which
  * Cloudflare Pages sends as real HTTP headers (a <meta> cannot set
@@ -17,8 +16,7 @@ import Footer from "../components/Footer.astro";
 import { firma, firmaId, addressLine } from "../data/firma";
 import { miejsca, DARMOWA_DOSTAWA_KM } from "../data/miejsca";
 import { breadcrumbsFor } from "../data/nav";
-import { daneprzykladowe } from "../data/strona";
-import { cenyZDnia } from "../data/oferta";
+import { przedStartem } from "../data/strona";
 import { isPreview } from "../lib/env";
 import { nazwaWlasna } from "../lib/miejsce";
 import { href, absoluteUrl } from "../lib/url";
@@ -43,7 +41,7 @@ const { title, description, jsonLd = [], noindex: pageNoindex = false } = Astro.
 const canonical = pageNoindex ? undefined : new URL(Astro.url.pathname, Astro.site);
 const fullTitle = title ? `${title} | ${firma.name}` : `Pellet drzewny z dostawą gratis do ${DARMOWA_DOSTAWA_KM} km – ${firma.name}`;
 const desc = description ?? firma.description;
-const noindex = pageNoindex || daneprzykladowe || isPreview;
+const noindex = pageNoindex || przedStartem || isPreview;
 
 const og = await getImage({ src: ogSource, width: 1200, height: 630, format: "jpg" });
 const ogUrl = new URL(og.src, Astro.site);
@@ -146,30 +144,6 @@ const structuredData = [localBusiness, ...(breadcrumbList ? [breadcrumbList] : [
   </head>
   <body class="flex min-h-svh flex-col">
     <a href="#tresc" class="skip-link">Przejdź do treści</a>
-    {
-      daneprzykladowe && (
-        <aside class="probka" aria-label="Wersja robocza">
-          <p class="page-wrap">
-            <strong>Wersja robocza.</strong> Nazwa rejestrowa, NIP i e-mail są
-            jeszcze przykładowe. Ceny pochodzą z ogłoszeń z {cenyZDnia}.
-          </p>
-        </aside>
-      )
-    }
-    {
-      daneprzykladowe && (
-        <script is:inline>
-          // The strip's height as `--probka-h`, before the first paint, so the
-          // drive on the home page can fit the first screen under it.
-          (() => {
-            const strip = document.querySelector(".probka");
-            const set = () => document.documentElement.style.setProperty("--probka-h", `${strip.offsetHeight}px`);
-            set();
-            new ResizeObserver(set).observe(strip);
-          })();
-        </script>
-      )
-    }
     <Header />
     {/* Content arrives from the right while scrolling (ruch.css); clip keeps
         that from widening the page, and unlike hidden it does not break the

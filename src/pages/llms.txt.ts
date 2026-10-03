@@ -20,7 +20,7 @@ export const GET: APIRoute = ({ site }) => {
     "",
     `> ${firma.description}`,
     "",
-    `Magazyn: ${addressLine()} (wieś Władysławowo w gminie Bieżuń). Telefon: ${firma.phone.label}. E-mail: ${firma.email}.`,
+    `Magazyn: ${addressLine()} (wieś Władysławowo w gminie Bieżuń). Telefon: ${firma.phone.label}.${firma.email ? ` E-mail: ${firma.email}.` : ""}`,
     `Godziny otwarcia: ${firma.hours.map((h) => `${h.label.toLowerCase()} ${hoursRange(h)}`).join(", ")}. ${firma.closedNote}`,
     "Zamówienia przez formularz na stronie albo telefonicznie; strona nie pobiera płatności.",
     "",

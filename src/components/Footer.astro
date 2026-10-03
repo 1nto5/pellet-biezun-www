@@ -18,8 +18,15 @@ const year = new Date().getFullYear();
         {firma.address.street}<br />
         {firma.address.postalCode}
         {firma.address.city}<br />
-        tel. <a href={firma.phone.href}>{firma.phone.label}</a><br />
-        <a href={`mailto:${firma.email}`}>{firma.email}</a>
+        tel. <a href={firma.phone.href}>{firma.phone.label}</a>
+        {
+          firma.email && (
+            <>
+              <br />
+              <a href={`mailto:${firma.email}`}>{firma.email}</a>
+            </>
+          )
+        }
       </address>
     </div>
 
@@ -60,7 +67,7 @@ const year = new Date().getFullYear();
     <div
       class="page-wrap flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2 py-4 text-sm soft"
     >
-      <p>© {year} {firma.legalName}, NIP {firma.nip}</p>
+      <p>© {year} {firma.legalName}{firma.nip && `, NIP ${firma.nip}`}</p>
       <p class="flex flex-wrap gap-x-6">
         <a href={strony.polityka.href}>{strony.polityka.label}</a>
         <span>

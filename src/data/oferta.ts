@@ -15,6 +15,7 @@ import hitonZdjecie from "../assets/produkty/hiton.jpg";
 import wielbarkZdjecie from "../assets/produkty/wielbark.jpg";
 
 /** The date of the ads the prices come from. */
+// TODO(produkcja): confirm the prices with the client, and whether they include VAT.
 export const cenyZDnia = "30.09.2026";
 
 export interface Parametr {
