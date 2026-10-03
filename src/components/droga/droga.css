@@ -529,8 +529,10 @@
     /* Scroll for the whole drive, shared out among the stops. */
     --dlugosc: 260svh;
   }
+  /* The scene's sky is its own space above the road: it comes straight
+     under the hero. */
   html[data-js] .droga {
-    padding-top: 1.5rem;
+    padding-top: 0;
   }
   /* The scene's track: the scene stays pinned while the track goes by. As
      tall as the scene and its pinned stretch (`--tor`, set by the script so

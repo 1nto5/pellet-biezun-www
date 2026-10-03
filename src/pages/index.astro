@@ -215,6 +215,70 @@ const workiKg = [...new Set(produkty.map((p) => p.workiKg))].join(" i ");
     align-items: center;
     gap: 0.75rem 1.5rem;
   }
+  /* Phones and other upright windows. Over the phone's drive (droga.css,
+     where `--scena-h` is set) the first screen holds the hero and the
+     drive's whole scene under it: the wordmark, 1.715 times its font size
+     tall, gives way as far as that needs, down to a floor on the lowest
+     windows. `--reszta` is the rest of the hero by its sizes here: the
+     paddings, the line under the wordmark, three lines of facts, the row of
+     actions, and a strip of white under the scene's road. Without the drive
+     the wordmark keeps its own size: `--wm-ekran` is then invalid, and the
+     fallback is taken. */
+  @media (width < 56rem), (aspect-ratio < 1) {
+    .hero {
+      --reszta: 13.1rem;
+      --wm-ekran: calc((100svh - var(--header-height) - var(--scena-h) - var(--reszta) + var(--bez-opisu, 0rem)) / 1.715);
+      padding-bottom: 0.75rem;
+    }
+    .wordmark {
+      --wm: max(3.5rem, min(27vw, 30svh, 17rem, var(--wm-ekran, 17rem)));
+    }
+    .hero-dol {
+      gap: 0.9rem;
+      margin-top: 1rem;
+    }
+    .hero-fakt {
+      font-size: 1.05rem;
+    }
+    /* The order button and the phone side by side, sized to fit a 360 px
+       phone; a narrower one has them one under the other, and room for a
+       fourth line of facts. */
+    .hero-akcje {
+      flex-wrap: nowrap;
+      gap: 0.75rem;
+    }
+    .hero :global(.btn) {
+      padding-inline: min(1.6rem, 6vw);
+    }
+    .hero .telefon {
+      font-size: clamp(1.1rem, 5.6vw, 1.5rem);
+    }
+  }
+  @media (width < 22.5rem) {
+    .hero {
+      --reszta: 17.7rem;
+    }
+    .hero-akcje {
+      flex-wrap: wrap;
+    }
+  }
+  /* The lowest phones held upright (a 4.7-inch one in a browser): the line
+     under the wordmark, which the facts say again, is only read out, so the
+     wordmark and the scene both still fit. */
+  @media (orientation: portrait) and (height < 37.5rem) {
+    .hero {
+      --bez-opisu: 1.85rem;
+    }
+    .wordmark-opis {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  }
   /* Wide landscape windows: the facts and the two actions beside the
      wordmark, at its foot. The wordmark leaves them at least 17rem: PELLET
      is about 3.2 times its font size wide. Should they still not fit (a

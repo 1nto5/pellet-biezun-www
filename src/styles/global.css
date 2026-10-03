@@ -96,14 +96,20 @@
    Base.
    ------------------------------------------------------------------------ */
 html {
-  /* The pinned header's height, refined by the header script. */
-  --header-height: 4.5rem;
+  /* The pinned header's height, measured by the header script; until then
+     as it comes out: one row on a phone, the menu's board from `lg`. */
+  --header-height: 4.35rem;
   font-size: 112.5%; /* 18px */
   -webkit-text-size-adjust: 100%;
   color-scheme: light;
   /* No grey box over a tapped link or a slanted button: they answer a tap
      with their own pressed look (`:active`). */
   -webkit-tap-highlight-color: transparent;
+}
+@media (width >= 64rem) {
+  html {
+    --header-height: 5.15rem;
+  }
 }
 
 /* What a link jumps to, or the focus moves to, stops clear of the pinned
