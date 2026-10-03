@@ -19,6 +19,12 @@ export function dopisek(m: Miejsce): { tekst: string; drobny: boolean } | undefi
   return { tekst: m.dopisek, drobny: false };
 }
 
+/** "Nowe Miasto k. Płońska", "Mikołajki": the name without how often we go there, for the JSON-LD. */
+export function nazwaWlasna(m: Miejsce): string {
+  const d = dopisek(m);
+  return d && !d.drobny ? `${m.nazwa} ${d.tekst}` : m.nazwa;
+}
+
 /** "Nowe Miasto k. Płońska", "Mikołajki (czasem)": for plain text. */
 export function pelnaNazwa(m: Miejsce): string {
   const d = dopisek(m);

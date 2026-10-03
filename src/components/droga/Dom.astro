@@ -3,6 +3,10 @@
  * The customer's house, front elevation, the open double garage on its left
  * so it faces the parked truck. It stands on the near side of the road, so it
  * passes in front of the truck and is never covered by it.
+ *
+ * The live scene shows it only at the end of the drive, yet loads it at once:
+ * a lazy image waits until it is on screen, and here that would be mid-drive.
+ * Its low priority lets everything on the first screen come first.
  */
 import { Image } from "astro:assets";
 import { dom } from "./obrazy";
@@ -13,4 +17,13 @@ interface Props {
 const { eager = false } = Astro.props;
 ---
 
-<Image src={dom} width={1460} format="webp" alt="" loading={eager ? "eager" : "lazy"} />
+<Image
+  src={dom}
+  width={1460}
+  widths={[440, 880, 1460]}
+  sizes="56vw"
+  format="webp"
+  alt=""
+  loading={eager ? "eager" : "lazy"}
+  fetchpriority={eager ? "low" : undefined}
+/>

@@ -5,6 +5,7 @@ import PageHeader from "../components/PageHeader.astro";
 import TablicaWjazdowa from "../components/TablicaWjazdowa.astro";
 import { faq } from "../data/faq";
 import { firma } from "../data/firma";
+import { strony } from "../data/nav";
 
 const faqPage = {
   "@context": "https://schema.org",
@@ -26,24 +27,24 @@ const faqPage = {
     <PageHeader slot="header" title="Częste pytania" />
 
     <div class="grid gap-12 lg:grid-cols-[minmax(0,1fr)_22rem]">
-    <div class="faq max-w-prose" data-ruch-grupa>
-      {
-        faq.map((item, i) => (
-          <details open={i === 0}>
-            <summary>{item.q}</summary>
-            <p>{item.a}</p>
-          </details>
-        ))
-      }
-    </div>
+      <div class="faq max-w-prose" data-ruch-grupa>
+        {
+          faq.map((item, i) => (
+            <details open={i === 0}>
+              <summary>{item.q}</summary>
+              <p>{item.a}</p>
+            </details>
+          ))
+        }
+      </div>
 
-    <aside class="space-y-5 self-start lg:sticky lg:top-[calc(var(--header-height)+1.5rem)]" aria-label="Kontakt">
-      <p class="text-lg font-medium">
-        Nie ma tu Twojego pytania? Zadzwoń pod <a href={firma.phone.href} class="link-strong">{firma.phone.label}</a> albo
-        <a href="/kontakt/">napisz do nas</a>.
-      </p>
-      <TablicaWjazdowa />
-    </aside>
+      <aside class="rail space-y-5" aria-label="Kontakt">
+        <p class="text-lg font-medium">
+          Nie ma tu Twojego pytania? Zadzwoń pod <a href={firma.phone.href} class="link-strong">{firma.phone.label}</a> albo
+          <a href={strony.kontakt.href}>napisz do nas</a>.
+        </p>
+        <TablicaWjazdowa />
+      </aside>
     </div>
   </PageShell>
 </Base>

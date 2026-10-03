@@ -14,9 +14,12 @@
  * browser has checked the fields, and says the form does not send yet.
  */
 import { formularzeWlaczone } from "../data/strona";
+import { strony } from "../data/nav";
+import { href } from "../lib/url";
 
 interface Props {
-  action: string;
+  /** The Pages Function's path, e.g. "/api/kontakt". */
+  action: `/${string}`;
   submitLabel: string;
   /** For the consent sentence: "złożenia zamówienia", "odpowiedzi na wiadomość". */
   purpose: string;
@@ -25,7 +28,7 @@ interface Props {
 const { action, submitLabel, purpose } = Astro.props;
 ---
 
-<form method="post" action={action} class="space-y-6" data-form data-live={String(formularzeWlaczone)}>
+<form method="post" action={href(action)} class="space-y-6" data-form data-live={String(formularzeWlaczone)}>
   <slot />
 
   <div class="hp" aria-hidden="true">
@@ -39,7 +42,7 @@ const { action, submitLabel, purpose } = Astro.props;
     <input type="checkbox" name="zgoda" value="tak" required />
     <span>
       Zgadzam się na przetwarzanie moich danych w celu {purpose}. Szczegóły w
-      <a href="/polityka-prywatnosci/">polityce prywatności</a>. <span class="req">*</span>
+      <a href={strony.polityka.href}>polityce prywatności</a>. <span class="req">*</span>
     </span>
   </label>
 

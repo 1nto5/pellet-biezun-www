@@ -1,11 +1,12 @@
 ---
-import { Image } from "astro:assets";
+import { Image, getImage } from "astro:assets";
 import Base from "../layouts/Base.astro";
 import PageShell from "../components/PageShell.astro";
 import PageHeader from "../components/PageHeader.astro";
 import Button from "../components/Button.astro";
 import Pasy from "../components/Pasy.astro";
-import { firma, addressLine } from "../data/firma";
+import { firma, firmaId, addressLine } from "../data/firma";
+import { orderLink, strony } from "../data/nav";
 import { produkty, cenyLabel, paletaLabel, cenyZDnia } from "../data/oferta";
 import { DARMOWA_DOSTAWA_KM } from "../data/miejsca";
 import fotoIveco from "../assets/flota/iveco.png";
@@ -56,11 +57,36 @@ const flota = [
   },
 ];
 const najdluzszy = Math.max(...flota.map((f) => f.m));
+
+/**
+ * Each product with its pallet price, for search results. No brand: the
+ * products go by the name on the bag or the origin (oferta.ts).
+ */
+const produktyLd = await Promise.all(
+  produkty.map(async (p) => ({
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: p.nazwa,
+    description: `${p.podtytul}. ${p.opis}`,
+    image: new URL((await getImage({ src: p.zdjecie.src, width: 800, format: "jpg" })).src, Astro.site).toString(),
+    category: "Pellet drzewny",
+    offers: {
+      "@type": "Offer",
+      url: `${new URL(strony.oferta.href, Astro.site)}#produkt-${p.id}`,
+      price: p.cenaPaleta,
+      priceCurrency: "PLN",
+      eligibleQuantity: { "@type": "QuantitativeValue", value: 1, unitText: "paleta" },
+      itemCondition: "https://schema.org/NewCondition",
+      seller: { "@id": firmaId },
+    },
+  })),
+);
 ---
 
 <Base
   title="Oferta i ceny pelletu"
   description={`Pellet HITON i pellet sosnowy z Wielbarku w workach 15 kg na paletach. Ceny za paletę, certyfikaty, parametry, dostawa gratis do ok. ${DARMOWA_DOSTAWA_KM} km.`}
+  jsonLd={produktyLd}
 >
   <PageShell>
     <PageHeader
@@ -80,6 +106,7 @@ const najdluzszy = Math.max(...flota.map((f) => f.m));
               <Image
                 src={p.zdjecie.src}
                 alt={p.zdjecie.alt}
+                width={800}
                 widths={[480, 800]}
                 sizes="(min-width: 64rem) 26rem, 100vw"
                 class="w-full"
@@ -99,6 +126,11 @@ const najdluzszy = Math.max(...flota.map((f) => f.m));
               ))}
             </div>
             <p class="mt-4 font-semibold">Paleta: {paletaLabel(p)}</p>
+            <div class="mt-6">
+              <Button href={`${orderLink.href}?produkt=${p.id}`} variant="secondary">
+                Zamów ten pellet<span class="sr-only">: {p.nazwa}</span>
+              </Button>
+            </div>
 
             <p class="mt-6 max-w-prose">{p.opis}</p>
             <p class="mt-4 max-w-prose">{p.certyfikat}</p>
@@ -138,11 +170,11 @@ const najdluzszy = Math.max(...flota.map((f) => f.m));
 
     <section class="mt-20" aria-labelledby="dostawa">
       <Pasy />
-      <h2 id="dostawa" class="mt-6 text-3xl md:text-4xl" data-ruch="mijanie">Dostawa i odbiór</h2>
+      <h2 id="dostawa" class="mt-6 text-3xl md:text-4xl">Dostawa i odbiór</h2>
       <div class="prose mt-5">
         <p>
           W promieniu ok. {DARMOWA_DOSTAWA_KM} km od magazynu dowozimy gratis. Dalej warunki ustalamy
-          indywidualnie. Sprawdź swoją miejscowość na <a href="/mapa-dystrybucji/">mapie dystrybucji</a>.
+          indywidualnie. Sprawdź swoją miejscowość na <a href={strony.mapa.href}>mapie dystrybucji</a>.
         </p>
         <p>Dowozimy własnymi samochodami. Każdy ma windę i elektryczny wózek paletowy:</p>
       </div>
@@ -153,7 +185,7 @@ const najdluzszy = Math.max(...flota.map((f) => f.m));
             <li class="flota-auto">
               <span class="flota-pas">
                 <span class="flota-foto" style={`--dl:${f.m / najdluzszy}`} data-ruch-auto>
-                  <Image src={f.zdjecie} alt={f.alt} widths={[400, 800, 1200]} sizes="(min-width: 64rem) 34rem, 92vw" />
+                  <Image src={f.zdjecie} alt={f.alt} width={1200} widths={[400, 800, 1200]} sizes="(min-width: 64rem) 34rem, 92vw" />
                 </span>
               </span>
               <div>
@@ -178,8 +210,8 @@ const najdluzszy = Math.max(...flota.map((f) => f.m));
     </section>
 
     <div class="mt-14 flex flex-wrap gap-4">
-      <Button href="/zamowienie/">Zamów pellet</Button>
-      <Button href="/faq/" variant="secondary">Częste pytania</Button>
+      <Button href={orderLink.href}>{orderLink.label}</Button>
+      <Button href={strony.faq.href} variant="secondary">Częste pytania</Button>
     </div>
   </PageShell>
 </Base>

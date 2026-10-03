@@ -9,6 +9,7 @@
  * `href` of a phone is never written by hand: `phone()` builds it from the label.
  */
 import type { Geo } from "../lib/geo";
+import { absoluteUrl } from "../lib/url";
 
 export interface Phone {
   label: string;
@@ -66,6 +67,9 @@ export const firma = {
   /** The company's Google Business Profile, for the JSON-LD `sameAs`. */
   googleMaps: "https://maps.google.com/?cid=4869671231987334697",
 };
+
+/** The company's JSON-LD `@id` (Base.astro), for the other JSON-LD objects to point at. */
+export const firmaId = `${absoluteUrl("/")}#firma`;
 
 /** "Władysławowo 10, 09-320 Bieżuń" */
 export function addressLine(a: PostalAddress = firma.address): string {

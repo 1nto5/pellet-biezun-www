@@ -4,11 +4,11 @@
  * sign, the sections on a green direction board from `lg` up and the
  * „Zamów pellet" button. Below `lg` the
  * sections live behind a menu button, in a native <dialog> that slides in from
- * the left as a drawer under the header. A tap outside, a swipe to the left or
- * Escape closes it.
+ * the left as a drawer under the header. The same button, a tap outside, a
+ * swipe to the left or Escape closes it.
  */
 import { Image } from "astro:assets";
-import { mainNav, orderLink, activeSection } from "../data/nav";
+import { mainNav, orderLink, strony, activeSection } from "../data/nav";
 import autoFm from "../assets/droga/auto-fm.png";
 import { firma } from "../data/firma";
 
@@ -22,7 +22,7 @@ const current = (href: string) =>
 <header class="site-header">
   <div class="header-surface" data-surface>
     <div class="pinned-row page-wrap flex items-center justify-between gap-x-6">
-      <a href="/" class="marka" aria-label={firma.name}>
+      <a href={strony.home.href} class="marka" aria-label={firma.name}>
         <span class="marka-pellet" aria-hidden="true">{wordmark[0]}</span>
         <span class="marka-miasto" aria-hidden="true">{wordmark[1]}</span>
       </a>
@@ -48,9 +48,10 @@ const current = (href: string) =>
             class="btn btn-primary btn-sm"
             aria-current={current(orderLink.href)}>{orderLink.label}</a
           >
-          <button type="button" class="tool" data-menu-open aria-haspopup="dialog" aria-expanded="false">
+          <button type="button" class="tool menu-toggle" data-menu-open aria-haspopup="dialog" aria-expanded="false">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" aria-hidden="true">
-              <path d="M4 6h16M4 12h16M4 18h16"></path>
+              <path class="menu-ikona-otworz" d="M4 6h16M4 12h16M4 18h16"></path>
+              <path class="menu-ikona-zamknij" d="M6 6l12 12M18 6L6 18"></path>
             </svg>
             <span class="sr-only">Menu</span>
           </button>
@@ -60,19 +61,19 @@ const current = (href: string) =>
     <!-- The road band: the real truck, small, drives right to left along it as the page scrolls (ruch.ts). -->
     <div class="pasek" data-pasek aria-hidden="true">
       <div class="pasek-auto">
-        <Image src={autoFm} alt="" widths={[64, 128]} sizes="2.4rem" loading="eager" />
+        <Image src={autoFm} alt="" width={128} widths={[64, 128]} sizes="2.4rem" loading="eager" />
       </div>
     </div>
   </div>
 
   <div class="menu-backdrop" data-menu-backdrop hidden></div>
-  <dialog class="menu" data-menu aria-label="Menu" tabindex="-1">
+  <dialog class="menu" data-menu aria-label="Menu główne" tabindex="-1">
     <p class="pb-3">
       Telefon: <a href={firma.phone.href} class="text-xl font-extrabold">{firma.phone.label}</a>
     </p>
-    <nav aria-label="Menu główne" class="mt-2">
+    <nav aria-label="Menu" class="mt-2">
       <ul role="list">
-        <li><a href="/" aria-current={current("/")}>Strona główna</a></li>
+        <li><a href={strony.home.href} aria-current={current(strony.home.href)}>{strony.home.label}</a></li>
         {
           mainNav.map((item) => (
             <li>
@@ -109,6 +110,10 @@ const current = (href: string) =>
     const behind = [...document.querySelectorAll<HTMLElement>("main, footer")];
 
     open.addEventListener("click", () => {
+      if (menu.open) {
+        close();
+        return;
+      }
       const top = Math.max(0, surface.getBoundingClientRect().bottom);
       menu.style.setProperty("--drawer-top", `${top}px`);
       backdrop.style.setProperty("--drawer-top", `${top}px`);

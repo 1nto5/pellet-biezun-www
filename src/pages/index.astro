@@ -6,25 +6,30 @@ import Tablica from "../components/Tablica.astro";
 import TablicaWjazdowa from "../components/TablicaWjazdowa.astro";
 import Droga from "../components/droga/Droga.astro";
 import { Image } from "astro:assets";
-import { firma, addressLine, hoursRange } from "../data/firma";
+import { firma, firmaId, addressLine, hoursRange } from "../data/firma";
+import { orderLink, strony } from "../data/nav";
+import { absoluteUrl } from "../lib/url";
 import { produkty, cenyLabel, paletaLabel } from "../data/oferta";
-import { DARMOWA_DOSTAWA_KM, podstrony, miejsceHref, odlegloscKm, wStrefieDarmowej } from "../data/miejsca";
+import { DARMOWA_DOSTAWA_KM, grupyPodstron, miejsceHref } from "../data/miejsca";
 
 /** "Pellet Bieżuń" → the two lines of the sign. */
 const [pellet, miasto] = firma.name.split(" ");
 
+/** The site itself, so search results show the company's name as the site's. */
+const webSite = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: firma.name,
+  url: absoluteUrl("/"),
+  inLanguage: "pl-PL",
+  publisher: { "@id": firmaId },
+};
+
 /** Bag weights on offer; one number while every product comes in the same bag. */
 const workiKg = [...new Set(produkty.map((p) => p.workiKg))].join(" i ");
-
-/** The local pages, nearest first, split by whether delivery is free. */
-const miasta = [...podstrony].sort((a, b) => odlegloscKm(a) - odlegloscKm(b));
-const grupy = [
-  { id: "gratis", tytul: "Dostawa gratis", miasta: miasta.filter(wStrefieDarmowej) },
-  { id: "po-uzgodnieniu", tytul: "Dostawa po uzgodnieniu", miasta: miasta.filter((m) => !wStrefieDarmowej(m)) },
-].filter((g) => g.miasta.length > 0);
 ---
 
-<Base>
+<Base jsonLd={[webSite]}>
   <Droga>
     <section class="hero page-wrap" aria-labelledby="hero-title">
       <h1 id="hero-title" class="wordmark">
@@ -37,7 +42,7 @@ const grupy = [
           Sprzedajemy pellet drzewny w workach {workiKg} kg na paletach. Dowozimy gratis do ok.&nbsp;{DARMOWA_DOSTAWA_KM}&nbsp;km {firma.odMiasta}.
         </p>
         <div class="hero-akcje">
-          <Button href="/zamowienie/">Zamów pellet</Button>
+          <Button href={orderLink.href}>{orderLink.label}</Button>
           <a href={firma.phone.href} class="telefon">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"
               ><path
@@ -58,30 +63,34 @@ const grupy = [
         <span>Większe zamówienie?</span>
         <strong>Cena do negocjacji</strong>
       </p>
-      <h2 id="oferta-skrot" class="text-3xl md:text-4xl" data-ruch="mijanie">Co przywozimy</h2>
+      <h2 id="oferta-skrot" class="text-3xl md:text-4xl">Co przywozimy</h2>
       <ul role="list" class="mt-8 grid gap-10 md:grid-cols-2" data-ruch-grupa>
         {
-          produkty.map((p) => (
-            <li class="produkt">
-              <Image
-                src={p.zdjecie.src}
-                alt={p.zdjecie.alt}
-                widths={[240, 400]}
-                sizes="(min-width: 48rem) 12rem, 40vw"
-                class="produkt-foto"
-              />
-              <div>
-                <h3 class="text-xl md:text-2xl">{p.nazwa}</h3>
-                <p class="mt-1 text-ink-soft">{paletaLabel(p)}</p>
-                <p class="price mt-3 text-2xl">{cenyLabel(p)[0]}</p>
-                {cenyLabel(p)[1] && <p class="text-ink-soft">{cenyLabel(p)[1]}</p>}
-              </div>
-            </li>
-          ))
+          produkty.map((p) => {
+            const [cena, cenaTona] = cenyLabel(p);
+            return (
+              <li class="produkt">
+                <Image
+                  src={p.zdjecie.src}
+                  alt={p.zdjecie.alt}
+                  width={400}
+                  widths={[240, 400]}
+                  sizes="(min-width: 48rem) 12rem, 40vw"
+                  class="produkt-foto"
+                />
+                <div>
+                  <h3 class="text-xl md:text-2xl">{p.nazwa}</h3>
+                  <p class="mt-1 text-ink-soft">{paletaLabel(p)}</p>
+                  <p class="price mt-3 text-xl sm:text-2xl">{cena}</p>
+                  {cenaTona && <p class="text-ink-soft">{cenaTona}</p>}
+                </div>
+              </li>
+            );
+          })
         }
       </ul>
       <div class="mt-8 flex flex-wrap items-center gap-x-8 gap-y-4">
-        <Button href="/zamowienie/">Zamów pellet</Button>
+        <Button href={orderLink.href}>{orderLink.label}</Button>
         <a href={firma.phone.href} class="telefon">
           <span class="sr-only">Zadzwoń: </span>{firma.phone.label}
         </a>
@@ -91,13 +100,13 @@ const grupy = [
 
   <section class="page-wrap pb-16 md:pb-24" aria-labelledby="dostawy-skrot">
     <Pasy />
-    <h2 id="dostawy-skrot" class="mt-6 text-3xl md:text-4xl" data-ruch="mijanie">Gdzie dowozimy</h2>
+    <h2 id="dostawy-skrot" class="mt-6 text-3xl md:text-4xl">Gdzie dowozimy</h2>
     <p class="mt-3 max-w-prose text-lg">
       W promieniu ok. {DARMOWA_DOSTAWA_KM} km od magazynu dowozimy gratis, dalej warunki ustalamy
       indywidualnie. Odległości podajemy w linii prostej.
     </p>
     {
-      grupy.map((g) => (
+      grupyPodstron.map((g) => (
         <div class="mt-8">
           <h3 id={`dostawa-${g.id}`} class="text-xl">
             {g.tytul}
@@ -113,7 +122,7 @@ const grupy = [
       ))
     }
     <p class="mt-8 text-lg">
-      Mniejsze miejscowości i wsie są na <a href="/mapa-dystrybucji/" class="link-strong">mapie dystrybucji</a>.
+      Mniejsze miejscowości i wsie są na <a href={strony.mapa.href} class="link-strong">mapie dystrybucji</a>.
     </p>
   </section>
 
@@ -121,7 +130,7 @@ const grupy = [
     <div class="page-wrap grid gap-10 py-16 md:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] md:items-center md:gap-16 md:py-20">
       <div data-ruch="tablica"><TablicaWjazdowa /></div>
       <div>
-        <h2 id="kontakt-skrot" class="text-3xl md:text-4xl" data-ruch="mijanie">Magazyn i kontakt</h2>
+        <h2 id="kontakt-skrot" class="text-3xl md:text-4xl">Magazyn i kontakt</h2>
         <address class="mt-4 text-lg">
           {addressLine()}<br />
           tel. <a href={firma.phone.href} class="link-strong">{firma.phone.label}</a>
@@ -131,7 +140,7 @@ const grupy = [
           wcześniejszym telefonie.
         </p>
         <div class="mt-6">
-          <Button href="/kontakt/" variant="secondary">Kontakt i formularz</Button>
+          <Button href={strony.kontakt.href} variant="secondary">Kontakt i formularz</Button>
         </div>
       </div>
     </div>

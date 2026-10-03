@@ -47,7 +47,7 @@ import { miejsca } from "../data/miejsca";
           <legend class="mb-4 text-3xl">Adres dostawy</legend>
           <div class="field">
             <label for="ulica">Ulica i numer <span class="req">*</span></label>
-            <input id="ulica" name="ulica" type="text" class="input" autocomplete="street-address" required />
+            <input id="ulica" name="ulica" type="text" class="input" autocomplete="address-line1" required />
           </div>
           <div class="grid gap-5 sm:grid-cols-[10rem_1fr]">
             <div class="field">
@@ -108,7 +108,7 @@ import { miejsca } from "../data/miejsca";
         </fieldset>
       </Formularz>
 
-      <aside class="kroki-ramka space-y-4 self-start lg:sticky" aria-labelledby="jak-to-dziala">
+      <aside class="rail kroki-ramka space-y-4" aria-labelledby="jak-to-dziala">
         <h2 id="jak-to-dziala" class="text-2xl">Jak to działa</h2>
         <ol class="kroki">
           <li>Wysyłasz formularz, na e-mail dostajesz potwierdzenie przyjęcia.</li>
@@ -123,11 +123,22 @@ import { miejsca } from "../data/miejsca";
   </PageShell>
 </Base>
 
+<script>
+  // A link from a product (/zamowienie/?produkt=hiton) picks it in the list.
+  const produkt = document.querySelector<HTMLSelectElement>("#produkt");
+  const wybrany = new URLSearchParams(location.search).get("produkt");
+  if (produkt && [...produkt.options].some((o) => o.value === wybrany)) produkt.value = wybrany!;
+
+  // No delivery date before today, in the reader's own time zone. Swedish
+  // writes dates as YYYY-MM-DD, the form a date input takes.
+  const termin = document.querySelector<HTMLInputElement>("#termin");
+  if (termin) termin.min = new Date().toLocaleDateString("sv-SE");
+</script>
+
 <style>
   /* The three steps, in order, on a white panel with the banner's yellow
      frame; it stays in view beside the long form. */
   .kroki-ramka {
-    top: calc(var(--header-height) + 1.5rem);
     padding: 1.5rem 1.5rem 1.25rem;
     border: 0.3rem solid var(--color-yellow);
     border-radius: 1rem;

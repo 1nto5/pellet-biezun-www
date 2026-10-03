@@ -1,46 +1,15 @@
 ---
 /**
- * The body of a page: the content column, and an optional rail in the
- * `aside` slot. From `lg` the rail sits on the right and
- * stays in place while the content scrolls; below `lg` it sits above the
- * content, which is also where it comes in the reading order.
- *
- * The page's `PageHeader` goes in the `header` slot, so the shell owns the
- * container and the space around it. With a rail the heading shares the content
- * column and the rail starts on the same line as the trail above the heading;
- * without one the grid's row gap is missing, so the header carries that space.
- *
- * The aside slot fills a plain <div>, so a component with its own <aside>
- * does not end up as two landmarks.
+ * The body of every inner page: the page's `PageHeader` in the `header` slot,
+ * the content under it, and the container and space around both. A page that
+ * wants a rail beside its content lays out its own grid and gives the rail
+ * the `rail` class (global.css).
  */
-const twoColumn = Astro.slots.has("aside");
-const hasHeader = Astro.slots.has("header");
 ---
 
-<div
-  class:list={[
-    "page-wrap pb-16 md:pb-24",
-    hasHeader && "pt-8 md:pt-10",
-    twoColumn && "grid gap-x-10 gap-y-8 lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-x-14",
-  ]}
->
-  {
-    hasHeader && (
-      <div class:list={["min-w-0", twoColumn ? "lg:col-start-1 lg:row-start-1" : "pb-8"]}>
-        <slot name="header" />
-      </div>
-    )
-  }
-  {
-    twoColumn && (
-      <div
-        class="aside-sticky space-y-8 lg:sticky lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:self-start"
-      >
-        <slot name="aside" />
-      </div>
-    )
-  }
-  <div class:list={["min-w-0", twoColumn && "lg:col-start-1 lg:row-start-2"]}>
-    <slot />
+<div class="page-wrap pt-8 pb-16 md:pt-10 md:pb-24">
+  <div class="pb-8">
+    <slot name="header" />
   </div>
+  <slot />
 </div>

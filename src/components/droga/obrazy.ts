@@ -1,7 +1,10 @@
 /**
  * The drive's photos, made small enough for the page. The PNG masters in
  * `src/assets/droga/` stay as they are; the build serves WebP at about twice
- * the largest size each one shows at in a 1440 px wide window.
+ * the largest size each one shows at in a 1440 px wide window. The forest and
+ * the verge are background bands, so their one size is that; the hall, the
+ * house and the loader are <img> with a `srcset` (Hala.astro and the rest),
+ * whose `sizes` is the widest share of the window each takes in the scene.
  *
  * Only for the server side: `trasa.ts` also goes to the browser, so it must
  * not import this.
@@ -31,6 +34,6 @@ export const obrazy = {
   auto: await webp(auto, 1800),
   paleta: await webp(paleta, 100),
   wozek: await webp(wozek, 180),
-  las: await webp(las, 2000),
-  pobocze: await webp(pobocze, 1100),
+  las: await webp(las, 1500),
+  pobocze: await webp(pobocze, 800),
 };

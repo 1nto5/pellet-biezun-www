@@ -9,19 +9,12 @@ import { firma } from "../data/firma";
 import {
   DARMOWA_DOSTAWA_KM,
   miejsca,
-  podstrony,
+  grupyPodstron,
   wojewodztwa,
   miejsceHref,
   odlegloscKm,
   wStrefieDarmowej,
 } from "../data/miejsca";
-
-// The towns with their own page, nearest first, split by whether delivery is free.
-const poOdleglosci = [...podstrony].sort((a, b) => odlegloscKm(a) - odlegloscKm(b));
-const grupyPodstron = [
-  { id: "gratis", tytul: "Dostawa gratis", miasta: poOdleglosci.filter(wStrefieDarmowej) },
-  { id: "po-uzgodnieniu", tytul: "Dostawa po uzgodnieniu", miasta: poOdleglosci.filter((m) => !wStrefieDarmowej(m)) },
-].filter((g) => g.miasta.length > 0);
 
 // Every town by voivodeship, nearest first.
 const grupy = wojewodztwa
@@ -52,7 +45,7 @@ const grupy = wojewodztwa
     </p>
 
     <section class="mt-12" aria-labelledby="podstrony">
-      <h2 id="podstrony" class="text-3xl" data-ruch="mijanie">Dostawa w Twojej okolicy</h2>
+      <h2 id="podstrony" class="text-3xl">Dostawa w Twojej okolicy</h2>
       {
         grupyPodstron.map((g) => (
           <div class="mt-6">
@@ -72,17 +65,17 @@ const grupy = wojewodztwa
     </section>
 
     <section class="mt-12" aria-labelledby="wszystkie">
-      <h2 id="wszystkie" class="text-3xl" data-ruch="mijanie">Wszystkie miejscowości</h2>
+      <h2 id="wszystkie" class="text-3xl">Wszystkie miejscowości</h2>
       <p class="mt-2 max-w-prose text-ink-soft">
         Odległość od magazynu w linii prostej. Miejscowości w strefie darmowej dostawy są oznaczone
         „gratis”.
       </p>
-      <div class="mt-6 grid gap-10 md:grid-cols-2 lg:grid-cols-3" data-ruch-grupa>
+      <div class="miejscowosci mt-6">
         {
-          grupy.map((g) => (
-            <section aria-label={`Województwo ${g.wojewodztwo}`}>
-              <h3 class="text-xl">Województwo {g.wojewodztwo}</h3>
-              <ul role="list" class="mt-3 space-y-1">
+          grupy.map((g, i) => (
+            <section aria-labelledby={`wojewodztwo-${i}`}>
+              <h3 id={`wojewodztwo-${i}`} class="text-xl">Województwo {g.wojewodztwo}</h3>
+              <ul role="list" class="mt-3">
                 {g.miejsca.map((m) => (
                   <li class="flex justify-between gap-4 border-b border-line py-1">
                     <span>
@@ -108,3 +101,31 @@ const grupy = wojewodztwa
     </p>
   </PageShell>
 </Base>
+
+<style>
+  /* One long list in newspaper columns, so the five voivodeships fill the
+     columns evenly instead of one tall column beside short ones. A list may
+     go on in the next column; a heading never ends one. */
+  .miejscowosci {
+    column-gap: 2.5rem;
+  }
+  @media (min-width: 48rem) {
+    .miejscowosci {
+      columns: 2;
+    }
+  }
+  @media (min-width: 64rem) {
+    .miejscowosci {
+      columns: 3;
+    }
+  }
+  .miejscowosci section + section {
+    margin-top: 2rem;
+  }
+  .miejscowosci h3 {
+    break-after: avoid;
+  }
+  .miejscowosci li {
+    break-inside: avoid;
+  }
+</style>
