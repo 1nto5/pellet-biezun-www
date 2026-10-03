@@ -40,7 +40,7 @@ export const GET: APIRoute = ({ site }) => {
     "## Dostawa",
     "",
     `Dostawa gratis w promieniu ok. ${DARMOWA_DOSTAWA_KM} km od magazynu (w linii prostej), dalej warunki ustalamy indywidualnie. ` +
-      "Własne samochody, każdy z windą i elektrycznym wózkiem paletowym: 2 × Iveco Daily 7,2 t (do 4 palet), Volvo FM 26 t (12–14 palet), Volvo FH (14–16 palet), Volvo FH z naczepą kurtynową (26 palet). " +
+      "Własne samochody, każdy z windą i elektrycznym wózkiem paletowym: 2 × Iveco Daily 7,2 t (do 4 palet), Volvo FM 26 t (12–14 palet), Volvo FH (14–16 palet), Volvo FH16 z naczepą kurtynową (26 palet). " +
       "Odbiór osobisty w magazynie po wcześniejszym telefonie. Przy większych ilościach cena do negocjacji.",
     "",
     ...podstrony.map((m) => `- [Pellet ${m.podstrona.wMiejscowosci}](${url(miejsceHref(m))})`),

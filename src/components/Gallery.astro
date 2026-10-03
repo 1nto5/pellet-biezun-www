@@ -18,11 +18,12 @@ interface Props {
 const { photos } = Astro.props;
 
 /**
- * The grid is four columns from `lg`, three from `sm`, two below that; the
- * first photo takes two by two.
+ * The grid is four columns from `lg`, three from `sm`, two below that, inside
+ * the page's gutters (36px on phones, 72px from `sm`); the first photo takes
+ * two by two.
  */
-const sizes = "(min-width: 64rem) 15rem, (min-width: 40rem) 33vw, 50vw";
-const sizesPierwsze = "(min-width: 64rem) 31rem, (min-width: 40rem) 66vw, 100vw";
+const sizes = "(min-width: 64rem) 17rem, (min-width: 40rem) calc(33vw - 24px), calc(50vw - 18px)";
+const sizesPierwsze = "(min-width: 64rem) 35rem, (min-width: 40rem) calc(66vw - 48px), calc(100vw - 36px)";
 /** About as many photos as the first screen shows; they load at once. */
 const OD_RAZU = 3;
 
@@ -52,6 +53,7 @@ const items = await Promise.all(
                   alt={photo.alt}
                   width={1400}
                   widths={[700, 1000, 1400]}
+                  quality={70}
                   sizes={sizesPierwsze}
                   loading="eager"
                   fetchpriority="high"
