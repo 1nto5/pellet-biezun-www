@@ -5,6 +5,10 @@
 # branch holds only the current site. GitHub Pages serves that branch
 # (Settings → Pages → Deploy from a branch → gh-pages, / (root)).
 #
+# The build runs other people's code (packages, their install scripts, the
+# build tools), so it gets a read-only token and keeps no credentials. Only
+# the publish job, which runs nothing but git, may write to the repository.
+#
 # Production stays on Cloudflare Pages; this copy is built with its own
 # address in SITE, which also marks it noindex (src/lib/env.ts).
 name: Build and publish
@@ -15,7 +19,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: pages-${{ github.ref }}
@@ -26,12 +30,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-node@v5
         with:
           node-version-file: .node-version
 
+      # The version in package.json's packageManager, the one the lockfile was made with.
       - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      # Downloaded packages, and Astro's resized images, which otherwise take
+      # most of the build.
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.bun/install/cache
+            node_modules/.astro
+          key: build-${{ runner.os }}-${{ hashFiles('bun.lock') }}-${{ hashFiles('src/assets/**') }}
+          restore-keys: |
+            build-${{ runner.os }}-${{ hashFiles('bun.lock') }}-
+            build-${{ runner.os }}-
 
       - run: bun install --frozen-lockfile
 
@@ -43,9 +64,28 @@ jobs:
           echo "Building for $SITE"
           bun run build
 
-      - name: Publish to the gh-pages branch
+      - name: Keep the build for publishing
         if: github.ref == 'refs/heads/main'
-        working-directory: dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: site
+          path: dist
+          retention-days: 1
+
+  publish:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: site
+          path: site
+
+      - name: Publish to the gh-pages branch
+        working-directory: site
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

@@ -3,10 +3,12 @@ import { isPreview } from "../lib/env";
 import { absoluteUrl } from "../lib/url";
 
 /**
- * Generated rather than static, so a preview build (lib/env.ts) closes itself
- * to crawlers while production stays open. Crawlers only read robots.txt at
- * the root of a host, so a copy under a sub-path relies on the pages' own
- * `noindex` instead.
+ * Generated rather than static, so a preview build (lib/env.ts) leaves out
+ * the sitemap and the invitations. It does not shut crawlers out: its pages
+ * carry `noindex`, and a crawler kept out by robots.txt never sees that, so
+ * a linked preview page could still be listed. Crawlers only read robots.txt
+ * at the root of a host, so a copy under a sub-path relies on `noindex`
+ * alone anyway.
  *
  * AI crawlers are named one by one with an explicit Allow, so the intent is
  * clear to anyone reading the file. Cloudflare's "block AI bots" and "managed
@@ -30,7 +32,7 @@ const aiBots = [
 
 export const GET: APIRoute = () => {
   const lines = isPreview
-    ? ["User-agent: *", "Disallow: /"]
+    ? ["User-agent: *", "Allow: /"]
     : [
         "User-agent: *",
         "Allow: /",
