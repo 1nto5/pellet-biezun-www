@@ -6,8 +6,28 @@
  */
 import { firma, hoursRange } from "../data/firma";
 import { mainNav, strony } from "../data/nav";
+import { isPreview } from "../lib/env";
 
 const year = new Date().getFullYear();
+
+// A preview says which build it is, so a reader testing it can tell a fresh
+// copy from one their browser kept: when it was built, Polish time, and
+// from which commit (GitHub Actions gives it in GITHUB_SHA).
+const commit = process.env.GITHUB_SHA?.slice(0, 7);
+const wersja = isPreview
+  ? [
+      new Date().toLocaleString("pl-PL", {
+        timeZone: "Europe/Warsaw",
+        day: "numeric",
+        month: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      commit,
+    ]
+      .filter(Boolean)
+      .join(" · ")
+  : null;
 ---
 
 <footer class="site-footer mt-auto">
@@ -67,7 +87,10 @@ const year = new Date().getFullYear();
     <div
       class="page-wrap flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2 py-4 text-sm soft"
     >
-      <p>© {year} {firma.legalName}{firma.nip && `, NIP ${firma.nip}`}</p>
+      <p>
+        © {year} {firma.legalName}{firma.nip && `, NIP ${firma.nip}`}
+        {wersja && <span class="ml-2 whitespace-nowrap">· podgląd {wersja}</span>}
+      </p>
       <p class="flex flex-wrap gap-x-6">
         <a href={strony.polityka.href}>{strony.polityka.label}</a>
         <span>
