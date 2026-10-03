@@ -10,7 +10,7 @@ import { firma, hoursRange } from "../data/firma";
 
 <Base
   title="Kontakt"
-  description={`Adres magazynu we Władysławowie pod Bieżuniem, telefon, e-mail i godziny otwarcia ${firma.name}. Formularz kontaktowy.`}
+  description={`Adres magazynu we Władysławowie pod Bieżuniem, telefon i godziny otwarcia ${firma.name}. Formularz kontaktowy.`}
 >
   <PageShell>
     <PageHeader slot="header" title="Kontakt" lead="Zadzwoń albo napisz. Pellet odbierzesz też w magazynie we Władysławowie pod Bieżuniem, po wcześniejszym telefonie." />
@@ -24,10 +24,17 @@ import { firma, hoursRange } from "../data/firma";
             {firma.address.street}<br />
             {firma.address.postalCode}
             {firma.address.city}<br />
-            tel. <a href={firma.phone.href} class="link-strong">{firma.phone.label}</a><br />
-            e-mail: <a href={`mailto:${firma.email}`}>{firma.email}</a>
+            tel. <a href={firma.phone.href} class="link-strong">{firma.phone.label}</a>
+            {
+              firma.email && (
+                <>
+                  <br />
+                  e-mail: <a href={`mailto:${firma.email}`}>{firma.email}</a>
+                </>
+              )
+            }
           </address>
-          <p class="mt-2 text-sm text-ink-soft">{firma.legalName}, NIP {firma.nip}</p>
+          <p class="mt-2 text-sm text-ink-soft">{firma.legalName}{firma.nip && `, NIP ${firma.nip}`}</p>
         </section>
 
         <section aria-labelledby="godziny" data-ruch>

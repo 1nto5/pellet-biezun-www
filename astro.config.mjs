@@ -2,9 +2,10 @@ import { defineConfig } from "astro/config";
 import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
 
-// PRZYKŁAD: the domain is not bought yet. Canonical links, the sitemap,
-// robots.txt, llms.txt and the JSON-LD all build their addresses from this,
-// so it is the only place to change once the client picks a domain.
+// Canonical links, the sitemap, robots.txt, llms.txt and the JSON-LD all
+// build their addresses from this, so it is the only place to change once
+// the client picks a domain.
+// TODO(produkcja): the domain is not bought yet; put the real one here.
 const productionSite = "https://pelletbiezun.pl/";
 
 // A preview copy hosted elsewhere is built with its own full address, path

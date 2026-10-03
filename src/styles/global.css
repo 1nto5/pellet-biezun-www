@@ -180,19 +180,6 @@ body {
   }
 }
 
-/* ---------------------------------------------------------------------------
-   The sample-data strip above the header, while `daneprzykladowe` is on.
-   ------------------------------------------------------------------------ */
-.probka {
-  background: var(--color-yellow);
-  color: var(--color-black);
-  font-size: var(--text-sm);
-  line-height: 1.4;
-}
-.probka p {
-  padding-block: 0.45rem;
-}
-
 .skip-link {
   position: fixed;
   top: 0;
@@ -804,18 +791,13 @@ textarea.input {
   height: 1px;
   overflow: hidden;
 }
-/* A note that matters: a yellow bar on its left. */
-.form-note {
-  padding: 0.75rem 1rem 0.65rem;
-  border-left: 0.4rem solid var(--color-yellow);
-  background: var(--color-sand);
-}
+/* The form's reply under the button: a note with a yellow bar on its left. */
 .form-status:empty {
   display: none;
 }
 .form-status {
   padding: 0.75rem 1rem 0.65rem;
-  border-left: 0.4rem solid var(--color-brand);
+  border-left: 0.4rem solid var(--color-yellow);
   background: var(--color-sand);
 }
 
@@ -1210,8 +1192,8 @@ textarea.input {
 /* ---------------------------------------------------------------------------
    Moving between pages: the browser's own view transition, page to page with
    no script. The page leaves to the left and the next one comes in from the
-   right, the way the trucks drive. The header and the sample-data strip are
-   captured on their own, so they stay put instead of sliding with the page.
+   right, the way the trucks drive. The header is captured on its own, so it
+   stays put instead of sliding with the page.
    A browser without view transitions just opens the next page; for reduced
    motion there is no transition at all.
 
@@ -1221,11 +1203,7 @@ textarea.input {
 .site-header {
   view-transition-name: site-header;
 }
-.probka {
-  view-transition-name: probka;
-}
-html[data-galeria] .site-header,
-html[data-galeria] .probka {
+html[data-galeria] .site-header {
   view-transition-name: none;
 }
 html[data-galeria] .lightbox img {
@@ -1245,16 +1223,13 @@ html[data-galeria] .lightbox img {
   }
   /* The new header simply replaces the old one, in its new place: no
      cross-fade, and no glide from where it stood on a scrolled page. */
-  ::view-transition-group(site-header),
-  ::view-transition-group(probka) {
+  ::view-transition-group(site-header) {
     animation: none;
   }
-  ::view-transition-old(site-header),
-  ::view-transition-old(probka) {
+  ::view-transition-old(site-header) {
     display: none;
   }
-  ::view-transition-new(site-header),
-  ::view-transition-new(probka) {
+  ::view-transition-new(site-header) {
     animation: none;
   }
 

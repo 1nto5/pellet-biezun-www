@@ -11,9 +11,11 @@
  *
  * `action` is the Pages Function that will receive the form. Until
  * `formularzeWlaczone` is on, the script below stops the submit once the
- * browser has checked the fields, and says the form does not send yet.
+ * browser has checked the fields and gives the phone number instead, so a
+ * reader never takes an unsent form for a sent one.
  */
 import { formularzeWlaczone } from "../data/strona";
+import { firma } from "../data/firma";
 import { strony } from "../data/nav";
 import { href } from "../lib/url";
 
@@ -49,21 +51,22 @@ const { action, submitLabel, purpose } = Astro.props;
   {/* Stage 3: the Turnstile widget renders here. */}
   <div data-turnstile></div>
 
-  {
-    !formularzeWlaczone && (
-      <p class="form-note text-sm">
-        Wersja robocza: formularz jeszcze nie wysyła danych. Możesz sprawdzić pola, ale nic nie
-        zostanie wysłane.
-      </p>
-    )
-  }
-
   <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
     <button type="submit" class="btn btn-primary">{submitLabel}</button>
     <p class="text-sm text-ink-soft"><span class="req">*</span> pole wymagane</p>
   </div>
 
   <p class="form-status font-semibold" role="status" data-form-status></p>
+
+  {
+    // TODO(produkcja): goes with formularzeWlaczone once the forms send (stage 3).
+    !formularzeWlaczone && (
+      <template data-form-nie-wysyla>
+        Formularz chwilowo nie wysyła wiadomości. Zadzwoń:
+        <a href={firma.phone.href}>{firma.phone.label}</a>.
+      </template>
+    )
+  }
 </form>
 
 <script>
@@ -74,10 +77,8 @@ const { action, submitLabel, purpose } = Astro.props;
     form.addEventListener("submit", (event) => {
       event.preventDefault();
       const status = form.querySelector("[data-form-status]");
-      if (status) {
-        status.textContent =
-          "Formularz wypełniony poprawnie. W wersji roboczej nie jest jeszcze wysyłany.";
-      }
+      const message = form.querySelector<HTMLTemplateElement>("template[data-form-nie-wysyla]");
+      if (status && message) status.replaceChildren(message.content.cloneNode(true));
     });
   }
 </script>

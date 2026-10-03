@@ -3,9 +3,10 @@
  * llms.txt. The same name, address and phone everywhere is what local search
  * checks, so nothing here is ever retyped on a page.
  *
- * Name, address, coordinates and phone are the client's. The values still
- * marked PRZYKŁAD (legal name, NIP, e-mail, hours) are made up or unconfirmed
- * until the client sends the real ones.
+ * Name, address, coordinates and phone are the client's. What is not known or
+ * not confirmed yet is marked TODO(produkcja). A value that is not known is
+ * left out (undefined), and the pages show nothing in its place rather than a
+ * made-up one.
  * `href` of a phone is never written by hand: `phone()` builds it from the label.
  */
 import type { Geo } from "../lib/geo";
@@ -41,8 +42,11 @@ export const firma = {
   /** The name as customers know it: header, titles, map pin. */
   name: "Pellet Bieżuń",
   /** The registered name, for the privacy policy and the footer. */
-  legalName: "Anna Bruzda Sprzedaż Hurtowa i Detaliczna", // PRZYKŁAD: the name on OLX, not confirmed as the registered one
-  nip: "000-000-00-00", // PRZYKŁAD
+  // TODO(produkcja): the name on OLX; confirm it is the registered one.
+  legalName: "Anna Bruzda Sprzedaż Hurtowa i Detaliczna",
+  /** The tax number, after the registered name; shown only once known. */
+  // TODO(produkcja): the client's NIP, written "123-456-78-90".
+  nip: undefined as string | undefined,
   description:
     "Sprzedaż certyfikowanego pelletu drzewnego w workach 15 kg na paletach. Magazyn we Władysławowie pod Bieżuniem, dostawa gratis w promieniu ok. 80 km.",
   address: {
@@ -55,9 +59,11 @@ export const firma = {
   /** The warehouse's pin on the map and the point delivery distances are measured from. */
   geo: { lat: 52.9281292, lng: 19.8770384 } satisfies Geo,
   phone: phone("792 360 360"),
-  email: "kontakt@pelletbiezun.pl", // PRZYKŁAD
-  // From the company's Google Business Profile (2026-10-01); the client has
-  // not confirmed them yet.
+  /** Shown with the phone, in the JSON-LD and llms.txt; only once there is one. */
+  // TODO(produkcja): an address that works, e.g. kontakt@ on the site's domain once it is bought.
+  email: undefined as string | undefined,
+  // From the company's Google Business Profile (2026-10-01).
+  // TODO(produkcja): confirm the hours with the client.
   hours: [
     { label: "Poniedziałek–piątek", days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], opens: "07:00", closes: "17:00" },
     { label: "Sobota", days: ["Saturday"], opens: "07:00", closes: "14:00" },
