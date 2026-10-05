@@ -6,11 +6,12 @@
    still frame. With scripts and motion allowed, the drive follows the
    scroll, both ways:
 
-   - On a wide landscape screen: one sticky stage with the stops' texts on
-     top of each other, and a spacer after it that gives the scroll length.
+   - On a wide landscape screen: one sticky stage with the stops on top of
+     each other in the sky above the scene, one showing at a time (the
+     heading over the content), and a spacer after it
+     that gives the scroll length.
    - Elsewhere, phones above all: one scene pinned under the header, and
-     the stops' texts scrolling under it, each held just below it while its
-     part of the drive plays.
+     the stops scrolling freely under it in one column.
 
    In both the drive moves only transforms and opacity, played up to the
    scroll's moment by the browser itself (jazda.ts): restyling the scene on
@@ -333,7 +334,9 @@
 
 /* ---- The stops' texts --------------------------------------------------- */
 
-.stop h3 {
+/* The stop's content (the page's slot) is styled by the page; here only
+   where it stands. */
+.stop h2 {
   font-size: 1.6rem;
   line-height: 1.1;
 }
@@ -343,8 +346,8 @@
   display: inline-flex;
   flex-direction: column;
   align-items: center;
+  flex: none;
   min-width: 2.6rem;
-  margin-bottom: 0.6rem;
   padding: 0 0.35rem 0.2rem;
   border: 2px solid var(--color-black);
   border-top-width: 0;
@@ -365,45 +368,11 @@
   font-size: 0.7rem;
   text-align: center;
 }
-.stop-opis {
-  margin-top: 0.4rem;
-}
-.stop-miasta {
+/* The km post and the heading in one row. */
+.stop-tekst {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.15rem 1rem;
-  margin-top: 0.4rem;
-  font-weight: 600;
-}
-.stop-miasta span {
-  font-weight: 400;
-  color: var(--color-ink-soft);
-}
-/* The order button and the phone under the last stop, for the reader who
-   has followed the drive to its end. The phone is set like the hero's. */
-.stop-akcje {
-  display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 0.75rem 1.5rem;
-  margin-top: 1rem;
-}
-.stop-telefon {
-  display: inline-flex;
-  align-items: center;
-  min-height: 2.45rem;
-  color: var(--color-black);
-  font-size: 1.3rem;
-  font-weight: 900;
-  letter-spacing: -0.01em;
-  text-decoration-line: underline;
-  text-decoration-color: var(--color-yellow);
-  text-decoration-thickness: 0.2rem;
-  text-underline-offset: 0.2em;
-}
-.stop-telefon:hover {
-  color: var(--color-black);
-  text-decoration-thickness: 0.3rem;
+  gap: 0.9rem;
 }
 
 /* ---- Static: the stops one under another ------------------------------- */
@@ -433,6 +402,7 @@
   max-width: var(--container-6xl);
   padding-inline: 1rem;
 }
+/* The still frame first, then the text and the content. */
 .stop {
   display: grid;
   gap: 1rem;
@@ -457,32 +427,39 @@
     --zoom-max: 1.5;
   }
 }
+/* Wider: the text beside its frame, the content across both under them. */
 @media (min-width: 56rem) {
   .stop {
     grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    grid-template-areas:
+      "tekst kadr"
+      "tresc tresc";
     align-items: end;
-    gap: 2rem;
+    gap: 1.5rem 2rem;
+  }
+  .stop-tekst {
+    grid-area: tekst;
+  }
+  .stop-tresc {
+    grid-area: tresc;
   }
   .stop .kadr {
-    order: 0;
-  }
-  .stop:not(:has(.kadr)) .stop-tekst {
-    grid-column: 1;
+    grid-area: kadr;
   }
 }
 
-/* ---- Pinned: one scene under the header, the texts scrolling under it -- */
+/* ---- Pinned: one scene under the header, the stops scrolling under it -- */
 
 /* Only where the window is tall enough for the scene and a stop's text
-   under it; a lower one (a phone on its side) gets the still frames. */
-@media screen and (prefers-reduced-motion: no-preference) and ((width < 64rem) or (orientation: portrait)) and (min-height: 30rem) {
+   under it; a lower one (a phone on its side) gets the still frames. A wide
+   window under 38rem gets this one too: the live stage would have to draw
+   the scene too small to leave a stop's content room above it. */
+@media screen and (prefers-reduced-motion: no-preference) and ((width < 64rem) or (orientation: portrait) or (height < 38rem)) and (min-height: 30rem) {
   html[data-js] .podroz {
     --droga: przypieta;
     /* The scene's height: just tall enough for the direction boards high on
        their posts, and never more than 40% of the window. */
     --scena-h: min(100vw * 4 / 9, 40svh);
-    /* Scroll for the whole drive, shared out among the stops. */
-    --dlugosc: 260svh;
   }
   /* The scene's sky is its own space above the road: it comes straight
      under the hero. */
@@ -491,7 +468,7 @@
   }
   /* The scene's track: the scene stays pinned while the track goes by. As
      tall as the scene and its pinned stretch (`--tor`, set by the script so
-     the scene leaves together with the last text), the stops pulled back up
+     the scene leaves together with the last stop), the stops pulled back up
      under it by as much. */
   html[data-js] .droga-tor {
     display: block;
@@ -528,7 +505,7 @@
   html[data-js] .droga-scena .w-tablica {
     will-change: opacity;
   }
-  /* A text going under the scene fades out on its way. */
+  /* A stop going under the scene fades out on its way. */
   html[data-js] .droga-scena::after {
     content: "";
     position: absolute;
@@ -538,9 +515,8 @@
     background: linear-gradient(var(--color-white), rgb(255 255 255 / 0));
     pointer-events: none;
   }
-  /* The scene shows every stop, so the stops are text alone. Each is as long
-     as its share of the drive, and its text stays under the scene until the
-     next one pushes it away. */
+  /* The scene shows every stop, so the stops are text and content alone, in
+     one column, as long as their content. */
   html[data-js] .kadr {
     display: none;
   }
@@ -549,26 +525,21 @@
   }
   html[data-js] .stop {
     display: block;
-    min-height: calc(var(--udzial) * var(--dlugosc));
     padding-bottom: 2.5rem;
   }
-  html[data-js] .stop-tekst {
-    position: sticky;
-    top: calc(var(--header-height) + var(--scena-h) + 1rem);
-    max-width: 40rem;
+  html[data-js] .stop-tresc {
+    margin-top: 1.25rem;
+  }
+  /* What the focus moves to stops clear of the pinned scene, not under it. */
+  html[data-js] .stop * {
+    scroll-margin-top: calc(var(--header-height) + var(--scena-h) + 1.5rem);
   }
   /* Set like the live drive's texts, at a phone's size. */
-  html[data-js] .stop h3 {
+  html[data-js] .stop h2 {
     font-size: clamp(1.6rem, 5vw, 2.6rem);
     font-weight: 900;
     line-height: 1;
     letter-spacing: -0.03em;
-  }
-  html[data-js] .stop-opis {
-    margin-top: 0.6rem;
-    font-size: clamp(1rem, 2.6vw, 1.2rem);
-    font-weight: 500;
-    line-height: 1.35;
   }
   html[data-js] .licznik {
     top: 0.5rem;
@@ -597,7 +568,7 @@
 
 /* ---- Live: one sticky stage, scrubbed by the scroll ---------------------- */
 
-@media screen and (prefers-reduced-motion: no-preference) and (min-width: 64rem) and (orientation: landscape) {
+@media screen and (prefers-reduced-motion: no-preference) and (min-width: 64rem) and (orientation: landscape) and (min-height: 38rem) {
   html[data-js] .podroz {
     --droga: live;
     position: relative;
@@ -643,67 +614,71 @@
   html[data-js] .droga-scena .w-tablica {
     will-change: opacity;
   }
+  /* A window's height of scroll for each stop (Droga.astro): `--dlugosc`
+     from the script, the same by the stops' count until it runs. */
   html[data-js] .droga-dystans {
     display: block;
-    height: 380vh;
+    height: var(--dlugosc, calc(var(--odcinki) * 100vh));
   }
   html[data-js] .kadr {
     display: none;
   }
+  /* The stops in the sky above the scene, inside the page's width (as
+     `page-wrap`: the static version's `max-width` and this gutter). The
+     gap above them is padding, so the stops' height the script measures
+     for the scene's size (`zDrive`) includes it; it leaves room for the
+     sticker over the products' frame (index.astro). */
   html[data-js] .stopy {
     position: absolute;
-    top: clamp(0.75rem, 3svh, 2rem);
+    top: 0;
     left: 0;
     right: 0;
     display: grid;
-    padding-inline: 2rem;
+    padding: clamp(2rem, 6svh, 3rem) 2rem 0;
     pointer-events: none;
   }
-  /* One stop's text at a time: the old one fades out, then the new one in,
-     so an old text never shows under the new. Hidden with opacity, not
-     visibility, so screen readers still get the whole story. */
+  /* One stop at a time: the old one fades out, then the new one in, so an
+     old stop never shows under the new. Hidden with opacity, not
+     visibility, so screen readers still get the whole story and the links
+     of a stop not on show can still take the focus (the script then
+     scrolls to it). The heading over the content, both across the page's
+     width: with no paragraph to set beside it, a column for the heading
+     only made the stop taller. */
   html[data-js] .stop {
     grid-area: 1 / 1;
-    display: block;
-    max-width: 44rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "tekst"
+      "tresc";
+    align-items: start;
+    gap: 1rem;
     opacity: 0;
     transition: opacity 0.15s;
   }
-  /* The new text comes in once the old one is out, so the two never show
-     on top of each other. */
+  /* The new stop comes in once the old one is out, so the two never show
+     on top of each other. The stops let clicks through to the page, all
+     but the one on show. */
   html[data-js] .stop.is-active {
     opacity: 1;
+    pointer-events: auto;
     transition-delay: 0.12s;
   }
-  html[data-js] .stop h3 {
-    font-size: clamp(1.8rem, 3.4vw, 3.4rem);
+  html[data-js] .stop h2 {
+    font-size: clamp(1.8rem, 3vw, 2.6rem);
     font-weight: 900;
-    line-height: 1;
-    letter-spacing: -0.03em;
+    line-height: 1.02;
+    letter-spacing: -0.02em;
   }
-  html[data-js] .stop-opis {
-    margin-top: 0.6rem;
-    max-width: 36rem;
-    font-size: clamp(1.05rem, 1.35vw, 1.3rem);
-    font-weight: 500;
-    line-height: 1.35;
-  }
-  /* The boards in the scene show the towns; the list is for the static version. */
-  html[data-js] .stop-miasta {
-    display: none;
-  }
-  /* The texts let clicks through to the page, all but the shown stop's
-     buttons; a hidden stop's buttons cannot take the focus either. */
-  html[data-js] .stop.is-active .stop-akcje {
-    pointer-events: auto;
-  }
-  html[data-js] .stop:not(.is-active) .stop-akcje {
-    visibility: hidden;
-  }
-  @media (min-width: 72rem) {
-    html[data-js] .stopy {
-      padding-inline: max(2rem, calc((100% - var(--container-6xl)) / 2 + 2rem));
-    }
+  /* The odometer moves to the scene's bottom left corner, on the road:
+     the top right is the stops' content. A white ring keeps it apart from
+     the asphalt. */
+  html[data-js] .licznik {
+    top: auto;
+    right: auto;
+    bottom: 1rem;
+    left: 1rem;
+    box-shadow: 0 0 0 0.15rem var(--color-white);
   }
 }
 

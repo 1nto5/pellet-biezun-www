@@ -9,54 +9,7 @@ import { firma, firmaId, addressLine } from "../data/firma";
 import { orderLink, strony } from "../data/nav";
 import { produkty, cenyLabel, cenaWorkaLabel, paletaLabel, cenyZDnia } from "../data/oferta";
 import { DARMOWA_DOSTAWA_KM } from "../data/miejsca";
-import fotoIveco from "../assets/flota/iveco.png";
-import fotoVolvoFm from "../assets/flota/volvo-fm.png";
-import fotoVolvoFh from "../assets/flota/volvo-fh.png";
-import fotoVolvoFhNaczepa from "../assets/flota/volvo-fh-naczepa.png";
-
-/**
- * The fleet, each truck with a tail lift and an electric pallet truck.
- * `min`–`max` is how many pallets it takes; the row of blocks draws it, the
- * sentence says it. The two Iveco Daily are the same, so one photo shows both.
- *
- * The photos are the client's side views, cut out and levelled. `m` is the
- * vehicle's approximate length, so the trucks are drawn to one scale.
- */
-const flota = [
-  {
-    opis: "2 × Iveco Daily 7,2 t z windą: do 4 palet, także na ciasne dojazdy",
-    min: 4,
-    max: 4,
-    m: 7,
-    zdjecie: fotoIveco,
-    alt: "Iveco Daily z czarną zabudową PELLET, z boku",
-  },
-  {
-    opis: "Volvo FM 26 t z windą: 12–14 palet",
-    min: 12,
-    max: 14,
-    m: 10,
-    zdjecie: fotoVolvoFm,
-    alt: "Czerwone Volvo FM z białą zabudową PELLET, z boku",
-  },
-  {
-    opis: "Volvo FH z windą: 14–16 palet",
-    min: 14,
-    max: 16,
-    m: 10,
-    zdjecie: fotoVolvoFh,
-    alt: "Czerwone Volvo FH z białą zabudową PELLET, z boku",
-  },
-  {
-    opis: "Volvo FH16 z naczepą kurtynową (firanką): 26 palet",
-    min: 26,
-    max: 26,
-    m: 16.5,
-    zdjecie: fotoVolvoFhNaczepa,
-    alt: "Czerwony ciągnik Volvo FH16 z czarną naczepą kurtynową, z boku",
-  },
-];
-const najdluzszy = Math.max(...flota.map((f) => f.m));
+import { flota, najdluzszy, szczegolyLabel } from "../data/flota";
 
 /**
  * Each product with its pallet price, for search results. No brand: the
@@ -185,7 +138,7 @@ const produktyLd = await Promise.all(
         <p>Dowozimy własnymi samochodami. Każdy ma elektryczny wózek paletowy:</p>
       </div>
 
-      <ul role="list" class="flota mt-6" data-ruch-grupa="auto">
+      <ul role="list" id="flota" class="flota mt-6" data-ruch-grupa="auto">
         {
           flota.map((f) => (
             <li class="flota-auto">
@@ -201,7 +154,8 @@ const produktyLd = await Promise.all(
                 </span>
               </span>
               <div>
-                <p class="font-semibold">{f.opis}</p>
+                <p class="font-bold">{f.model}</p>
+                <p class="text-sm text-ink-soft">{szczegolyLabel(f)}</p>
                 <div class="flota-palety" aria-hidden="true" data-ruch-grupa="paleta">
                   {Array.from({ length: f.max }, (_, k) => (
                     <span class:list={[k >= f.min && "flota-moze"]} />

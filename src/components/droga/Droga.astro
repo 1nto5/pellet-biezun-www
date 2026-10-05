@@ -2,50 +2,54 @@
 /**
  * The drive on the home page: the truck leaves the hall, drives past the
  * direction boards and delivers to a customer's house inside the free zone,
- * with the end-of-zone sign ahead, while the reader scrolls.
+ * with the end-of-zone sign ahead, while the reader scrolls. It carries the
+ * page's content: one stop per screen, each with a heading and what the
+ * page has to say there (the products at the hall, the fleet on the road,
+ * the towns, the delivery terms, the order). The content comes from the page
+ * as a named slot per stop, so its markup and styles stay with the page.
  *
  * Built so the page is complete without it moving. The HTML holds every stop
- * as text, most with a still frame of the scene, which is all a reader who
- * asked for reduced motion or has no scripts gets. Otherwise the CSS in
- * `droga.css` picks one of two ways to move (both known before the first
- * paint), and the script below follows it. Both are tied to the scroll: the
- * same scroll position always shows the same frame.
+ * with its heading, its content and a still frame of the scene, which is all a
+ * reader who asked for reduced motion or has no scripts gets. Otherwise the
+ * CSS in `droga.css` picks one of two ways to move (both known before the
+ * first paint), and the script below follows it. Both are tied to the
+ * scroll: the same scroll position always shows the same frame.
  *
  * - On a wide landscape screen, one sticky stage with the scroll length
- *   reserved under it, the stops' texts one at a time on top of the scene.
+ *   reserved under it, one stop at a time in the sky above the scene: the
+ *   heading over the content, across the page's width. Each stop gets the same
+ *   stretch of scroll, whatever its share of the drive's clock, so a stop
+ *   with a lot to read stays as long as one with little.
  * - Elsewhere, phones above all, one scene pinned under the header with the
- *   stops' texts scrolling under it, each held below the scene for as long
- *   as its part of the drive takes (`--udzial`).
+ *   stops scrolling freely under it, the drive reaching each stop's moment
+ *   as the stop comes up to the scene.
  *
  * In both the scroll only sets the moment the scene should show, and its
  * animations play there by themselves (`jazda.ts`): they move nothing but
  * transforms, so they stay smooth on an iPhone and never shift the page's
  * layout.
  *
- * The last stop carries the order button and the phone: the reader who has
- * followed the delivery to the garage is the one ready to order.
+ * The last stop carries the order: the reader who has followed the delivery
+ * to the garage is the one ready to order.
  *
- * The slot is the hero. It sits in the same box as the stage, so the stage
- * can stand behind it from the first screen: the road starts under the hero.
+ * The default slot is the hero. It sits in the same box as the stage, so the
+ * stage can stand behind it from the first screen: the road starts under the
+ * hero.
  */
 import "./droga.css";
 import Scena from "./Scena.astro";
-import Button from "../Button.astro";
-import { firma } from "../../data/firma";
-import { orderLink } from "../../data/nav";
-import { DARMOWA_DOSTAWA_KM } from "../../data/miejsca";
-import { start, czasKm, CZAS, KM_DOJAZD, type Stan } from "./trasa";
-import { tablice, miastaWStrefie, kadry } from "./tablice";
+import { start, stanAt, czasKm, CZAS, KM_DOJAZD, type Stan } from "./trasa";
+import { tablice, kadry } from "./tablice";
 
 interface Stop {
+  /** Also the name of the page's slot with the stop's content. */
   id: string;
-  /** The km post beside the heading; the stop between posts has none. */
+  /** The km post beside the heading; the stop at the customer's has none, the scene says "delivered". */
   km?: number;
-  /** When the stop's text shows on the 0–100 clock. */
+  /** When the stop starts on the 0–100 clock. */
   od: number;
   tytul: string;
-  tekst: string;
-  kadr?: Stan;
+  kadr: Stan;
 }
 
 const pierwsza = tablice[0]!;
@@ -55,22 +59,22 @@ const stopy: Stop[] = [
     id: "zaladunek",
     km: 0,
     od: 0,
-    tytul: `Załadunek: ${firma.address.street}`,
-    tekst: "Pellet czeka w hali we Władysławowie pod Bieżuniem. Stąd ładujemy palety na auta.",
+    tytul: "Załadunek",
     kadr: kadry.zaladunek,
   },
   {
     id: "w-drodze",
+    km: 3,
     od: CZAS.odjazd,
     tytul: "W drodze",
-    tekst: "Dowozimy własnymi samochodami: od Iveco na 4 palety po ciężarówkę z naczepą na 26 palet. Każdy ma elektryczny wózek paletowy, a Iveco i solówki Volvo także windę.",
+    // Up to speed, the hall going out of sight behind.
+    kadr: stanAt(CZAS.rozped),
   },
   {
     id: "miasta",
     km: pierwsza.naDrodze,
     od: czasKm(pierwsza.naDrodze) - 3,
     tytul: "Miasta po drodze",
-    tekst: "Drogowskazy pokazują miasta, do których dowozimy, i ich odległość od magazynu po drogach.",
     kadr: kadry.tablice,
   },
   {
@@ -78,29 +82,22 @@ const stopy: Stop[] = [
     km: KM_DOJAZD,
     // From the moment the house comes into view.
     od: czasKm(KM_DOJAZD - 20),
-    tytul: "Na miejscu, w strefie darmowej dostawy",
-    tekst: `Do ok. ${DARMOWA_DOSTAWA_KM} km dowozimy gratis, dalej po uzgodnieniu.`,
+    tytul: "Na miejscu",
     kadr: kadry.naMiejscu,
   },
   {
-    id: "rozladunek",
+    id: "dostarczone",
     od: CZAS.postoj,
-    tytul: "Rozładunek",
-    tekst: "Paletę zdejmujemy windą i podwozimy elektrycznym wózkiem paletowym.",
+    tytul: "Zamówienie",
     kadr: kadry.rozladunek,
   },
 ];
-
-/** The stop's share of the drive, from its moment to the next stop's or the end. */
-const udzial = (i: number) => Math.round(((stopy[i + 1]?.od ?? 100) - stopy[i]!.od) * 100) / 10000;
 ---
 
 <div class="podroz" data-podroz>
   <slot />
 
-  <section class="droga" aria-labelledby="droga-tytul" data-droga>
-    <h2 id="droga-tytul" class="sr-only">Jak pellet jedzie do klienta</h2>
-
+  <section class="droga" aria-label="Jak pellet jedzie do klienta" data-droga>
     <div class="droga-tor" data-droga-tor>
       <div class="droga-scena" data-droga-scena>
         <Scena stan={start} live />
@@ -108,49 +105,31 @@ const udzial = (i: number) => Math.round(((stopy[i + 1]?.od ?? 100) - stopy[i]!.
       </div>
     </div>
 
-    <ol class="stopy" role="list">
+    <ol class="stopy" role="list" data-stopy>
       {
-        stopy.map((s, i) => (
-          <li class="stop" data-stop data-od={s.od} style={`--udzial:${udzial(i)}`}>
+        stopy.map((s) => (
+          <li class="stop" data-stop data-od={s.od}>
             <div class="stop-tekst">
               {s.km !== undefined && (
                 <p class="slupek">
                   <span>km</span> {s.km}
                 </p>
               )}
-              <h3>{s.tytul}</h3>
-              <p class="stop-opis">{s.tekst}</p>
-              {s.id === "rozladunek" && (
-                <div class="stop-akcje">
-                  <Button href={orderLink.href}>{orderLink.label}</Button>
-                  <a href={firma.phone.href} class="stop-telefon">
-                    <span class="sr-only">Zadzwoń: </span>
-                    {firma.phone.label}
-                  </a>
-                </div>
-              )}
-              {s.id === "miasta" && (
-                <ul class="stop-miasta" role="list">
-                  {miastaWStrefie.map((m) => (
-                    <li>
-                      {m.nazwa} <span>{m.km} km</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <h2>{s.tytul}</h2>
             </div>
-            {s.kadr && (
-              <div class="kadr">
-                <Scena stan={s.kadr} />
-              </div>
-            )}
+            <div class="stop-tresc">
+              <slot name={s.id} />
+            </div>
+            <div class="kadr">
+              <Scena stan={s.kadr} />
+            </div>
           </li>
         ))
       }
     </ol>
   </section>
 
-  <div class="droga-dystans" data-dystans data-ruch-start aria-hidden="true"></div>
+  <div class="droga-dystans" data-dystans data-ruch-start aria-hidden="true" style={`--odcinki:${stopy.length}`}></div>
 </div>
 
 <script>
@@ -165,10 +144,10 @@ const udzial = (i: number) => Math.round(((stopy[i + 1]?.od ?? 100) - stopy[i]!.
   const tor = podroz?.querySelector<HTMLElement>("[data-droga-tor]");
   const pudelko = podroz?.querySelector<HTMLElement>("[data-droga-scena]");
   const licznik = podroz?.querySelector<HTMLElement>("[data-licznik]");
+  const lista = podroz?.querySelector<HTMLElement>("[data-stopy]");
   const stopy = [...(podroz?.querySelectorAll<HTMLElement>("[data-stop]") ?? [])];
-  const teksty = stopy.map((s) => s.querySelector<HTMLElement>(".stop-tekst"));
 
-  if (podroz && hero && droga && scena && rig && dystans && tor && pudelko && licznik && stopy.length && teksty.every((t) => t)) {
+  if (podroz && hero && droga && scena && rig && dystans && tor && pudelko && licznik && lista && stopy.length) {
     // The CSS decides which version shows and names it in `--droga`
     // (droga.css). A turned tablet or a resized window can switch between
     // them, so this is asked again on every refresh, and only then: asking
@@ -180,86 +159,13 @@ const udzial = (i: number) => Math.round(((stopy[i + 1]?.od ?? 100) - stopy[i]!.
     const clamp = (x: number) => Math.min(1, Math.max(0, x));
     const od = stopy.map((s) => Number(s.dataset.od));
 
-    // The stage is sticky in CSS; the drive runs over the spacer after it,
-    // from the spacer's top reaching the bottom of the window (the stage has
-    // then come fully under the header) to its bottom reaching it. Measured
-    // on load, resize and layout changes, never while scrolling.
-    let driveStart = 1;
-    let driveEnd = 2;
-    // While the hero is on screen the scene is drawn smaller, so the hall
-    // and the truck fit under the hero; it grows to full size as the hero
-    // scrolls away. A scale about the scene's bottom centre, as a transform:
-    // drawn smaller by its layout, the scene moved the page's layout on
-    // every scroll step (layout shift). The camera's own zoom is the
-    // scene's `transform`; this is its `scale` and `translate`, which the
-    // browser applies on top, so it is written about the camera's origin
-    // (`transform-origin` in droga.css) and moved back to the centre.
-    let z0 = 1;
-    let u1 = 1;
-    let szerokosc = 1;
-    let shownZ = -1;
-
-    const measure = () => {
-      const top = dystans.getBoundingClientRect().top + window.scrollY;
-      driveStart = Math.max(1, top - window.innerHeight);
-      driveEnd = Math.max(driveStart + 1, top + dystans.offsetHeight - window.innerHeight);
-
-      szerokosc = scena.clientWidth;
-      u1 = rig.offsetWidth / 60;
-      // The tallest thing at the start, the hall, reaches 34 units up.
-      const room = droga.clientHeight - hero.offsetHeight - 12;
-      z0 = Math.min(1, Math.max(0.35, room / (34 * u1)));
-      shownZ = -1;
-    };
-    const pomniejsz = (z: number) => {
-      if (z === shownZ) return;
-      scena.style.scale = String(z);
-      scena.style.translate = `${Math.round((1 - z) * (11 * u1 - szerokosc / 2) * 100) / 100}px 0`;
-      shownZ = z;
-    };
-
-    // The scroll position sets the moment of the drive; the scene plays
-    // there by itself (jazda.ts), the stop's text and the size follow the
-    // scroll at once.
-    let shownStop = -2;
-    const render = () => {
-      const y = window.scrollY;
-      pomniejsz(Math.round((z0 + (1 - z0) * clamp(y / driveStart)) * 1000) / 1000);
-      const t = 100 * clamp((y - driveStart) / (driveEnd - driveStart));
-      jazda?.jedz(t);
-
-      const index = y < driveStart + 2 ? -1 : od.findLastIndex((o) => t >= o);
-      if (index !== shownStop) {
-        stopy.forEach((s, i) => s.classList.toggle("is-active", i === index));
-        podroz.classList.toggle("is-driving", index >= 0);
-        shownStop = index;
-      }
-    };
-    const chwilaLive = () => 100 * clamp((window.scrollY - driveStart) / (driveEnd - driveStart));
-
-    // Pinned (droga.css): each stop's text is held under the scene, at its
-    // sticky `top`, while its part of the drive plays. The drive reaches a
-    // stop's moment as the stop's top comes to that line, and its end as the
-    // last text is about to be pushed away by the end of the drive. The axis
-    // holds those pairs of a scroll position and a moment, both growing;
-    // between two of them the drive moves evenly with the scroll.
+    // Both versions map the scroll to the drive's moment along an axis:
+    // pairs of a scroll position and a moment, both growing, one pair where
+    // each stop starts and one where the drive ends. Between two of them the
+    // drive moves evenly with the scroll. Measured on load, resize and
+    // layout changes, never while scrolling.
     type Os = [y: number, t: number][];
     let os: Os = [[0, 0]];
-    const zmierzOs = (): Os => {
-      const linia = parseFloat(getComputedStyle(teksty[0]!).top);
-      const y = window.scrollY - linia;
-      const os: Os = stopy.map((s, i) => [Math.round(s.getBoundingClientRect().top + y), od[i]!]);
-      const ostatni = stopy.at(-1)!;
-      const koniec = ostatni.getBoundingClientRect().bottom - parseFloat(getComputedStyle(ostatni).paddingBottom) - teksty.at(-1)!.offsetHeight;
-      os.push([Math.max(os.at(-1)![0], Math.round(koniec + y)), 100]);
-
-      // The scene stays pinned through its track (`--tor`, droga.css) and
-      // leaves as the drive ends, when the last text starts to go too: they
-      // scroll away together, the order button never cut by the scene.
-      const torOd = tor.getBoundingClientRect().top + window.scrollY - parseFloat(getComputedStyle(pudelko).top);
-      tor.style.setProperty("--tor", `${Math.max(0, Math.round(os.at(-1)![0] - torOd))}px`);
-      return os;
-    };
     const chwila = (y: number): number => {
       if (y <= os[0]![0]) return os[0]![1];
       for (let i = 1; i < os.length; i++) {
@@ -270,6 +176,136 @@ const udzial = (i: number) => Math.round(((stopy[i + 1]?.od ?? 100) - stopy[i]!.
         }
       }
       return os.at(-1)![1];
+    };
+
+    // Live: the stage is sticky in CSS; the drive runs over the spacer after
+    // it, from the spacer's top reaching the bottom of the window (the stage
+    // has then come fully under the header). The spacer is cut into one
+    // stretch per stop, a window's height each: the stop shows for the whole
+    // stretch while the drive goes from its moment to the next stop's. Read
+    // by its clock alone, the products would show only while the truck
+    // stands at the hall, a few steps of the wheel.
+    const ODCINEK = 1;
+    let driveStart = 1;
+    // While the hero is on screen the scene is drawn smaller, so the hall
+    // and the truck fit under the hero; it grows as the hero scrolls away,
+    // to the size that leaves the stops' content room above it (`zDrive`),
+    // and keeps that size for the whole drive. A scale about the scene's
+    // bottom centre, as a transform: drawn smaller by its layout, the scene
+    // moved the page's layout on every scroll step (layout shift). The
+    // camera's own zoom is the scene's `transform`; this is its `scale` and
+    // `translate`, which the browser applies on top, so it is written about
+    // the camera's origin (`transform-origin` in droga.css) and moved back
+    // to the centre.
+    let z0 = 1;
+    let zDrive = 1;
+    let u1 = 1;
+    let szerokosc = 1;
+    let shownZ = -1;
+
+    const measure = () => {
+      const odcinek = Math.round(ODCINEK * window.innerHeight);
+      const dlugosc = `${odcinek * stopy.length}px`;
+      // Only a real change: the spacer's height resizes the box the
+      // ResizeObserver below watches.
+      if (dystans.style.getPropertyValue("--dlugosc") !== dlugosc) dystans.style.setProperty("--dlugosc", dlugosc);
+      const top = dystans.getBoundingClientRect().top + window.scrollY;
+      driveStart = Math.max(1, top - window.innerHeight);
+      os = stopy.map((_s, i): [number, number] => [driveStart + i * odcinek, od[i]!]);
+      os.push([driveStart + stopy.length * odcinek, 100]);
+
+      szerokosc = scena.clientWidth;
+      u1 = rig.offsetWidth / 60;
+      // The tallest thing at the start, the hall, reaches 34 units up: it
+      // has to fit under the hero.
+      const room = droga.clientHeight - hero.offsetHeight - 12;
+      z0 = Math.min(1, Math.max(0.35, room / (34 * u1)));
+      // During the drive the direction boards, high on their posts, and the
+      // end-of-zone sign stand taller than the hall: sized for the hall
+      // alone, the boards covered the towns' list on a laptop's screen. So
+      // the drive's one size is set by the tallest of them, read from the
+      // layout (transforms left out) in units of the scene at full size. At
+      // the customer's the camera closes in (`--zoom-max`, as in jazda.ts),
+      // which lifts the boards behind the house into the last stop.
+      const wysokosc = Math.max(
+        34,
+        ...[...scena.querySelectorAll<HTMLElement>(".w-hala, .w-tablica, .w-koniec")].map((el) => (scena.clientHeight - el.offsetTop) / u1),
+      );
+      const zoomMax = parseFloat(getComputedStyle(scena).getPropertyValue("--zoom-max")) || 1.4;
+      const ostatni = parseFloat(getComputedStyle(lista).paddingTop) + stopy.at(-1)!.offsetHeight;
+      const zmiesci = Math.min(
+        (droga.clientHeight - lista.offsetHeight - 12) / (wysokosc * u1),
+        (droga.clientHeight - ostatni - 12) / (wysokosc * zoomMax * u1),
+      );
+      zDrive = Math.min(1, Math.max(0.35, zmiesci));
+      shownZ = -1;
+    };
+    const pomniejsz = (z: number) => {
+      if (z === shownZ) return;
+      scena.style.scale = String(z);
+      scena.style.translate = `${Math.round((1 - z) * (11 * u1 - szerokosc / 2) * 100) / 100}px 0`;
+      shownZ = z;
+    };
+
+    // The scroll position sets the moment of the drive; the scene plays
+    // there by itself (jazda.ts), the stop and the size follow the scroll at
+    // once. The stop is the one whose stretch the scroll is in.
+    let shownStop = -2;
+    const stopLive = (y: number) => (y < os[0]![0] + 2 ? -1 : Math.min(stopy.length - 1, os.findLastIndex(([y0]) => y >= y0)));
+    const render = () => {
+      const y = window.scrollY;
+      pomniejsz(Math.round((z0 + (zDrive - z0) * clamp(y / driveStart)) * 1000) / 1000);
+      jazda?.jedz(chwila(y));
+
+      const index = stopLive(y);
+      if (index !== shownStop) {
+        stopy.forEach((s, i) => s.classList.toggle("is-active", i === index));
+        podroz.classList.toggle("is-driving", index >= 0);
+        shownStop = index;
+      }
+    };
+
+    // A link in a stop not on show can still take the focus (from the
+    // keyboard): the page then scrolls to that stop's stretch, so the stop
+    // it is in shows. Not when it is already there, or a click on a link of
+    // the stop on show would move the page.
+    podroz.addEventListener("focusin", (e) => {
+      if (!live) return;
+      const i = stopy.findIndex((s) => s.contains(e.target as Node));
+      // In its stretch already; past the drive's end the last stop still
+      // counts as shown, but the page has scrolled on and its top is gone.
+      const y = window.scrollY;
+      if (i < 0 || (y >= os[i]![0] && y < os[i + 1]![0])) return;
+      window.scrollTo({ top: Math.round((os[i]![0] + os[i + 1]![0]) / 2), behavior: "instant" });
+    });
+
+    // Pinned (droga.css): the stops scroll freely under the scene. The drive
+    // reaches a stop's moment as the stop's top comes up to the scene's
+    // bottom (the last stop's earlier, below), and its end as the last
+    // stop's top reaches it. The scene then scrolls away with that stop: on a
+    // short phone the stop is taller than the room under the scene, and held
+    // any longer the scene would cover its order button.
+    const zmierzOs = (): Os => {
+      const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+      const linia = parseFloat(getComputedStyle(pudelko).top) + pudelko.offsetHeight + rem;
+      const y = window.scrollY - linia;
+      const os: Os = stopy.map((s, i) => [Math.round(s.getBoundingClientRect().top + y), od[i]!]);
+      // The last stop is about as tall as the room under the scene, so from
+      // its top at the line to its end there is next to no scroll, and the
+      // delivery (zoom, "delivered", driving off) would flash by. Its moment
+      // starts earlier instead, half the room before its top reaches the
+      // line: the delivery plays while the order rises into view.
+      const doNa = os.at(-1)![0];
+      const wczesniej = Math.round((window.innerHeight - linia) / 2);
+      os[os.length - 1]![0] = Math.max(os.at(-2)?.[0] ?? 0, doNa - wczesniej);
+      os.push([doNa, 100]);
+
+      // The scene stays pinned through its track (`--tor`, droga.css) and
+      // leaves as the drive ends: it scrolls away together with the last
+      // stop, the order button never cut by the scene.
+      const torOd = tor.getBoundingClientRect().top + window.scrollY - parseFloat(getComputedStyle(pudelko).top);
+      tor.style.setProperty("--tor", `${Math.max(0, Math.round(os.at(-1)![0] - torOd))}px`);
+      return os;
     };
     // The scroll only sets where the drive goes; it plays there by itself.
     // The odometer shows once the drive has begun.
@@ -297,6 +333,7 @@ const udzial = (i: number) => Math.round(((stopy[i + 1]?.od ?? 100) - stopy[i]!.
         scena.style.removeProperty("translate");
         tor.style.removeProperty("--tor");
         podroz.classList.remove("is-driving");
+        stopy.forEach((s) => s.classList.remove("is-active"));
         jedzie = null;
         shownStop = -2;
         tryb = nowy;
@@ -321,7 +358,7 @@ const udzial = (i: number) => Math.round(((stopy[i + 1]?.od ?? 100) - stopy[i]!.
         czeka = false;
         if (jazda || tryb === "nieruchoma" || tryb === null) return;
         jazda = uruchomJazde(scena, (km) => (licznik.textContent = String(km)), live ? szerokosc : 0);
-        jazda.ustaw(live ? chwilaLive() : chwila(window.scrollY));
+        jazda.ustaw(chwila(window.scrollY));
       };
       if ("requestIdleCallback" in window) requestIdleCallback(teraz, { timeout: 1000 });
       else setTimeout(teraz, 300);
@@ -355,6 +392,10 @@ const udzial = (i: number) => Math.round(((stopy[i + 1]?.od ?? 100) - stopy[i]!.
     // Heights change when the font and the images arrive.
     window.addEventListener("load", refresh);
     document.fonts?.ready.then(refresh);
-    new ResizeObserver(refresh).observe(podroz);
+    // The stops' content sets the live scene's size, and stands apart from
+    // the page's flow there, so it is watched on its own.
+    const obserwator = new ResizeObserver(refresh);
+    obserwator.observe(podroz);
+    obserwator.observe(lista);
   }
 </script>

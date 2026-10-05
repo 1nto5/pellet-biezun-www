@@ -1,19 +1,40 @@
 ---
 import Base from "../layouts/Base.astro";
 import Button from "../components/Button.astro";
-import Pasy from "../components/Pasy.astro";
 import Tablica from "../components/Tablica.astro";
-import TablicaWjazdowa from "../components/TablicaWjazdowa.astro";
 import Droga from "../components/droga/Droga.astro";
 import { Image } from "astro:assets";
 import { firma, firmaId, addressLine, hoursRange } from "../data/firma";
 import { orderLink, strony } from "../data/nav";
 import { absoluteUrl } from "../lib/url";
-import { produkty, cenyLabel, paletaLabel } from "../data/oferta";
+import { produkty, cenyLabel, cenaLabel, cenaWorkaLabel, paletaLabel } from "../data/oferta";
+import { flota, najdluzszy, szczegolyLabel } from "../data/flota";
+import { faq } from "../data/faq";
 import { DARMOWA_DOSTAWA_KM, podstronyPoOdleglosci, miejsceHref } from "../data/miejsca";
 
 /** "Pellet Bieżuń" → the two lines of the sign. */
 const [pellet, miasto] = firma.znak;
+
+/** The two questions the delivery stop answers, from the FAQ page. */
+const pytania = ["Ile kosztuje dostawa?", "Czy pellet można trzymać na zewnątrz?"].map((q) => {
+  const f = faq.find((x) => x.q === q);
+  // A question reworded in faq.ts would leave the stop with a gap: better a failed build.
+  if (!f) throw new Error(`No FAQ entry "${q}" for the home page's delivery stop (faq.ts).`);
+  return f;
+});
+
+/**
+ * The delivery stop's three tiles: what the reader asks first. A line under
+ * the title only where no other place on the page says it.
+ */
+const kafelki: { tytul: string; tekst?: string }[] = [
+  { tytul: `Gratis do ok. ${DARMOWA_DOSTAWA_KM} km` },
+  { tytul: "Winda i wózek paletowy", tekst: "paletę zdejmujemy z auta i podwozimy na miejsce" },
+  { tytul: "Iveco Daily na ciasny dojazd" },
+];
+
+/** Each vehicle's width on its strip, as a share of the longest's. */
+const auta = flota.map((f) => ({ ...f, procent: Math.round((f.m / najdluzszy) * 1000) / 10 }));
 
 /** The site itself, so search results show the company's name as the site's. */
 const webSite = {
@@ -54,94 +75,144 @@ const webSite = {
         </div>
       </div>
     </section>
-  </Droga>
 
-  <section class="page-wrap pt-10 pb-16 md:pt-14 md:pb-24" aria-labelledby="oferta-skrot">
-    <div class="baner ramka">
-      <p class="naklejka">
-        <span>Większe zamówienie?</span>
-        <strong>Cena do negocjacji</strong>
-      </p>
-      <h2 id="oferta-skrot" class="text-3xl md:text-4xl">Co przywozimy</h2>
-      <ul role="list" class="mt-8 grid gap-10 lg:grid-cols-3" data-ruch-grupa>
+    <div slot="zaladunek" class="produkty ramka">
+      <ul role="list" class="produkty-lista">
         {
           produkty.map((p) => {
-            const [cena = "", cenaTona] = cenyLabel(p);
-            // "2200 zł" and "/ paleta", the second set smaller.
-            const [kwota, za] = cena.split(" /");
+            const tona = cenyLabel(p)[1];
+            const worek = cenaWorkaLabel(p);
             return (
               <li class="produkt">
                 <Image
                   src={p.zdjecie.src}
                   alt={p.zdjecie.alt}
-                  width={400}
-                  widths={[240, 400]}
-                  sizes="(min-width: 48rem) 12rem, 40vw"
+                  width={240}
+                  widths={[120, 240]}
+                  sizes="5rem"
                   class="produkt-foto"
                 />
-                <div>
-                  <h3 class="text-xl md:text-2xl">{p.nazwa}</h3>
-                  <p class="mt-1 text-ink-soft">{paletaLabel(p)}</p>
-                  <p class="price mt-3 text-xl sm:text-2xl">
-                    {kwota}
-                    <span class="price-za">/{za}</span>
-                  </p>
-                  {cenaTona && <p class="text-ink-soft">{cenaTona}</p>}
+                <div class="produkt-opis">
+                  <h3>{p.nazwa}</h3>
+                  <p class="miekki">{paletaLabel(p)}</p>
+                  <p class="cena-tag produkt-cena">{cenaLabel(p)}</p>
+                  {(tona || worek) && <p class="miekki">{[tona, worek && `worek ${worek}`].filter(Boolean).join(" · ")}</p>}
+                  <a href={`${strony.oferta.href}#produkt-${p.id}`} class="link-strong">
+                    Parametry<span class="sr-only">: {p.nazwa}</span>
+                    <span aria-hidden="true">→</span>
+                  </a>
                 </div>
               </li>
             );
           })
         }
       </ul>
-      <div class="mt-8 flex flex-wrap items-center gap-x-8 gap-y-4">
+      <p class="naklejka">
+        <span>Większe zamówienie?</span>
+        <strong>Cena do negocjacji</strong>
+      </p>
+    </div>
+
+    <div slot="w-drodze" class="flota">
+      <ul role="list" class="flota-lista">
+        {
+          auta.map((f) => (
+            <li class="flota-auto">
+              <div class="flota-opis">
+                <p class="flota-model">{f.model}</p>
+                <p class="miekki">{szczegolyLabel(f)}</p>
+              </div>
+              <span class="flota-pas">
+                <span class="flota-foto" style={`width:${f.procent}%`}>
+                  <Image
+                    src={f.zdjecie}
+                    alt={f.alt}
+                    width={800}
+                    widths={[200, 400, 600, 800]}
+                    sizes={`(min-width: 64rem) calc(${f.procent / 100} * 18rem), calc(${f.procent / 100} * 92vw)`}
+                  />
+                </span>
+              </span>
+            </li>
+          ))
+        }
+      </ul>
+      <p class="tresc-link">
+        <a href={`${strony.oferta.href}#flota`} class="link-strong">Flota w ofercie <span aria-hidden="true">→</span></a>
+      </p>
+    </div>
+
+    <div slot="miasta" class="miasta">
+      <ul role="list" class="tablice">
+        {
+          podstronyPoOdleglosci.map((m) => (
+            <li>
+              <Tablica miejsce={m} href={miejsceHref(m)} />
+            </li>
+          ))
+        }
+      </ul>
+      <p class="tresc-link">
+        <a href={strony.mapa.href} class="link-strong">
+          Sprawdź swoją miejscowość na mapie dystrybucji <span aria-hidden="true">→</span>
+        </a>
+      </p>
+    </div>
+
+    <div slot="na-miejscu" class="dostawa">
+      <ul role="list" class="kafelki">
+        {
+          kafelki.map((k) => (
+            <li>
+              <strong>{k.tytul}</strong>
+              {k.tekst && <span>{k.tekst}</span>}
+            </li>
+          ))
+        }
+      </ul>
+      <dl class="pytania">
+        {
+          pytania.map((f) => (
+            <div>
+              <dt>{f.q}</dt>
+              <dd>{f.a}</dd>
+            </div>
+          ))
+        }
+      </dl>
+      <p class="tresc-link">
+        <a href={strony.faq.href} class="link-strong">Wszystkie pytania <span aria-hidden="true">→</span></a>
+      </p>
+    </div>
+
+    <div slot="dostarczone" class="zamow">
+      <div class="zamow-panel ramka">
         <Button href={orderLink.href}>{orderLink.label}</Button>
+        <p class="miekki">albo zadzwoń</p>
         <a href={firma.phone.href} class="telefon">
           <span class="sr-only">Zadzwoń: </span>{firma.phone.label}
         </a>
       </div>
-    </div>
-  </section>
-
-  <section class="page-wrap pb-16 md:pb-24" aria-labelledby="dostawy-skrot">
-    <Pasy />
-    <h2 id="dostawy-skrot" class="mt-6 text-3xl md:text-4xl">Gdzie dowozimy</h2>
-    <p class="mt-3 max-w-prose text-lg">
-      Do ok. {DARMOWA_DOSTAWA_KM} km od magazynu dowozimy gratis, dalej warunki ustalamy
-      indywidualnie. Odległości liczymy po drogach, jak nawigacja.
-    </p>
-        <ul role="list" class="tablice mt-6" aria-labelledby="dostawy-skrot" data-ruch-grupa="tablica">
-      {
-        podstronyPoOdleglosci.map((m) => (
-          <li>
-            <Tablica miejsce={m} href={miejsceHref(m)} />
-          </li>
-        ))
-      }
-    </ul>
-    <p class="mt-8 text-lg">
-      Mniejsze miejscowości i wsie są na <a href={strony.mapa.href} class="link-strong">mapie dystrybucji</a>.
-    </p>
-  </section>
-
-  <section class="kontakt" aria-labelledby="kontakt-skrot">
-    <div class="page-wrap grid grid-cols-[minmax(0,1fr)] gap-10 py-16 md:py-20 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:items-center lg:gap-16">
-      <div class="max-w-[26rem]" data-ruch="tablica"><TablicaWjazdowa /></div>
-      <div>
-        <h2 id="kontakt-skrot" class="text-3xl md:text-4xl">Magazyn i kontakt</h2>
-        <address class="mt-4 text-lg">
-          {addressLine()}<br />
-          tel. <a href={firma.phone.href} class="link-strong">{firma.phone.label}</a>
-        </address>
-        <p class="mt-2 text-ink-soft">
-          {firma.hours.map((h, i) => `${i ? h.label.toLowerCase() : h.label} ${hoursRange(h)}`).join(", ")}. Odbiór osobisty po
-          wcześniejszym telefonie.
+      <div class="zamow-panel magazyn">
+        <h3>Magazyn i odbiór osobisty</h3>
+        <address>{addressLine()}</address>
+        <dl class="godziny">
+          {
+            firma.hours.map((h) => (
+              <div>
+                <dt>{h.label}</dt>
+                <dd>{hoursRange(h)}</dd>
+              </div>
+            ))
+          }
+        </dl>
+        <p class="miekki">{firma.closedNote} Odbiór osobisty po wcześniejszym telefonie.</p>
+        <p class="tresc-link">
+          <a href={strony.kontakt.href} class="link-strong">Kontakt i formularz <span aria-hidden="true">→</span></a>
         </p>
-        <div class="mt-6">
-          <Button href={strony.kontakt.href} variant="secondary">Kontakt i formularz</Button>
-        </div>
       </div>
     </div>
-  </section>
+  </Droga>
 </Base>
 
 <style>
@@ -304,20 +375,11 @@ const webSite = {
     height: 1.1em;
   }
 
-  /* The banner: the offer in a yellow frame (`.ramka`), with a sticker. */
-  .baner {
-    position: relative;
-    padding: 1.75rem 1.25rem;
-  }
-  @media (min-width: 40rem) {
-    .baner {
-      padding: 2.5rem 2.75rem;
-    }
-  }
   /* A shop-window sticker, after the red "DOSTAWA GRATIS!" disc on the
      printer's banner: a tilted tag on phones, a disc on wide screens. The
-     offer's disc is stuck over the panel's corner; the hero's stands over
-     the actions, once the hero sets them beside the wordmark. */
+     products' disc stands in a column of its own at the frame's right end,
+     poking over its corner; the hero's stands over the actions, once the
+     hero sets them beside the wordmark. */
   .naklejka {
     display: inline-flex;
     flex-direction: column;
@@ -340,23 +402,9 @@ const webSite = {
     font-weight: 900;
     text-transform: uppercase;
   }
-  @media (min-width: 48rem) {
-    .baner .naklejka {
-      position: absolute;
-      top: -2.75rem;
-      right: 2rem;
-      justify-content: center;
-      width: 11rem;
-      aspect-ratio: 1;
-      margin: 0;
-      padding: 1rem;
-      border-radius: 50%;
-      transform: rotate(-10deg);
-      box-shadow: 0 0 0 0.3rem var(--color-white);
-    }
-    .baner .naklejka strong {
-      font-size: 1.35rem;
-    }
+  /* Under the products' rows, never over one. */
+  .produkty .naklejka {
+    margin: 1.25rem 0 0;
   }
   @media (min-width: 56rem) and (min-aspect-ratio: 1 / 1) {
     .hero .naklejka {
@@ -375,54 +423,314 @@ const webSite = {
       font-size: 1.7rem;
     }
   }
-  /* The narrowest phones keep the bag small, so "Wielbarka" fits its line
-     whole rather than break inside the word. */
-  .produkt {
-    display: grid;
-    grid-template-columns: 4.5rem minmax(0, 1fr);
-    align-items: center;
-    gap: 0.875rem;
+
+  /* ---- The drive's stops (Droga.astro): what each one says -------------- */
+
+  /* Set at the drive's size: smaller than a page's sections, as each stop
+     shares the screen with the scene. The wide version's media query is
+     the live drive's (droga.css), so the products stand as cards and the
+     tiles in a row there; elsewhere one column. */
+  .miekki {
+    color: var(--color-ink-soft);
   }
-  @media (min-width: 24rem) {
-    .produkt {
-      grid-template-columns: 7rem minmax(0, 1fr);
-      gap: 1.25rem;
-    }
+  .tresc-link {
+    margin-top: 0.9rem;
+  }
+  :is(.produkt, .magazyn) h3,
+  .pytania dt {
+    font-family: var(--font-display);
+    font-weight: 800;
+    line-height: 1.15;
+  }
+
+  /* The products in the yellow frame (`.ramka`), with the sticker. The bag
+     beside the text, one under another on a phone, side by side on a wide
+     screen. */
+  .produkty {
+    padding: 1.25rem 1.1rem;
   }
   @media (min-width: 40rem) {
-    .produkt {
-      grid-template-columns: 10rem minmax(0, 1fr);
+    .produkty {
+      padding: 1.5rem 1.75rem;
     }
   }
-  /* Three cards in a row leave no room for the bag beside the text (about
-     250 px a card at 1024 px), so there the bag stands above it. */
-  @media (min-width: 64rem) {
-    .produkt {
-      grid-template-columns: minmax(0, 1fr);
-      align-content: start;
-    }
+  .produkty-lista {
+    display: grid;
+    gap: 1.1rem;
+  }
+  /* On a phone the bag stays small enough to leave the price its one line
+     from 360 px; narrower, it breaks before the "/". */
+  .produkt {
+    display: grid;
+    grid-template-columns: 3.75rem minmax(0, 1fr);
+    align-items: center;
+    gap: 0.8rem;
+  }
+  .produkt + .produkt {
+    padding-top: 1.1rem;
+    border-top: 2px solid var(--color-yellow);
+  }
+  .produkt-opis {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.3rem;
+    font-size: 0.9rem;
+  }
+  .produkt h3 {
+    font-size: 1.15rem;
+  }
+  .produkt-cena {
+    margin-block: 0.2rem;
+    padding-inline: 0.9rem;
+    font-size: 1.05rem;
   }
   /* Packshots are shot on white; multiply lets that white vanish into the
-     page, so only the bag and its shadow show. */
+     frame, so only the bag and its shadow show. */
   .produkt-foto {
-    width: 100%;
+    width: 3.75rem;
     height: auto;
     aspect-ratio: 3 / 4;
     object-fit: contain;
     mix-blend-mode: multiply;
   }
-  @media (min-width: 64rem) {
+  @media (min-width: 64rem) and (orientation: landscape) {
+    .produkty-lista {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1.5rem;
+    }
+    /* Three cards a row leave each about 11rem for the text from 64rem:
+       a smaller bag and a narrower tag keep the price on one line. */
+    .produkt {
+      grid-template-columns: 3.5rem minmax(0, 1fr);
+      align-items: start;
+      gap: 0.75rem;
+    }
+    .produkt + .produkt {
+      padding-top: 0;
+      border-top: 0;
+    }
     .produkt-foto {
-      width: 10rem;
+      width: 3.5rem;
+    }
+    .produkt-cena {
+      padding-inline: 0.9rem;
+      font-size: 1rem;
+    }
+  }
+  @media (min-width: 80rem) and (orientation: landscape) {
+    .produkt {
+      grid-template-columns: 4rem minmax(0, 1fr);
+      gap: 1rem;
+    }
+    .produkt-foto {
+      width: 4rem;
+    }
+    .produkt-cena {
+      font-size: 1.1rem;
+    }
+  }
+  /* Where the three cards still fit beside it, the sticker is a disc in its
+     own column at the frame's right end, so it covers no card; it pokes out
+     over the frame's corner, as if stuck on it. Narrower, it stays the tag
+     under the cards. */
+  @media (min-width: 80rem) and (orientation: landscape) {
+    .produkty {
+      display: flex;
+      align-items: flex-start;
+      gap: 1.5rem;
+    }
+    .produkty-lista {
+      flex: 1;
+    }
+    .produkty .naklejka {
+      flex: none;
+      justify-content: center;
+      width: 11rem;
+      aspect-ratio: 1;
+      margin: -3.25rem -2.75rem 0 0;
+      padding: 1rem;
+      border-radius: 50%;
+      transform: rotate(-10deg);
+      box-shadow: 0 0 0 0.3rem var(--color-white);
+    }
+    .produkty .naklejka strong {
+      font-size: 1.35rem;
+    }
+  }
+  /* Without the drive's motion each stop has its still frame right above
+     the frame: there the disc does not poke out over it. */
+  @media (min-width: 80rem) and (orientation: landscape) and (prefers-reduced-motion: reduce) {
+    .produkty .naklejka {
+      margin-top: 0;
+    }
+  }
+  @media (min-width: 80rem) and (orientation: landscape) {
+    :global(html:not([data-js])) .produkty .naklejka {
+      margin-top: 0;
     }
   }
 
-  .kontakt {
+  /* The fleet: each vehicle on its own strip of road, all to one scale (the
+     longest the strip's full width) and nose to the left, as on the offer
+     page. On a wide screen the strip is narrower, its text beside it, two
+     a row, so the four fit above the scene. */
+  .flota-lista {
+    display: grid;
+    gap: 0.75rem;
+  }
+  .flota-auto {
+    display: grid;
+    gap: 0.3rem;
+  }
+  /* Make and model as the label, the details smaller and softer. */
+  .flota-opis {
+    font-size: 0.85rem;
+    line-height: 1.3;
+  }
+  .flota-model {
+    font-size: 1rem;
+    font-weight: 700;
+  }
+  .flota-pas {
+    display: block;
+    padding-bottom: 0.45rem;
+    background:
+      linear-gradient(90deg, var(--color-white) 0 50%, transparent 50%) 0 calc(100% - 0.17rem) / 1.4rem 0.1rem repeat-x,
+      linear-gradient(var(--color-asphalt), var(--color-asphalt)) 0 100% / 100% 0.45rem no-repeat;
+  }
+  .flota-foto {
+    display: block;
+    margin-left: 0.3rem;
+    /* Tyres touch the asphalt. */
+    margin-bottom: -0.2rem;
+  }
+  .flota-foto :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  @media (min-width: 64rem) and (orientation: landscape) {
+    .flota-lista {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem 2.5rem;
+    }
+    .flota-auto {
+      grid-template-columns: 18rem minmax(0, 1fr);
+      align-items: end;
+      gap: 1.5rem;
+    }
+    .flota-opis {
+      order: 1;
+      padding-bottom: 0.3rem;
+    }
+  }
+
+  /* The towns' boards: two a row on a phone (global.css); on a wide screen
+     as many as fit, the distance under the name. */
+  @media (min-width: 64rem) and (orientation: landscape) {
+    .miasta .tablice {
+      grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+    }
+    .miasta :global(.tablica) {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.1rem;
+      padding: 0.75rem 0.95rem 0.65rem;
+      font-size: 1.05rem;
+      line-height: 1.25;
+    }
+  }
+
+  /* At the customer's: three tiles, then two questions from the FAQ. */
+  .kafelki {
+    display: grid;
+    gap: 0.75rem;
+  }
+  .kafelki li {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 0.9rem 1rem;
+    border-top: 0.3rem solid var(--color-yellow);
+    background: var(--color-sand);
+    font-size: 0.9rem;
+    line-height: 1.35;
+  }
+  .kafelki strong {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: 900;
+    line-height: 1.1;
+  }
+  .pytania {
+    margin-top: 1rem;
+    border-bottom: 2px solid var(--color-line);
+  }
+  .pytania div {
+    padding-block: 0.7rem;
+    border-top: 2px solid var(--color-line);
+  }
+  .pytania dt {
+    font-size: 1rem;
+  }
+  .pytania dd {
+    margin-top: 0.2rem;
+    color: var(--color-ink-soft);
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+  @media (min-width: 64rem) and (orientation: landscape) {
+    .kafelki {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .pytania {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 2.5rem;
+    }
+  }
+
+  /* The order: the button and the phone in the yellow frame, the warehouse
+     beside it. */
+  .zamow {
+    display: grid;
+    gap: 1rem;
+  }
+  .zamow-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 1.25rem;
+    border-radius: 1rem;
+  }
+  .magazyn {
     background: var(--color-sand);
   }
-  /* "/ paleta" smaller than the sum, so the price keeps to one line. */
-  .price-za {
-    font-size: 0.72em;
+  .magazyn h3 {
+    font-size: 1.3rem;
+  }
+  .magazyn address {
+    font-style: normal;
     font-weight: 700;
+  }
+  .godziny div {
+    display: flex;
+    gap: 1rem;
+  }
+  .godziny dd {
+    font-weight: 800;
+  }
+  .magazyn .tresc-link {
+    margin-top: auto;
+  }
+  @media (min-width: 40rem) {
+    .zamow {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .zamow-panel {
+      padding: 1.5rem;
+    }
   }
 </style>
