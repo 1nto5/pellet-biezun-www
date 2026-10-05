@@ -1,7 +1,7 @@
 ---
 /**
- * The drive on the home page: the truck loads at the hall, drives past the
- * direction boards and unloads at a customer's house inside the free zone,
+ * The drive on the home page: the truck leaves the hall, drives past the
+ * direction boards and delivers to a customer's house inside the free zone,
  * with the end-of-zone sign ahead, while the reader scrolls.
  *
  * Built so the page is complete without it moving. The HTML holds every stop
@@ -63,14 +63,14 @@ const stopy: Stop[] = [
     id: "w-drodze",
     od: CZAS.odjazd,
     tytul: "W drodze",
-    tekst: "Dowozimy własnymi samochodami: od Iveco na 4 palety po ciężarówkę z naczepą na 26 palet. Każdy ma windę i elektryczny wózek paletowy.",
+    tekst: "Dowozimy własnymi samochodami: od Iveco na 4 palety po ciężarówkę z naczepą na 26 palet. Każdy ma elektryczny wózek paletowy, a Iveco i solówki Volvo także windę.",
   },
   {
     id: "miasta",
     km: pierwsza.naDrodze,
     od: czasKm(pierwsza.naDrodze) - 3,
     tytul: "Miasta po drodze",
-    tekst: "Drogowskazy pokazują miasta, do których dowozimy, i ich odległość od magazynu w linii prostej.",
+    tekst: "Drogowskazy pokazują miasta, do których dowozimy, i ich odległość od magazynu po drogach.",
     kadr: kadry.tablice,
   },
   {
@@ -328,7 +328,7 @@ const udzial = (i: number) => Math.round(((stopy[i + 1]?.od ?? 100) - stopy[i]!.
     };
 
     // The scene shows once its photos are in, not piece by piece: the
-    // truck, the hall, the loader and the forest band this screen gets;
+    // truck, the hall and the forest band this screen gets;
     // 2.5 s on at the latest. The band is a CSS background, so the script
     // loads the same file to know: AVIF where the browser takes it and the
     // CSS offers it (droga.css), else WebP; the phone's size or the full one.
@@ -343,7 +343,7 @@ const udzial = (i: number) => Math.round(((stopy[i + 1]?.od ?? 100) - stopy[i]!.
     const pasmo = avif.then((tak) =>
       wczytaj(adres(`--las${window.matchMedia("(min-width: 48rem)").matches ? "" : "-maly"}${tak ? "-avif" : ""}`)),
     );
-    const zdjecia = [...scena.querySelectorAll<HTMLImageElement>(".auto-foto, .w-hala img, .w-widlak img")];
+    const zdjecia = [...scena.querySelectorAll<HTMLImageElement>(".auto-foto, .w-hala img")];
     Promise.race([
       Promise.allSettled([...zdjecia.map((img) => img.decode()), pasmo]),
       new Promise((gotowe) => setTimeout(gotowe, 2500)),

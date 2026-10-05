@@ -7,22 +7,14 @@
  *
  * The wheels stay as they are in the photo: a turning wheel cut from a still
  * photo looks fake, and the road, the verge and the forest moving past
- * already show the drive. The moving parts read the scene's custom
- * properties (see `trasa.ts`; the drive on phones moves them by transforms
- * instead, `jazda.ts`): the tail lift, drawn over the photo at the back of
- * the box, rides on `--lift` and folds on `--fold`; the pallet moves on
- * `--pal-x`/`--pal-y`. The pallet is drawn
- * under the photo, so it disappears inside the box; once it is on the
- * ground (`--przod`), a copy in front of the house takes over, with the
- * electric pallet truck (see Scena.astro). Driving off (`--odjazd`), the
+ * already show the drive. Driving off (`--odjazd`, see `trasa.ts`), the
  * whole truck leaves by the left edge.
  *
- * Three layers in the same 240 × 108 units: the pallet's drawing, the photo
- * as an <img> whose size fits the screen (a phone gets a far smaller file
- * than the drawing's own <image> could offer), and the tail lift's drawing.
+ * The photo is an <img> whose size fits the screen (a phone gets a far
+ * smaller file than an SVG <image> could offer), placed over an empty
+ * 240 × 108 drawing that gives the truck its height.
  */
 import { Image } from "astro:assets";
-import Paleta from "./Paleta.astro";
 import auto from "../../assets/droga/auto-fm.png";
 
 interface Props {
@@ -47,9 +39,8 @@ const gora = `${Math.round((Y0 / 108) * 10000) / 100}%`;
 
 <!-- The truck's shadow on the road (droga.css). -->
 <div class="auto-cien"></div>
-<svg class="auto" viewBox="0 0 240 108" overflow="visible" aria-hidden="true" focusable="false">
-  <Paleta class="paleta-w-aucie" />
-</svg>
+<!-- Empty: it only sizes the box the photo is placed in. -->
+<svg class="auto" viewBox="0 0 240 108" overflow="visible" aria-hidden="true" focusable="false"></svg>
 <Image
   src={auto}
   width={1800}
@@ -61,14 +52,3 @@ const gora = `${Math.round((Y0 / 108) * 10000) / 100}%`;
   style={`top:${gora}`}
   loading={eager ? "eager" : "lazy"}
 />
-<svg class="auto auto-winda" viewBox="0 0 240 108" overflow="visible" aria-hidden="true" focusable="false">
-  <!-- Tail lift, hinged at the box's back bottom corner (239, 82.6). The
-       post grows as the plate goes down, so the plate never floats. -->
-  <rect class="winda-ramie" x="237.4" y="82.6" width="2.6" height="22.4" fill="#1d1f21" />
-  <g class="winda">
-    <g class="winda-plyta">
-      <rect x="239" y="82.6" width="24" height="3" fill="#2a2c2e" />
-      <rect x="239" y="82.6" width="24" height="0.6" fill="#9a9da0" />
-    </g>
-  </g>
-</svg>

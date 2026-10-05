@@ -2,27 +2,23 @@
  * The drive's photos, made small enough for the page. The PNG masters in
  * `src/assets/droga/` stay as they are; the build serves WebP at about twice
  * the largest size each one shows at in a 1440 px wide window. The truck, the
- * hall, the house and the loader are <img> with a `srcset` (Ciezarowka.astro
- * and the rest), whose `sizes` is the widest share of the window each takes
- * in the scene, the truck's and the house's with the camera close on the
- * unloading (`--zoom-max`); a phone takes the house a little soft there
- * rather than a file twice as large. The forest and the verge are background bands, so they come
- * in two sizes, the small one for phones (droga.css); the pallet and the
- * pallet truck are small enough to have one.
+ * hall and the house are <img> with a `srcset` (Ciezarowka.astro and the
+ * rest), whose `sizes` is the widest share of the window each takes in the
+ * scene, the truck's and the house's with the camera close on the garage
+ * (`--zoom-max`); a phone takes the house a little soft there rather than a
+ * file twice as large. The forest and the verge are background bands, so
+ * they come in two sizes, the small one for phones (droga.css).
  *
  * Only for the server side: `trasa.ts` also goes to the browser, so it must
  * not import this.
  */
 import { getImage } from "astro:assets";
 import type { ImageMetadata } from "astro";
-import paleta from "../../assets/droga/paleta.png";
-import wozek from "../../assets/droga/wozek.png";
 import las from "../../assets/droga/las.png";
 import pobocze from "../../assets/droga/pobocze.png";
 
 export { default as hala } from "../../assets/droga/hala.png";
 export { default as dom } from "../../assets/droga/dom.png";
-export { default as ladowarka } from "../../assets/droga/ladowarka.png";
 
 const webp = (src: ImageMetadata, width: number, quality = 75) => getImage({ src, width, format: "webp", quality }).then((i) => i.src);
 const avif = (src: ImageMetadata, width: number) => getImage({ src, width, format: "avif", quality: 50 }).then((i) => i.src);
@@ -40,9 +36,7 @@ const TLO = 55;
  */
 export const obrazy = {
   /** A tiny AVIF: the page decodes it to learn whether the browser takes the AVIF bands (Droga.astro). */
-  probaAvif: (await getImage({ src: paleta, width: 2, format: "avif" })).src,
-  paleta: await webp(paleta, 100),
-  wozek: await webp(wozek, 180),
+  probaAvif: (await getImage({ src: pobocze, width: 2, format: "avif" })).src,
   las: { duzy: await webp(las, 1500, TLO), maly: await webp(las, 640, TLO), duzyAvif: await avif(las, 1500), malyAvif: await avif(las, 640) },
   pobocze: {
     duzy: await webp(pobocze, 800, TLO),

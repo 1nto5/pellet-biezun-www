@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 import { firma, addressLine, hoursRange } from "../data/firma";
-import { produkty, cenyLabel, paletaLabel, cenyZDnia } from "../data/oferta";
+import { produkty, cenyLabel, cenaWorkaLabel, paletaLabel, cenyZDnia } from "../data/oferta";
 import { DARMOWA_DOSTAWA_KM, miejsca, podstrony, wojewodztwa, miejsceHref } from "../data/miejsca";
 import { faq } from "../data/faq";
 import { strony } from "../data/nav";
@@ -32,15 +32,15 @@ export const GET: APIRoute = ({ site }) => {
       `### ${p.nazwa}`,
       "",
       `${p.podtytul}. ${p.opis}`,
-      `Paleta: ${paletaLabel(p)}. Cena: ${cenyLabel(p).join(", ")}.`,
-      p.certyfikat,
+      `Paleta: ${paletaLabel(p)}. Cena: ${cenyLabel(p).join(", ")}${p.cenaWorek ? `, pojedynczy worek ${cenaWorkaLabel(p)}` : ""}.`,
+      ...(p.certyfikat ? [p.certyfikat] : []),
       `Parametry: ${p.parametry.map((x) => `${x.nazwa.toLowerCase()} ${x.wartosc}`).join("; ")}. Źródło: ${p.zrodloParametrow}`,
       "",
     ]),
     "## Dostawa",
     "",
-    `Dostawa gratis w promieniu ok. ${DARMOWA_DOSTAWA_KM} km od magazynu (w linii prostej), dalej warunki ustalamy indywidualnie. ` +
-      "Własne samochody, każdy z windą i elektrycznym wózkiem paletowym: 2 × Iveco Daily 7,2 t (do 4 palet), Volvo FM 26 t (12–14 palet), Volvo FH (14–16 palet), Volvo FH16 z naczepą kurtynową (26 palet). " +
+    `Dostawa gratis do ok. ${DARMOWA_DOSTAWA_KM} km od magazynu (odległość drogowa, jak w nawigacji), dalej warunki ustalamy indywidualnie. ` +
+      "Własne samochody, każdy z elektrycznym wózkiem paletowym: 2 × Iveco Daily 7,2 t z windą (do 4 palet), Volvo FM 26 t z windą (12–14 palet), Volvo FH z windą (14–16 palet), Volvo FH16 z naczepą kurtynową (26 palet). " +
       "Odbiór osobisty w magazynie po wcześniejszym telefonie. Przy większych zamówieniach cena do negocjacji.",
     "",
     ...podstrony.map((m) => `- [Pellet ${m.podstrona.wMiejscowosci}](${url(miejsceHref(m))})`),

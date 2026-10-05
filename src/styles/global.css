@@ -664,18 +664,6 @@ main :where(p, address, dd, td) > a:not(.btn),
   transform: skewX(-14deg);
 }
 
-/* "gratis" beside a town: black on brand green. */
-.tag-gratis {
-  display: inline-block;
-  padding: 0.1rem 0.4rem 0;
-  border-radius: 0.2rem;
-  background: var(--color-brand);
-  color: var(--color-black);
-  font-size: 0.8rem;
-  font-weight: 800;
-  line-height: 1.4;
-}
-
 /* ---------------------------------------------------------------------------
    Direction boards that link somewhere: one town and its distance per board,
    the whole board is the link. Used on the home page, the map page and the
@@ -1031,27 +1019,14 @@ input[type="date"].input::-webkit-date-and-time-value {
   box-shadow: 0 0 0 2px var(--color-black);
 }
 
-/* The free-delivery zone and the town dots. Leaflet draws them as SVG paths
-   with its own colours as attributes; these rules win over the attributes.
-   The legend's swatches share them. */
-.mapa-strefa {
-  stroke: var(--color-sign);
-  stroke-width: 3;
-  stroke-dasharray: 10 7;
-  fill: var(--color-brand);
-  fill-opacity: 0.1;
-}
+/* The town dots. Leaflet draws them as SVG paths with its own colours as
+   attributes; these rules win over the attributes. The legend's swatches
+   share them. */
 .mapa-miejsce {
-  stroke-width: 2;
-  fill-opacity: 1;
-}
-.mapa-miejsce-strefa {
   stroke: var(--color-white);
+  stroke-width: 2;
   fill: var(--color-sign);
-}
-.mapa-miejsce-poza {
-  stroke: var(--color-asphalt);
-  fill: var(--color-white);
+  fill-opacity: 1;
 }
 .mapa-miejsce-wyroznione {
   stroke: var(--color-black);
@@ -1062,28 +1037,11 @@ input[type="date"].input::-webkit-date-and-time-value {
   display: inline-block;
   width: 0.8rem;
   height: 0.8rem;
-  border: 2px solid;
+  border: 2px solid var(--color-sign);
   border-radius: 50%;
-  vertical-align: -0.05rem;
-}
-.legend-dot-strefa {
-  border-color: var(--color-sign);
   background: var(--color-sign);
-}
-.legend-dot-poza {
-  border-color: var(--color-asphalt);
-  background: var(--color-white);
-}
-.legend-zone {
-  display: inline-block;
-  width: 1.2rem;
-  height: 0.8rem;
-  border: 2px dashed var(--color-sign);
-  border-radius: 0.2rem;
-  background: color-mix(in srgb, var(--color-brand) 12%, transparent);
   vertical-align: -0.05rem;
 }
-
 /* ---------------------------------------------------------------------------
    Photographs: the gallery grid and the lightbox it opens. The first photo
    is set large.

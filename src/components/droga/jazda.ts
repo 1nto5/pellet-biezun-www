@@ -37,8 +37,6 @@ const TEMPO_MAX = 60;
 
 /** As in droga.css: how fast the forest and the verge pass, against the road. */
 const PARALAKSA = { las: 0.3, pola: 0.6 };
-/** As in droga.css: how far the tail lift goes down, in the truck drawing's units. */
-const WINDA_W_DOL = 22.4;
 
 type Ruch = [Element, (s: Stan) => Keyframe];
 
@@ -98,15 +96,8 @@ export function uruchomJazde(scena: HTMLElement, naKm: (km: number) => void, mar
     ...wszystkie(".rig:not(.rig-auto)").map((el): Ruch => [el, (s) => ({ transform: `translateX(${px(kamera(s))})` })]),
     ...pasma.map(([el, ile]): Ruch => [el, (s) => ({ transform: `translateX(${px(przesuniecie(s) * ile)})` })]),
     ...wszystkie(".w-tablica").map((el): Ruch => [el, (s) => ({ opacity: Math.min(1, s.km / 2) })]),
-    [jeden(".w-widlak"), (s) => ({ transform: `translateX(${px((s.fork - start.fork) * u)})` })],
-    [jeden(".paleta-w-aucie"), (s) => ({ transform: `translate(${s.palX}px, ${s.palY}px)`, opacity: 1 - s.przod })],
-    [jeden(".paleta-przed-domem"), (s) => ({ transform: `translate(${s.palX}px, ${s.palY}px)`, opacity: s.przod })],
-    [jeden(".wozek"), (s) => ({ transform: `translate(${s.palX + s.wozDx}px, ${s.palY}px)`, opacity: s.woz })],
     [jeden(".gotowe"), (s) => ({ transform: `translateY(${(1 - s.gotowe) * 5}px)`, opacity: s.gotowe })],
     [jeden(".w-koniec"), (s) => ({ opacity: 1 - s.zoom })],
-    [jeden(".winda"), (s) => ({ transform: `translateY(${s.lift * WINDA_W_DOL}px)` })],
-    [jeden(".winda-ramie"), (s) => ({ transform: `scaleY(${s.lift})` })],
-    [jeden(".winda-plyta"), (s) => ({ transform: `rotate(${s.fold * -90}deg)`, opacity: 1 - s.fold })],
     [scena, (s) => ({ transform: `scale(${1 + s.zoom * (zoomMax - 1)})` })],
   ];
 
@@ -118,7 +109,15 @@ export function uruchomJazde(scena: HTMLElement, naKm: (km: number) => void, mar
   for (const a of animacje) a.pause();
 
   const naMs = (t: number) => (CALOSC_MS * Math.min(100, Math.max(0, t))) / 100;
-  const teraz = () => Number(animacje[0]!.currentTime ?? 0);
+
+  // Back up the drive plays its animations reversed at a positive pace, never
+  // at a negative one: Chrome's compositor draws an animation with a negative
+  // pace as if it had not started yet, so scrolling up flashed the hall.
+  // Reversed, an animation's own clock runs from the drive's end, so `zegar`
+  // turns the drive's ms into it and back.
+  let wstecz = false;
+  const zegar = (ms: number) => (wstecz ? CALOSC_MS - ms : ms);
+  const teraz = () => zegar(Number(animacje[0]!.currentTime ?? 0));
 
   // The odometer is text, so it is written from here, only when the whole
   // km changes.
@@ -137,7 +136,7 @@ export function uruchomJazde(scena: HTMLElement, naKm: (km: number) => void, mar
   const stoj = (ms: number) => {
     for (const a of animacje) {
       a.pause();
-      a.currentTime = ms;
+      a.currentTime = zegar(ms);
     }
     tempo = 0;
     licz(ms);
@@ -147,9 +146,14 @@ export function uruchomJazde(scena: HTMLElement, naKm: (km: number) => void, mar
     const czas = document.timeline.currentTime;
     if (typeof czas !== "number") return;
     const od = teraz();
+    const naWstecz = noweTempo < 0;
+    if (naWstecz !== wstecz) {
+      for (const a of animacje) a.effect?.updateTiming({ direction: naWstecz ? "reverse" : "normal" });
+      wstecz = naWstecz;
+    }
     for (const a of animacje) {
-      a.playbackRate = noweTempo;
-      a.startTime = czas - od / noweTempo;
+      a.playbackRate = Math.abs(noweTempo);
+      a.startTime = czas - zegar(od) / Math.abs(noweTempo);
     }
     tempo = noweTempo;
   };

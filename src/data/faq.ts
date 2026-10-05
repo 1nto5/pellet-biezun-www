@@ -2,12 +2,12 @@
  * Questions and answers: the FAQ page and its FAQPage JSON-LD. Answers are
  * plain text, because the JSON-LD needs them without markup.
  *
- * Only what the client has confirmed. Payment, minimum order, delivery times
- * and single bags are left out until they are known. Prices are not repeated
- * here: they live in `oferta.ts`.
+ * Only what the client has confirmed. Payment, minimum order and delivery
+ * times are left out until they are known; single bags only for the products
+ * an ad sells by the bag. Prices live in `oferta.ts` and are only printed here.
  */
 import { firma, addressLine } from "./firma";
-import { produkty, paletaLabel, certyfikatZNazwa } from "./oferta";
+import { produkty, paletaLabel, certyfikatZNazwa, cenaWorkaLabel } from "./oferta";
 import { DARMOWA_DOSTAWA_KM } from "./miejsca";
 
 export const faq: { q: string; a: string }[] = [
@@ -15,13 +15,24 @@ export const faq: { q: string; a: string }[] = [
     q: "Ile worków jest na palecie?",
     a: `${produkty.map((p) => `${p.nazwa}: ${paletaLabel(p)}`).join(". ")}. Palety są zapakowane fabrycznie.`,
   },
+  ...(produkty.some((p) => p.cenaWorek)
+    ? [
+        {
+          q: "Czy można kupić pojedyncze worki?",
+          a: `${produkty
+            .filter((p) => p.cenaWorek)
+            .map((p) => `${p.nazwa} sprzedajemy też na worki: ${cenaWorkaLabel(p)} za worek ${p.workiKg} kg`)
+            .join(". ")}. Zadzwoń pod ${firma.phone.label}, a ustalimy odbiór albo dostawę.`,
+        },
+      ]
+    : []),
   {
     q: "Ile kosztuje dostawa?",
-    a: `W promieniu ok. ${DARMOWA_DOSTAWA_KM} km od magazynu (w linii prostej) dostawa jest gratis. Dalej warunki ustalamy indywidualnie – zadzwoń: ${firma.phone.label}.`,
+    a: `Do ok. ${DARMOWA_DOSTAWA_KM} km od magazynu, licząc po drogach jak nawigacja, dostawa jest gratis. Dalej warunki ustalamy indywidualnie – zadzwoń: ${firma.phone.label}.`,
   },
   {
     q: "Jak wygląda rozładunek?",
-    a: "Każdy nasz samochód ma windę i elektryczny wózek paletowy, więc paletę zdejmujemy z auta i podwozimy na miejsce. Na ciasne dojazdy mamy mniejsze auta Iveco Daily.",
+    a: "Iveco i solówki Volvo mają windę, a każdy nasz samochód elektryczny wózek paletowy, więc paletę zdejmujemy z auta i podwozimy na miejsce. Na ciasne dojazdy mamy mniejsze auta Iveco Daily.",
   },
   {
     q: "Czy pellet można trzymać na zewnątrz?",
@@ -29,11 +40,11 @@ export const faq: { q: string; a: string }[] = [
   },
   {
     q: "Jakie certyfikaty ma pellet?",
-    a: produkty.map(certyfikatZNazwa).join(" "),
+    a: produkty.flatMap((p) => certyfikatZNazwa(p) ?? []).join(" "),
   },
   {
     q: "Do jakich kotłów nadaje się ten pellet?",
-    a: "Oba rodzaje z naszej oferty to certyfikowany pellet drzewny wysokiej jakości, doskonały do kotłów 5. generacji.",
+    a: "Pellet HITON i pellet sosnowy z Wielbarka to certyfikowany pellet drzewny wysokiej jakości, doskonały do kotłów 5. generacji. Mają bardzo mało siarki, co chroni kocioł przed korozją. Parametry pelletu LAVA, podane przez producenta na worku, znajdziesz w ofercie.",
   },
   {
     q: "Czy mogę odebrać pellet osobiście?",

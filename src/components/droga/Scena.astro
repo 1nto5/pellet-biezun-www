@@ -3,10 +3,9 @@
  * One view of the road: pine forest and the roadside grass behind, the hall,
  * km posts, direction boards and the end-of-zone sign along the way, the
  * road, the customer's house on the near side of the road, the truck, and
- * the pallet with the electric pallet truck in front of all. The truck faces
- * left and the world passes it to the right; the house is drawn behind the
- * truck, so the truck passes in front of it, and never stands over it once
- * parked. `stan` sets
+ * the "delivered" tag in front of all. The truck faces left and the world
+ * passes it to the right; the house is drawn behind the truck, so the truck
+ * passes in front of it, and never stands over it once parked. `stan` sets
  * where everything stands (see `trasa.ts`), as custom properties: the live
  * drive on wide screens changes them as the reader scrolls, the still frames
  * keep them fixed. The drive on phones (`jazda.ts`) leaves them at the start
@@ -21,10 +20,7 @@
 import Ciezarowka from "./Ciezarowka.astro";
 import Hala from "./Hala.astro";
 import Dom from "./Dom.astro";
-import Ladowarka from "./Ladowarka.astro";
 import KoniecStrefy from "./KoniecStrefy.astro";
-import Paleta from "./Paleta.astro";
-import Wozek from "./Wozek.astro";
 import Gotowe from "./Gotowe.astro";
 import { obrazy } from "./obrazy";
 import { KM_DOJAZD, stanStyle, type Stan } from "./trasa";
@@ -74,14 +70,11 @@ const pasy = [
     </div>
     <div class="jezdnia"></div>
     <div class="swiat">
-      <div class="w-widlak"><Ladowarka eager={live} /></div>
       <div class="w-dom" style={`--at:${KM_DOJAZD}`}><Dom eager={live} /></div>
     </div>
     <div class="rig rig-auto"><Ciezarowka eager={live} /></div>
     <div class="rig">
       <svg viewBox="0 0 240 108" overflow="visible" aria-hidden="true" focusable="false">
-        <Wozek />
-        <Paleta class="paleta-przed-domem" />
         <Gotowe />
       </svg>
     </div>

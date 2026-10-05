@@ -33,7 +33,7 @@ import { miejsca } from "../data/miejsca";
             <div class="field">
               <label for="ilosc">Ilość <span class="req">*</span></label>
               <input id="ilosc" name="ilosc" type="text" class="input" required aria-describedby="ilosc-hint" />
-              <span id="ilosc-hint" class="hint">Np. „2 palety”.</span>
+              <span id="ilosc-hint" class="hint">Np. „2 palety”.{produkty.filter((p) => p.cenaWorek).map((p) => ` ${p.nazwa} sprzedajemy też na worki.`)}</span>
             </div>
           </div>
           <div class="field sm:max-w-xs">

@@ -14,7 +14,7 @@ import { getImage } from "astro:assets";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import { firma, firmaId } from "../data/firma";
-import { miejsca, DARMOWA_DOSTAWA_KM } from "../data/miejsca";
+import { miejsca } from "../data/miejsca";
 import { produkty } from "../data/oferta";
 import { breadcrumbsFor } from "../data/nav";
 import { przedStartem } from "../data/strona";
@@ -41,7 +41,7 @@ interface Props {
 const { title, description, jsonLd = [], noindex: pageNoindex = false } = Astro.props;
 
 const canonical = pageNoindex ? undefined : new URL(Astro.url.pathname, Astro.site);
-const fullTitle = title ? `${title} | ${firma.name}` : `Pellet drzewny z dostawą gratis do ok. ${DARMOWA_DOSTAWA_KM} km | ${firma.name}`;
+const fullTitle = title ? `${title} | ${firma.name}` : `Pellet opałowy z dostawą gratis | ${firma.name}`;
 const desc = description ?? firma.description;
 const noindex = pageNoindex || przedStartem || isPreview;
 

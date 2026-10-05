@@ -20,7 +20,6 @@ import {
   podstrony,
   miejsceHref,
   odlegloscKm,
-  wStrefieDarmowej,
   type MiejsceZPodstrona,
 } from "../../data/miejsca";
 import { produkty, cenyLabel, paletaLabel, cenyZDnia } from "../../data/oferta";
@@ -40,29 +39,27 @@ const OKOLICA_KM = 25;
 const { miejsce } = Astro.props;
 const { wMiejscowosci: w, doMiejscowosci: doM, opis } = miejsce.podstrona;
 const km = odlegloscKm(miejsce);
-const gratis = wStrefieDarmowej(miejsce);
-const warunki = gratis ? "dostawa gratis" : "dostawa po uzgodnieniu";
 
 // Nearest to the warehouse first, as the board shows their distance from it.
 const okolica = miejsca
   .filter((m) => m.nazwa !== miejsce.nazwa && distanceKm(miejsce.geo, m.geo) <= OKOLICA_KM)
   .sort((a, b) => odlegloscKm(a) - odlegloscKm(b));
 
-const lead = `Dowozimy pellet ${doM} i okolic. Z naszego magazynu we Władysławowie pod Bieżuniem to ok. ${km} km w linii prostej, więc ${gratis ? "dostawa jest gratis" : "warunki dostawy ustalamy indywidualnie"}.`;
+const lead = `Dowozimy pellet ${doM} i okolic. Z naszego magazynu we Władysławowie pod Bieżuniem to ok. ${km} km drogą.`;
 ---
 
 <Base
-  title={`Pellet ${w} – ${warunki}`}
-  description={`Pellet drzewny w workach 15 kg ${doM}: ok. ${km} km od magazynu, ${warunki}. Ceny, rozładunek windą, odbiór w magazynie.`}
+  title={`Pellet ${w} z dostawą`}
+  description={`Pellet drzewny w workach 15 kg ${doM}: ok. ${km} km od magazynu pod Bieżuniem, dostawa własnymi autami. Ceny, rozładunek windą, odbiór w magazynie.`}
 >
   <PageShell>
     <PageHeader slot="header" title={`Pellet ${w}`} lead={lead}>
-      <div class="drogowskaz mt-8" role="img" aria-label={`${miejsce.nazwa}: ${km} km od magazynu, ${warunki}`}>
+      <div class="drogowskaz mt-8" role="img" aria-label={`${miejsce.nazwa}: ${km} km od magazynu`}>
         <div>
           <div>
             <span class="drogowskaz-nazwa">{miejsce.nazwa}</span>
             <span class="drogowskaz-km">{km} km</span>
-            <span class="drogowskaz-uwaga">{warunki}</span>
+            <span class="drogowskaz-uwaga">od magazynu</span>
           </div>
         </div>
       </div>
@@ -73,15 +70,12 @@ const lead = `Dowozimy pellet ${doM} i okolic. Z naszego magazynu we Władysław
         <h2>Dostawa</h2>
         {opis && <p>{opis}</p>}
         <p>
-          {
-            gratis
-              ? `${miejsce.nazwa} jest w strefie darmowej dostawy (do ok. ${DARMOWA_DOSTAWA_KM} km od magazynu w linii prostej), więc za dowóz nie płacisz.`
-              : `${miejsce.nazwa} jest poza strefą darmowej dostawy (do ok. ${DARMOWA_DOSTAWA_KM} km od magazynu w linii prostej). Tu też dowozimy, a warunki ustalamy indywidualnie przez telefon.`
-          }
+          Do ok. {DARMOWA_DOSTAWA_KM} km od magazynu, licząc po drogach, dostawa jest gratis. Dalej warunki
+          ustalamy indywidualnie przez telefon.
         </p>
         <p>
-          Dowozimy własnymi samochodami. Każdy ma windę i elektryczny wózek paletowy, więc paletę
-          zdejmujemy z auta i podwozimy na miejsce. Na ciasne dojazdy mamy mniejsze auta Iveco Daily.
+          Dowozimy własnymi samochodami. Iveco i solówki Volvo mają windę, a każde auto elektryczny
+          wózek paletowy, więc paletę zdejmujemy z auta i podwozimy na miejsce. Na ciasne dojazdy mamy mniejsze auta Iveco Daily.
         </p>
         {
           okolica.length > 0 && (
@@ -131,15 +125,14 @@ const lead = `Dowozimy pellet ${doM} i okolic. Z naszego magazynu we Władysław
                   </li>
                 ))}
               </ul>
-              <p class="mt-3 text-sm">Odległość od magazynu w linii prostej.</p>
+              <p class="mt-3 text-sm">Odległość od magazynu po drogach, jak w nawigacji.</p>
             </section>
           )
         }
         <Mapa
           miejsca={[miejsce, ...okolica]}
-          strefa
           wyroznione={miejsce}
-          label={`Mapa: magazyn, strefa darmowej dostawy i ${miejsce.nazwa} z okolicą`}
+          label={`Mapa: magazyn i ${miejsce.nazwa} z okolicą`}
           class="mapa-kwadrat"
         />
       </div>

@@ -52,7 +52,7 @@ export const firma = {
   // TODO(produkcja): the client's NIP, written "123-456-78-90".
   nip: undefined as string | undefined,
   description:
-    "Sprzedaż certyfikowanego pelletu drzewnego w workach 15 kg na paletach. Magazyn we Władysławowie pod Bieżuniem, dostawa gratis w promieniu ok. 80 km.",
+    "Pellet opałowy w workach 15 kg. Dowozimy własnymi autami z windą, gratis do ok. 80 km od Bieżunia. Odbiór w magazynie we Władysławowie.",
   address: {
     street: "Władysławowo 10",
     postalCode: "09-320",

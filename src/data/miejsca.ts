@@ -4,7 +4,8 @@
  * area in the JSON-LD (areaServed) and llms.txt.
  *
  * Whether a town is in the free delivery zone is not stored: it follows from
- * the straight-line distance to the warehouse (`firma.geo`).
+ * its road distance from the warehouse, as a satnav counts it (`drogi.json`,
+ * made by `scripts/odleglosci-drogowe.mjs`; run it again after adding a town).
  *
  * `podstrona.slug` is the part of the address after /dostawa/: lowercase, no
  * Polish letters, written by hand so a page keeps its address.
@@ -13,10 +14,9 @@
  * Coordinates from OpenStreetMap (Nominatim).
  */
 import type { Geo } from "../lib/geo";
-import { distanceKm } from "../lib/geo";
 import { maPodstrone } from "../lib/miejsce";
 import { href } from "../lib/url";
-import { firma } from "./firma";
+import drogi from "./drogi.json";
 import { DARMOWA_DOSTAWA_KM } from "./dostawa";
 
 export type Wojewodztwo = "mazowieckie" | "łódzkie" | "podlaskie" | "kujawsko-pomorskie" | "warmińsko-mazurskie";
@@ -49,7 +49,7 @@ export interface Miejsce {
 
 export type MiejsceZPodstrona = Miejsce & { podstrona: Podstrona };
 
-/** Free delivery radius in km, straight line from the warehouse (`dostawa.ts`). */
+/** Free delivery distance in km, by road from the warehouse (`dostawa.ts`). */
 export { DARMOWA_DOSTAWA_KM };
 
 export const miejsca: Miejsce[] = [
@@ -149,14 +149,17 @@ export const miejsca: Miejsce[] = [
 
 export const podstrony: MiejsceZPodstrona[] = miejsca.filter(maPodstrone);
 export const miejsceHref = (m: MiejsceZPodstrona) => href(`/dostawa/${m.podstrona.slug}/`);
-export const odlegloscKm = (m: Miejsce) => distanceKm(firma.geo, m.geo);
+/** Km by road from the warehouse; a town missing from `drogi.json` stops the build. */
+export const odlegloscKm = (m: Miejsce): number => {
+  const km = (drogi.km as Record<string, number>)[m.nazwa];
+  if (km === undefined) throw new Error(`No road distance for ${m.nazwa}: run bun scripts/odleglosci-drogowe.mjs`);
+  return km;
+};
 export const wStrefieDarmowej = (m: Miejsce) => odlegloscKm(m) <= DARMOWA_DOSTAWA_KM;
 
-/** The towns with their own page, nearest first, split by whether delivery is free; an empty group is left out. */
-export const grupyPodstron = (() => {
-  const poOdleglosci = [...podstrony].sort((a, b) => odlegloscKm(a) - odlegloscKm(b));
-  return [
-    { id: "gratis", tytul: "Dostawa gratis", miasta: poOdleglosci.filter(wStrefieDarmowej) },
-    { id: "po-uzgodnieniu", tytul: "Dostawa po uzgodnieniu", miasta: poOdleglosci.filter((m) => !wStrefieDarmowej(m)) },
-  ].filter((g) => g.miasta.length > 0);
-})();
+/**
+ * The towns with their own page, nearest first. Not split into free and paid
+ * delivery: the pages state the free delivery distance once and never sort
+ * the towns by it (Adrian, 2026-10-05).
+ */
+export const podstronyPoOdleglosci = [...podstrony].sort((a, b) => odlegloscKm(a) - odlegloscKm(b));

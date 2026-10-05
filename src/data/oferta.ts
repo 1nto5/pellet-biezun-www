@@ -3,7 +3,8 @@
  * the local pages, the choices in the order form and llms.txt all read this
  * list. Prices live here and nowhere else; a page only prints them.
  *
- * Prices are from the client's OLX ads of `cenyZDnia`. Whether they include
+ * Prices are from the client's OLX ads of `cenyZDnia`; the single-bag price
+ * from the ad of 2026-10-01. Whether they include
  * VAT is not known, so no page says "brutto" or "z VAT".
  *
  * Certificates belong to the producers, not to the company: without a trader's
@@ -13,6 +14,7 @@
 import type { ImageMetadata } from "astro";
 import hitonZdjecie from "../assets/produkty/hiton.jpg";
 import wielbarkZdjecie from "../assets/produkty/wielbark.jpg";
+import lavaZdjecie from "../assets/produkty/lava.jpg";
 
 /** The date of the ads the prices come from. */
 // TODO(produkcja): confirm the prices with the client, and whether they include VAT.
@@ -44,7 +46,10 @@ export interface Produkt {
   cenaPaleta: number;
   /** Złoty per tonne, where the ad gives one. */
   cenaTona?: number;
-  certyfikat: string;
+  /** Złoty per single bag, where an ad sells the product by the bag. */
+  cenaWorek?: number;
+  /** Left out where neither the bag nor the ad names one; the pages then say nothing about a certificate. */
+  certyfikat?: string;
   parametry: Parametr[];
   /** Where the parameter values come from, shown under the table. */
   zrodloParametrow: string;
@@ -56,14 +61,14 @@ export const produkty: Produkt[] = [
     id: "hiton",
     nazwa: "Pellet HITON",
     podtytul: "Pellet drzewny premium, 100% sosna",
-    opis: "Pellet z czystego surowca sosnowego, bez dodatków chemicznych i klejów. Nie tworzy spieków. Popiół można wykorzystać jako nawóz w ogrodzie.",
+    opis: "Pellet z czystych trocin sosnowych, bez dodatków chemicznych, klejów i innych zanieczyszczeń. Ma stałe, powtarzalne parametry i nie tworzy spieków. Siarki jest bardzo mało, co chroni kocioł przed korozją. Popiół można wykorzystać jako nawóz w ogrodzie.",
     workiKg: 15,
     workowNaPalecie: 65,
     kgNaPalecie: 975,
     cenaPaleta: 2200,
     certyfikat: "Certyfikat DINplus 7A433 i certyfikat ENplus A1 producenta, ID PL 078.",
     parametry: [
-      { nazwa: "Wartość opałowa", wartosc: "≥ 5,0 kWh/kg" },
+      { nazwa: "Wartość opałowa", wartosc: "≥ 18,0 MJ/kg (≥ 5,0 kWh/kg)" },
       { nazwa: "Popiół", wartosc: "≤ 0,50%" },
       { nazwa: "Siarka", wartosc: "≤ 0,01%" },
       { nazwa: "Chlor", wartosc: "≤ 0,01%" },
@@ -74,14 +79,15 @@ export const produkty: Produkt[] = [
   },
   {
     id: "wielbark",
-    nazwa: "Pellet sosnowy z Wielbarku",
+    nazwa: "Pellet sosnowy z Wielbarka",
     podtytul: "Pellet drzewny sosnowy, 6 mm",
-    opis: "Pellet z zakładu IKEA Industry w Wielbarku. Na worku jest napis „Wood Pellets”.",
+    opis: "Pellet z zakładu IKEA Industry w Wielbarku, z mocno sprasowanych czystych trocin sosnowych, bez kory i innych dodatków. Daje mało popiołu i nie tworzy spieków. Na worku jest napis „Wood Pellets”.",
     workiKg: 15,
     workowNaPalecie: 72,
     kgNaPalecie: 1080,
     cenaPaleta: 2440,
     cenaTona: 2260,
+    cenaWorek: 34,
     certyfikat: "Certyfikat ENplus A1 producenta, ID PL 002.",
     parametry: [
       { nazwa: "Wartość opałowa", wartosc: "18,54 MJ/kg (5,15 kWh/kg)", wymaganie: "≥ 16,5 MJ/kg" },
@@ -98,6 +104,26 @@ export const produkty: Produkt[] = [
       "sprawozdanie z badań nr DBL-2026-5826-01-BLS z 09.09.2026, Sieć Badawcza Łukasiewicz – Poznański Instytut Technologiczny (laboratorium akredytowane, PCA AB 053).",
     zdjecie: { src: wielbarkZdjecie, alt: "Worek pelletu z napisem „Wood Pellets”" },
   },
+  {
+    // Neither the bag nor the ad names a certificate, and the producer comes
+    // only from the ad, so the pages name neither.
+    id: "lava",
+    nazwa: "Pellet LAVA",
+    podtytul: "Pellet drzewny z sosny i świerku, 6 mm",
+    opis: "Pellet z drewna sosnowego i świerkowego. Na czerwonym worku jest napis „LAVA Premium Pellets”.",
+    workiKg: 15,
+    workowNaPalecie: 65,
+    kgNaPalecie: 975,
+    cenaPaleta: 2300,
+    parametry: [
+      { nazwa: "Wartość opałowa", wartosc: "≥ 4,6 kWh/kg" },
+      { nazwa: "Popiół", wartosc: "≤ 0,70%" },
+      { nazwa: "Średnica", wartosc: "6 mm" },
+      { nazwa: "Topliwość popiołu", wartosc: "≥ 1200 °C" },
+    ],
+    zrodloParametrow: "dane producenta z worka.",
+    zdjecie: { src: lavaZdjecie, alt: "Worek pelletu LAVA 15 kg" },
+  },
 ];
 
 /**
@@ -110,6 +136,11 @@ export function cenyLabel(p: Produkt): string[] {
   const zl = (n: number) => `${n.toLocaleString("pl-PL")}\u00a0zł`;
   const za = (unit: string) => `/\u00a0${unit}`;
   return [`${zl(p.cenaPaleta)} ${za("paleta")}`, ...(p.cenaTona ? [`${zl(p.cenaTona)} ${za("t")}`] : [])];
+}
+
+/** "34 zł" for a product also sold by the bag; kept out of `cenyLabel`, which every product page and the order form show. */
+export function cenaWorkaLabel(p: Produkt): string | undefined {
+  return p.cenaWorek ? `${p.cenaWorek.toLocaleString("pl-PL")}\u00a0zł` : undefined;
 }
 
 /** "2200 zł / paleta": the one price every product has. */
@@ -130,7 +161,8 @@ function workiOdmiana(n: number): string {
   return d >= 2 && d <= 4 && (dd < 12 || dd > 14) ? "worki" : "worków";
 }
 
-/** "Pellet HITON: certyfikat DINplus 7A433 i …": the certificate sentence under the product's name. */
-export function certyfikatZNazwa(p: Produkt): string {
+/** "Pellet HITON: certyfikat DINplus 7A433 i …": the certificate sentence under the product's name; undefined without a certificate. */
+export function certyfikatZNazwa(p: Produkt): string | undefined {
+  if (!p.certyfikat) return undefined;
   return `${p.nazwa}: ${p.certyfikat.charAt(0).toLowerCase()}${p.certyfikat.slice(1)}`;
 }

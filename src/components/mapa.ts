@@ -24,13 +24,11 @@ function wczytajArkusz(): Promise<void> {
 /** What Mapa.astro hands over in `data-mapa`. */
 export interface DaneMapy {
   magazyn: { nazwa: string; adres: string; tel: string; telHref: string; lat: number; lng: number };
-  promienKm: number | null;
   miejsca: {
     nazwa: string;
     lat: number;
     lng: number;
     km: number;
-    wStrefie: boolean;
     href: string | null;
     wyroznione: boolean;
   }[];
@@ -79,24 +77,10 @@ export async function narysujMape(el: HTMLElement): Promise<void> {
 
   const bounds = L.latLngBounds([[magazyn.lat, magazyn.lng]]);
 
-  // The zone first, so the dots sit on top of it. Not interactive: it would
-  // otherwise catch clicks meant for the map. Its extent comes from the
-  // coordinates: the circle's own getBounds() needs a map that already has
-  // a view, and this one gets its view only at the end.
-  if (dane.promienKm !== null) {
-    L.circle([magazyn.lat, magazyn.lng], {
-      radius: dane.promienKm * 1000,
-      className: "mapa-strefa",
-      interactive: false,
-    }).addTo(map);
-    bounds.extend(L.latLng(magazyn.lat, magazyn.lng).toBounds(dane.promienKm * 2000));
-  }
-
   for (const m of dane.miejsca) {
     const lines: (string | Node)[] = [
       strong(m.nazwa),
-      `ok.\u00a0${m.km}\u00a0km od magazynu w\u00a0linii prostej`,
-      m.wStrefie ? "dostawa gratis" : "dostawa po uzgodnieniu",
+      `ok.\u00a0${m.km}\u00a0km od magazynu drogą`,
     ];
     if (m.href) lines.push(link(m.href, "Dostawa i ceny"));
 
@@ -104,7 +88,6 @@ export async function narysujMape(el: HTMLElement): Promise<void> {
       radius: m.wyroznione ? 9 : 5,
       className: [
         "mapa-miejsce",
-        m.wStrefie ? "mapa-miejsce-strefa" : "mapa-miejsce-poza",
         m.wyroznione ? "mapa-miejsce-wyroznione" : "",
       ].join(" "),
     })
@@ -125,7 +108,7 @@ export async function narysujMape(el: HTMLElement): Promise<void> {
     .addTo(map)
     .bindPopup(popup(strong(`Magazyn ${magazyn.nazwa}`), magazyn.adres, link(magazyn.telHref, `tel.\u00a0${magazyn.tel.replace(/ /g, "\u00a0")}`)));
 
-  if (dane.miejsca.length === 0 && dane.promienKm === null) {
+  if (dane.miejsca.length === 0) {
     map.setView([magazyn.lat, magazyn.lng], Number(el.dataset.zoom));
   } else {
     map.fitBounds(bounds, { padding: [24, 24] });

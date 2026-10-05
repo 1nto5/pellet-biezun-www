@@ -10,7 +10,7 @@ import { firma, firmaId, addressLine, hoursRange } from "../data/firma";
 import { orderLink, strony } from "../data/nav";
 import { absoluteUrl } from "../lib/url";
 import { produkty, cenyLabel, paletaLabel } from "../data/oferta";
-import { DARMOWA_DOSTAWA_KM, grupyPodstron, miejsceHref } from "../data/miejsca";
+import { DARMOWA_DOSTAWA_KM, podstronyPoOdleglosci, miejsceHref } from "../data/miejsca";
 
 /** "Pellet Bieżuń" → the two lines of the sign. */
 const [pellet, miasto] = firma.znak;
@@ -35,9 +35,9 @@ const workiKg = [...new Set(produkty.map((p) => p.workiKg))].join(" i ");
       <h1 id="hero-title" class="wordmark">
         <span class="wordmark-pellet">{pellet}</span>
         <span class="wordmark-miasto">{miasto}</span>
-        <!-- Read aloud and indexed as "Pellet Bieżuń – pellet drzewny…", not one run of words. -->
+        <!-- Read aloud and indexed as "Pellet Bieżuń – pellet opałowy…", not one run of words. -->
         <span class="sr-only"> – </span>
-        <span class="wordmark-opis">pellet drzewny z dostawą</span>
+        <span class="wordmark-opis">pellet opałowy z dostawą gratis</span>
       </h1>
       <div class="hero-dol">
         <p class="hero-fakt">
@@ -66,7 +66,7 @@ const workiKg = [...new Set(produkty.map((p) => p.workiKg))].join(" i ");
         <strong>Cena do negocjacji</strong>
       </p>
       <h2 id="oferta-skrot" class="text-3xl md:text-4xl">Co przywozimy</h2>
-      <ul role="list" class="mt-8 grid gap-10 lg:grid-cols-2" data-ruch-grupa>
+      <ul role="list" class="mt-8 grid gap-10 lg:grid-cols-3" data-ruch-grupa>
         {
           produkty.map((p) => {
             const [cena = "", cenaTona] = cenyLabel(p);
@@ -109,25 +109,18 @@ const workiKg = [...new Set(produkty.map((p) => p.workiKg))].join(" i ");
     <Pasy />
     <h2 id="dostawy-skrot" class="mt-6 text-3xl md:text-4xl">Gdzie dowozimy</h2>
     <p class="mt-3 max-w-prose text-lg">
-      W promieniu ok. {DARMOWA_DOSTAWA_KM} km od magazynu dowozimy gratis, dalej warunki ustalamy
-      indywidualnie. Odległości podajemy w linii prostej.
+      Do ok. {DARMOWA_DOSTAWA_KM} km od magazynu dowozimy gratis, dalej warunki ustalamy
+      indywidualnie. Odległości liczymy po drogach, jak nawigacja.
     </p>
-    {
-      grupyPodstron.map((g) => (
-        <div class="mt-8">
-          <h3 id={`dostawa-${g.id}`} class="text-xl">
-            {g.tytul}
-          </h3>
-          <ul role="list" class="tablice mt-3" aria-labelledby={`dostawa-${g.id}`} data-ruch-grupa="tablica">
-            {g.miasta.map((m) => (
-              <li>
-                <Tablica miejsce={m} href={miejsceHref(m)} />
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))
-    }
+        <ul role="list" class="tablice mt-6" aria-labelledby="dostawy-skrot" data-ruch-grupa="tablica">
+      {
+        podstronyPoOdleglosci.map((m) => (
+          <li>
+            <Tablica miejsce={m} href={miejsceHref(m)} />
+          </li>
+        ))
+      }
+    </ul>
     <p class="mt-8 text-lg">
       Mniejsze miejscowości i wsie są na <a href={strony.mapa.href} class="link-strong">mapie dystrybucji</a>.
     </p>
@@ -386,7 +379,7 @@ const workiKg = [...new Set(produkty.map((p) => p.workiKg))].join(" i ");
       font-size: 1.35rem;
     }
   }
-  /* The narrowest phones keep the bag small, so "Wielbarku" fits its line
+  /* The narrowest phones keep the bag small, so "Wielbarka" fits its line
      whole rather than break inside the word. */
   .produkt {
     display: grid;
@@ -405,6 +398,14 @@ const workiKg = [...new Set(produkty.map((p) => p.workiKg))].join(" i ");
       grid-template-columns: 10rem minmax(0, 1fr);
     }
   }
+  /* Three cards in a row leave no room for the bag beside the text (about
+     250 px a card at 1024 px), so there the bag stands above it. */
+  @media (min-width: 64rem) {
+    .produkt {
+      grid-template-columns: minmax(0, 1fr);
+      align-content: start;
+    }
+  }
   /* Packshots are shot on white; multiply lets that white vanish into the
      page, so only the bag and its shadow show. */
   .produkt-foto {
@@ -413,6 +414,11 @@ const workiKg = [...new Set(produkty.map((p) => p.workiKg))].join(" i ");
     aspect-ratio: 3 / 4;
     object-fit: contain;
     mix-blend-mode: multiply;
+  }
+  @media (min-width: 64rem) {
+    .produkt-foto {
+      width: 10rem;
+    }
   }
 
   .kontakt {

@@ -18,15 +18,13 @@
  */
 import { firma, addressLine } from "../data/firma";
 import type { Miejsce } from "../data/miejsca";
-import { DARMOWA_DOSTAWA_KM, miejsceHref, odlegloscKm, wStrefieDarmowej } from "../data/miejsca";
+import { miejsceHref, odlegloscKm } from "../data/miejsca";
 import { maPodstrone, pelnaNazwa } from "../lib/miejsce";
 import type { DaneMapy } from "./mapa";
 
 interface Props {
   /** Towns drawn as dots. None: the map shows the warehouse alone. */
   miejsca?: readonly Miejsce[];
-  /** Draw the free-delivery circle around the warehouse. */
-  strefa?: boolean;
   /** One town drawn bigger, e.g. the town of a local page. */
   wyroznione?: Miejsce;
   /** Zoom when the map shows the warehouse alone; otherwise it fits everything drawn. */
@@ -36,7 +34,7 @@ interface Props {
   class?: string;
 }
 
-const { miejsca = [], strefa = false, wyroznione, zoom = 13, label, class: className } = Astro.props;
+const { miejsca = [], wyroznione, zoom = 13, label, class: className } = Astro.props;
 
 const dane: DaneMapy = {
   magazyn: {
@@ -47,13 +45,11 @@ const dane: DaneMapy = {
     lat: firma.geo.lat,
     lng: firma.geo.lng,
   },
-  promienKm: strefa ? DARMOWA_DOSTAWA_KM : null,
   miejsca: miejsca.map((m) => ({
     nazwa: pelnaNazwa(m),
     lat: m.geo.lat,
     lng: m.geo.lng,
     km: odlegloscKm(m),
-    wStrefie: wStrefieDarmowej(m),
     href: maPodstrone(m) ? miejsceHref(m) : null,
     wyroznione: wyroznione !== undefined && m.nazwa === wyroznione.nazwa && m.geo.lat === wyroznione.geo.lat,
   })),

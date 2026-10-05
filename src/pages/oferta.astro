@@ -7,7 +7,7 @@ import Button from "../components/Button.astro";
 import Pasy from "../components/Pasy.astro";
 import { firma, firmaId, addressLine } from "../data/firma";
 import { orderLink, strony } from "../data/nav";
-import { produkty, cenyLabel, paletaLabel, cenyZDnia } from "../data/oferta";
+import { produkty, cenyLabel, cenaWorkaLabel, paletaLabel, cenyZDnia } from "../data/oferta";
 import { DARMOWA_DOSTAWA_KM } from "../data/miejsca";
 import fotoIveco from "../assets/flota/iveco.png";
 import fotoVolvoFm from "../assets/flota/volvo-fm.png";
@@ -24,7 +24,7 @@ import fotoVolvoFhNaczepa from "../assets/flota/volvo-fh-naczepa.png";
  */
 const flota = [
   {
-    opis: "2 × Iveco Daily 7,2 t: do 4 palet, także na ciasne dojazdy",
+    opis: "2 × Iveco Daily 7,2 t z windą: do 4 palet, także na ciasne dojazdy",
     min: 4,
     max: 4,
     m: 7,
@@ -32,7 +32,7 @@ const flota = [
     alt: "Iveco Daily z czarną zabudową PELLET, z boku",
   },
   {
-    opis: "Volvo FM 26 t: 12–14 palet",
+    opis: "Volvo FM 26 t z windą: 12–14 palet",
     min: 12,
     max: 14,
     m: 10,
@@ -40,7 +40,7 @@ const flota = [
     alt: "Czerwone Volvo FM z białą zabudową PELLET, z boku",
   },
   {
-    opis: "Volvo FH: 14–16 palet",
+    opis: "Volvo FH z windą: 14–16 palet",
     min: 14,
     max: 16,
     m: 10,
@@ -86,14 +86,14 @@ const produktyLd = await Promise.all(
 
 <Base
   title="Oferta i ceny pelletu"
-  description={`Pellet HITON i pellet sosnowy z Wielbarku w workach 15 kg na paletach. Ceny za paletę, certyfikaty, parametry, dostawa gratis do ok. ${DARMOWA_DOSTAWA_KM} km.`}
+  description={`Pellet HITON, pellet sosnowy z Wielbarka i pellet LAVA w workach 15 kg na paletach. Ceny za paletę, certyfikaty, parametry, dostawa gratis do ok. ${DARMOWA_DOSTAWA_KM} km.`}
   jsonLd={produktyLd}
 >
   <PageShell>
     <PageHeader
       slot="header"
       title="Oferta i ceny"
-      lead="Dwa rodzaje certyfikowanego pelletu drzewnego w workach 15 kg. Palety są zapakowane fabrycznie i przykryte foliowym kapturem, więc mogą stać na zewnątrz."
+      lead="Trzy rodzaje pelletu drzewnego w workach 15 kg. Palety są zapakowane fabrycznie i przykryte foliowym kapturem, więc mogą stać na zewnątrz."
     />
 
     {
@@ -129,6 +129,7 @@ const produktyLd = await Promise.all(
               ))}
             </div>
             <p class="mt-4 font-semibold">Paleta: {paletaLabel(p)}</p>
+            {p.cenaWorek && <p class="mt-1 font-semibold">Pojedynczy worek: {cenaWorkaLabel(p)}</p>}
             <div class="mt-6">
               <Button href={`${orderLink.href}?produkt=${p.id}`} variant="secondary">
                 Zamów ten pellet<span class="sr-only">: {p.nazwa}</span>
@@ -136,7 +137,7 @@ const produktyLd = await Promise.all(
             </div>
 
             <p class="mt-6 max-w-prose">{p.opis}</p>
-            <p class="mt-4 max-w-prose">{p.certyfikat}</p>
+            {p.certyfikat && <p class="mt-4 max-w-prose">{p.certyfikat}</p>}
 
             <h3 class="mt-10 text-2xl">Parametry</h3>
             {/* A narrow screen scrolls the table sideways; the box takes focus so
@@ -178,10 +179,10 @@ const produktyLd = await Promise.all(
       <h2 id="dostawa" class="mt-6 text-3xl md:text-4xl">Dostawa i odbiór</h2>
       <div class="prose mt-5">
         <p>
-          W promieniu ok. {DARMOWA_DOSTAWA_KM} km od magazynu dowozimy gratis. Dalej warunki ustalamy
+          Do ok. {DARMOWA_DOSTAWA_KM} km od magazynu, licząc po drogach, dowozimy gratis. Dalej warunki ustalamy
           indywidualnie. Sprawdź swoją miejscowość na <a href={strony.mapa.href}>mapie dystrybucji</a>.
         </p>
-        <p>Dowozimy własnymi samochodami. Każdy ma windę i elektryczny wózek paletowy:</p>
+        <p>Dowozimy własnymi samochodami. Każdy ma elektryczny wózek paletowy:</p>
       </div>
 
       <ul role="list" class="flota mt-6" data-ruch-grupa="auto">
