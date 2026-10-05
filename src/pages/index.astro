@@ -24,25 +24,22 @@ const webSite = {
   inLanguage: "pl-PL",
   publisher: { "@id": firmaId },
 };
-
-/** Bag weights on offer; one number while every product comes in the same bag. */
-const workiKg = [...new Set(produkty.map((p) => p.workiKg))].join(" i ");
 ---
 
 <Base jsonLd={[webSite]}>
   <Droga>
     <section class="hero page-wrap" aria-labelledby="hero-title">
-      <h1 id="hero-title" class="wordmark">
-        <span class="wordmark-pellet">{pellet}</span>
-        <span class="wordmark-miasto">{miasto}</span>
-        <!-- Read aloud and indexed as "Pellet Bieżuń – pellet opałowy…", not one run of words. -->
-        <span class="sr-only"> – </span>
-        <span class="wordmark-opis">pellet opałowy z dostawą gratis</span>
-      </h1>
-      <div class="hero-dol">
-        <p class="hero-fakt">
-          Sprzedajemy pellet drzewny w workach {workiKg} kg na paletach. Dowozimy gratis do ok.&nbsp;{DARMOWA_DOSTAWA_KM}&nbsp;km {firma.odMiasta}.
+      <div class="hero-znak">
+        <h1 id="hero-title" class="wordmark">
+          <span class="wordmark-pellet">{pellet}</span>
+          <span class="wordmark-miasto">{miasto}</span>
+        </h1>
+        <p class="naklejka">
+          <span>Dostawa gratis</span>
+          <strong>do {DARMOWA_DOSTAWA_KM}&nbsp;km!</strong>
         </p>
+      </div>
+      <div class="hero-dol">
         <div class="hero-akcje">
           <Button href={orderLink.href}>{orderLink.label}</Button>
           <a href={firma.phone.href} class="telefon">
@@ -180,27 +177,27 @@ const workiKg = [...new Set(produkty.map((p) => p.workiKg))].join(" i ");
     font-size: calc(var(--wm) * 0.915);
     letter-spacing: -0.02em;
   }
-  /* The rest of the h1, so search engines read what the company does, not
-     only its name. */
-  .wordmark-opis {
-    margin-top: 0.6rem;
-    font-size: clamp(1.05rem, 1.6vw, 1.35rem);
-    font-weight: 800;
-    line-height: 1.2;
-    letter-spacing: 0;
-    text-transform: none;
+  /* The sticker is stuck over a corner of the sign, as on a shop window:
+     on phones over the end of BIEŻUŃ, hanging below the sign; on wide
+     screens over the end of the T. It covers only the corners of the
+     letters. */
+  .hero-znak {
+    position: relative;
+    width: fit-content;
+  }
+  .hero .naklejka {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    transform: translate(12%, 62%) rotate(-3deg);
+    box-shadow: 0 0 0 0.25rem var(--color-white);
   }
   .hero-dol {
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    margin-top: 1.25rem;
-  }
-  .hero-fakt {
-    max-width: 34ch;
-    font-size: 1.1rem;
-    font-weight: 500;
-    line-height: 1.35;
+    margin-top: 3.4rem;
   }
   .hero-akcje {
     display: flex;
@@ -213,14 +210,13 @@ const workiKg = [...new Set(produkty.map((p) => p.workiKg))].join(" i ");
      drive's whole scene under it: the wordmark, 1.715 times its font size
      tall, gives way as far as that needs, down to a floor on the lowest
      windows. `--reszta` is the rest of the hero by its sizes here: the
-     paddings, the line under the wordmark, three lines of facts, the row of
-     actions, and a strip of white under the scene's road. Without the drive
-     the wordmark keeps its own size: `--wm-ekran` is then invalid, and the
-     fallback is taken. */
+     paddings, the sticker's part below the sign, the row of actions, and a
+     strip of white under the scene's road. Without the drive the wordmark keeps its own size:
+     `--wm-ekran` is then invalid, and the fallback is taken. */
   @media (width < 56rem), (aspect-ratio < 1) {
     .hero {
-      --reszta: 13.1rem;
-      --wm-ekran: calc((100svh - var(--header-height) - var(--scena-h) - var(--reszta) + var(--bez-opisu, 0rem)) / 1.715);
+      --reszta: 8.4rem;
+      --wm-ekran: calc((100svh - var(--header-height) - var(--scena-h) - var(--reszta)) / 1.715);
       padding-bottom: 0.75rem;
     }
     .wordmark {
@@ -228,14 +224,9 @@ const workiKg = [...new Set(produkty.map((p) => p.workiKg))].join(" i ");
     }
     .hero-dol {
       gap: 0.9rem;
-      margin-top: 1rem;
-    }
-    .hero-fakt {
-      font-size: 1.05rem;
     }
     /* The order button and the phone side by side, sized to fit a 360 px
-       phone; a narrower one has them one under the other, and room for a
-       fourth line of facts. */
+       phone; a narrower one has them one under the other. */
     .hero-akcje {
       flex-wrap: nowrap;
       gap: 0.75rem;
@@ -249,30 +240,13 @@ const workiKg = [...new Set(produkty.map((p) => p.workiKg))].join(" i ");
   }
   @media (width < 22.5rem) {
     .hero {
-      --reszta: 17.7rem;
+      --reszta: 11.6rem;
     }
     .hero-akcje {
       flex-wrap: wrap;
     }
   }
-  /* The lowest phones held upright (a 4.7-inch one in a browser): the line
-     under the wordmark, which the facts say again, is only read out, so the
-     wordmark and the scene both still fit. */
-  @media (orientation: portrait) and (height < 37.5rem) {
-    .hero {
-      --bez-opisu: 1.85rem;
-    }
-    .wordmark-opis {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      margin: -1px;
-      overflow: hidden;
-      clip-path: inset(50%);
-      white-space: nowrap;
-    }
-  }
-  /* Wide landscape windows: the facts and the two actions beside the
+  /* Wide landscape windows: the two actions beside the
      wordmark, at its foot. The wordmark leaves them at least 17rem: PELLET
      is about 3.2 times its font size wide. Should they still not fit (a
      reader's own wider letter spacing), they go under it. An upright window
@@ -288,16 +262,20 @@ const workiKg = [...new Set(produkty.map((p) => p.workiKg))].join(" i ");
     }
     .wordmark {
       --wm: min(30svh, 17rem, (100cqi - 17rem - var(--odstep)) / 3.2);
+    }
+    .hero-znak {
       flex: none;
+    }
+    .hero .naklejka {
+      top: 0;
+      bottom: auto;
+      transform: translate(78%, -4%) rotate(-10deg);
     }
     .hero-dol {
       flex: 1 0 17rem;
       max-width: 24rem;
       margin-top: 0;
       padding-bottom: 0.3rem;
-    }
-    .hero-fakt {
-      font-size: 1.3rem;
     }
   }
 
@@ -337,8 +315,9 @@ const workiKg = [...new Set(produkty.map((p) => p.workiKg))].join(" i ");
     }
   }
   /* A shop-window sticker, after the red "DOSTAWA GRATIS!" disc on the
-     printer's banner: stuck over the panel's corner on wide screens, a tilted
-     tag under the heading on phones. */
+     printer's banner: a tilted tag on phones, a disc on wide screens. The
+     offer's disc is stuck over the panel's corner; the hero's stands over
+     the actions, once the hero sets them beside the wordmark. */
   .naklejka {
     display: inline-flex;
     flex-direction: column;
@@ -362,7 +341,7 @@ const workiKg = [...new Set(produkty.map((p) => p.workiKg))].join(" i ");
     text-transform: uppercase;
   }
   @media (min-width: 48rem) {
-    .naklejka {
+    .baner .naklejka {
       position: absolute;
       top: -2.75rem;
       right: 2rem;
@@ -375,8 +354,25 @@ const workiKg = [...new Set(produkty.map((p) => p.workiKg))].join(" i ");
       transform: rotate(-10deg);
       box-shadow: 0 0 0 0.3rem var(--color-white);
     }
-    .naklejka strong {
+    .baner .naklejka strong {
       font-size: 1.35rem;
+    }
+  }
+  @media (min-width: 56rem) and (min-aspect-ratio: 1 / 1) {
+    .hero .naklejka {
+      justify-content: center;
+      width: 11rem;
+      aspect-ratio: 1;
+      padding: 1rem;
+      border-radius: 50%;
+      box-shadow: 0 0 0 0.3rem var(--color-white);
+    }
+    /* One line, not the offer's two: set larger to fill the disc as much. */
+    .hero .naklejka span {
+      font-size: 1.05rem;
+    }
+    .hero .naklejka strong {
+      font-size: 1.7rem;
     }
   }
   /* The narrowest phones keep the bag small, so "Wielbarka" fits its line
