@@ -10,7 +10,7 @@ import { absoluteUrl } from "../lib/url";
 import { produkty, cenyLabel, cenaLabel, cenaWorkaLabel, paletaLabel } from "../data/oferta";
 import { flota, najdluzszy, szczegolyLabel } from "../data/flota";
 import { faq } from "../data/faq";
-import { DARMOWA_DOSTAWA_KM, podstronyPoOdleglosci, miejsceHref } from "../data/miejsca";
+import { podstronyPoOdleglosci, miejsceHref } from "../data/miejsca";
 
 /** "Pellet Bieżuń" → the two lines of the sign. */
 const [pellet, miasto] = firma.znak;
@@ -28,7 +28,7 @@ const pytania = ["Ile kosztuje dostawa?", "Czy pellet można trzymać na zewnąt
  * the title only where no other place on the page says it.
  */
 const kafelki: { tytul: string; tekst?: string }[] = [
-  { tytul: `Dostawa gratis ${DARMOWA_DOSTAWA_KM} km` },
+  { tytul: "Dostawa gratis" },
   { tytul: "Winda i wózek paletowy", tekst: "paletę zdejmujemy z auta i podwozimy na miejsce" },
   { tytul: "Iveco Daily na dojazd w trudno dostępne miejsca" },
 ];
@@ -56,8 +56,8 @@ const webSite = {
           <span class="wordmark-miasto">{miasto}</span>
         </h1>
         <p class="naklejka">
-          <span>Dostawa gratis</span>
-          <strong>{DARMOWA_DOSTAWA_KM}&nbsp;km!</strong>
+          <span>Dostawa</span>
+          <strong>gratis!</strong>
         </p>
       </div>
       <div class="hero-dol">
@@ -415,12 +415,20 @@ const webSite = {
       border-radius: 50%;
       box-shadow: 0 0 0 0.3rem var(--color-white);
     }
-    /* One line, not the offer's two: set larger to fill the disc as much. */
+    /* As on a shop's promotion sticker: "GRATIS!" larger than the disc,
+       spilling over its edge on both sides (the negative margins centre the
+       overflow), outlined in the disc's red so it reads on the page around
+       it too. */
     .hero .naklejka span {
-      font-size: 1.05rem;
+      font-size: 1.2rem;
     }
     .hero .naklejka strong {
-      font-size: 1.7rem;
+      margin-inline: -3rem;
+      font-size: 3.4rem;
+      line-height: 0.9;
+      -webkit-text-stroke: 0.16em var(--color-red);
+      paint-order: stroke fill;
+      text-shadow: 0 0.08em 0.06em rgb(0 0 0 / 0.3);
     }
   }
 

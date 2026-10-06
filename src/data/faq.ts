@@ -28,7 +28,7 @@ export const faq: { q: string; a: string }[] = [
     : []),
   {
     q: "Ile kosztuje dostawa?",
-    a: `Dostawa gratis ${DARMOWA_DOSTAWA_KM} km od magazynu, licząc po drogach jak nawigacja. Dalej warunki ustalamy indywidualnie – zadzwoń: ${firma.phone.label}.`,
+    a: `Dostawa gratis do ${DARMOWA_DOSTAWA_KM} km od magazynu, licząc po drogach jak nawigacja. Dalej warunki ustalamy indywidualnie – zadzwoń: ${firma.phone.label}.`,
   },
   {
     q: "Jak wygląda rozładunek?",

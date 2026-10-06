@@ -52,7 +52,7 @@ export const firma = {
   // TODO(produkcja): the client's NIP, written "123-456-78-90".
   nip: undefined as string | undefined,
   description:
-    "Pellet opałowy w workach 15 kg. Dowozimy własnymi autami z windą, dostawa gratis 80 km od Bieżunia. Odbiór w magazynie we Władysławowie.",
+    "Pellet opałowy w workach 15 kg. Dowozimy własnymi autami z windą, dostawa gratis. Odbiór w magazynie we Władysławowie.",
   address: {
     street: "Władysławowo 10",
     postalCode: "09-320",
