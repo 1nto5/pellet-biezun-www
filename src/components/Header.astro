@@ -99,16 +99,21 @@ const current = (href: string) => (href === Astro.url.pathname ? "page" : href =
   // `--header-height` is the pinned row's height: same-page links and the
   // drawer sit below it. It changes with the window as lines wrap. Where the
   // header is not pinned (below `lg`, or on a low window, global.css) it
-  // scrolls away and the height is 0. The observer reports the first size
-  // itself, after the page's first layout; reading it here, mid-parse,
-  // would force one more.
+  // scrolls away and the height is 0; holding it at the top while the drawer
+  // is open does not count. The observer reports the first size itself,
+  // after the page's first layout; reading it here, mid-parse, would force
+  // one more.
   const header = surface?.closest<HTMLElement>(".site-header");
-  if (surface && header) {
-    const measure = () => {
-      const pinned = getComputedStyle(header).position === "sticky";
-      doc.style.setProperty("--header-height", pinned ? `${surface.offsetHeight}px` : "0px");
-    };
-    new ResizeObserver(measure).observe(surface);
+  const measure = () => {
+    if (!surface || !header) return;
+    const pinned = getComputedStyle(header).position === "sticky" && !menu?.open;
+    doc.style.setProperty("--header-height", pinned ? `${surface.offsetHeight}px` : "0px");
+  };
+  if (surface) {
+    // On the next frame: set straight from the observer, the height resized
+    // the page under other observers (ruch.ts) within the same frame, which
+    // WebKit reports as a ResizeObserver loop.
+    new ResizeObserver(() => requestAnimationFrame(measure)).observe(surface);
     // Turning a phone can pin or unpin the header without the row changing size.
     window.addEventListener("resize", measure);
   }
@@ -116,11 +121,12 @@ const current = (href: string) => (href === Astro.url.pathname ? "page" : href =
   if (menu && backdrop && open && surface) {
     const close = () => menu.open && menu.close();
     // The page behind the drawer is inert while it is open, so the Tab key
-    // stays inside; the pinned row above stays live.
+    // stays inside; the header row above stays live.
     const behind = [...document.querySelectorAll<HTMLElement>("main, footer")];
 
-    // The drawer starts under the pinned row, wherever that is now; a turned
-    // phone can unpin the row (global.css), so it is placed again on resize.
+    // The drawer starts under the header row. An open drawer holds the row
+    // at the top of the window (global.css), so it is measured after the
+    // drawer opens; a turned phone changes the row, so again on resize.
     const place = () => {
       const top = Math.max(0, surface.getBoundingClientRect().bottom);
       menu.style.setProperty("--drawer-top", `${top}px`);
@@ -133,9 +139,9 @@ const current = (href: string) => (href === Astro.url.pathname ? "page" : href =
         close();
         return;
       }
-      place();
       backdrop.hidden = false;
       menu.show();
+      place();
       for (const el of behind) el.inert = true;
       doc.style.overflow = "hidden";
       open.setAttribute("aria-expanded", "true");
@@ -148,6 +154,8 @@ const current = (href: string) => (href === Astro.url.pathname ? "page" : href =
       for (const el of behind) el.inert = false;
       doc.style.overflow = "";
       open.setAttribute("aria-expanded", "false");
+      // The window may have grown past `lg` while the drawer was open.
+      measure();
       // Not when the drawer closed because the window grew past `lg` and
       // the button went with it.
       if (open.offsetParent !== null) open.focus({ preventScroll: true });

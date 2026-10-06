@@ -325,6 +325,13 @@ main :where(p, address, dd, td) > a:not(.btn),
 .btn-secondary::before {
   border: 2px solid var(--color-black);
 }
+/* Forced colours drop the slanted background, the only edge a primary
+   button has; a border brings the shape back. */
+@media (forced-colors: active) {
+  .btn::before {
+    border: 2px solid ButtonText;
+  }
+}
 .btn-secondary:hover::before {
   background: var(--color-sand);
 }
@@ -334,6 +341,17 @@ main :where(p, address, dd, td) > a:not(.btn),
 }
 .btn-primary:active::before {
   background: color-mix(in srgb, var(--color-yellow) 85%, var(--color-black));
+}
+/* A form that cannot send yet (Formularz.astro, without scripts): the
+   button stays in place but no longer looks or acts pressable. */
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-primary:disabled::before {
+  background: var(--color-yellow);
+  box-shadow: none;
+  transform: skewX(-14deg);
 }
 /* The slant reaches past the box by tan 14° × half its height on either
    side; the margin brings the slanted edge, not the box, to the text's edge. */
@@ -387,16 +405,26 @@ main :where(p, address, dd, td) > a:not(.btn),
   .tool {
     min-width: 2.45rem;
   }
-  .site-footer ul a {
+  .site-footer :is(ul, p) a,
+  .breadcrumbs a {
     padding-block: 0.55rem;
   }
-  .leaflet-touch .leaflet-bar a {
+  .site-footer p a {
+    display: inline-block;
+  }
+  /* Leaflet's own stylesheet comes later and sets 30 px; `.mapa` wins. */
+  .mapa.leaflet-touch .leaflet-bar a {
     width: 44px;
     height: 44px;
     line-height: 44px;
   }
 }
 
+/* Only the header script opens the drawer; without it the footer lists
+   every section, so the button goes. */
+html:not([data-js]) .menu-toggle {
+  display: none;
+}
 /* The menu button shows a cross while the drawer is open. */
 .menu-toggle[aria-expanded="true"] .menu-ikona-otworz,
 .menu-toggle[aria-expanded="false"] .menu-ikona-zamknij {
@@ -410,7 +438,8 @@ main :where(p, address, dd, td) > a:not(.btn),
    drawer is not modal, so its shade is an element of its own.
    Pinned to the top only from `lg` up: on a phone or tablet the header
    scrolls away with the page, so it does not take a slice of a small
-   screen.
+   screen. While the drawer is open it is held at the top there too, so the
+   button that closes the drawer stays in view above it.
    ------------------------------------------------------------------------ */
 .site-header {
   position: relative;
@@ -424,6 +453,10 @@ main :where(p, address, dd, td) > a:not(.btn),
     position: sticky;
     top: 0;
   }
+}
+.site-header:has(.menu[open]) {
+  position: sticky;
+  top: 0;
 }
 .header-surface {
   background: var(--color-white);
@@ -646,14 +679,6 @@ main :where(p, address, dd, td) > a:not(.btn),
   font-weight: 400;
 }
 
-/* A price in a product's summary. */
-.price {
-  color: var(--color-black);
-  font-family: var(--font-display);
-  font-weight: 800;
-  letter-spacing: -0.01em;
-}
-
 /* A price on a yellow slanted tag, like the tags on the truck. */
 .cena-tag {
   position: relative;
@@ -676,9 +701,8 @@ main :where(p, address, dd, td) > a:not(.btn),
 }
 
 /* ---------------------------------------------------------------------------
-   Direction boards that link somewhere: one town and its distance per board,
-   the whole board is the link. Used on the home page, the map page and the
-   local pages.
+   Direction boards that link somewhere: one town per board, the whole board
+   is the link. Used on the home page, the map page and the local pages.
    ------------------------------------------------------------------------ */
 .tablice {
   display: grid;
@@ -687,9 +711,6 @@ main :where(p, address, dd, td) > a:not(.btn),
 }
 .tablica {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1rem;
   padding: 0.85rem 1.1rem 0.7rem;
   color: var(--color-white);
   font-size: 1.15rem;
@@ -720,9 +741,6 @@ a.tablica:hover .tablica-nazwa {
     gap: 0.5rem;
   }
   .tablica {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.1rem;
     padding: 0.75rem 0.95rem 0.65rem;
     font-size: 1.05rem;
     line-height: 1.25;
@@ -820,8 +838,7 @@ a.tablica:hover .tablica-nazwa {
   flex-direction: column;
   gap: 0.3rem;
 }
-.field > label,
-.field > .label {
+.field > label {
   font-weight: 700;
 }
 .field .hint {
@@ -959,7 +976,7 @@ input[type="date"].input::-webkit-date-and-time-value {
   place-items: center;
   margin: 0;
   padding: 1rem;
-  background: rgb(0 0 0 / 0.55);
+  background: var(--color-scrim);
   color: var(--color-white);
   font-size: 1.1rem;
   font-weight: 800;
@@ -976,7 +993,7 @@ input[type="date"].input::-webkit-date-and-time-value {
   aspect-ratio: 1;
 }
 /* The warehouse: a green pin with a white rim and a black edge, the sign's
-   colours. */
+   colours. mapa.ts places its tip from this size: change both together. */
 .pin {
   width: 1.7rem;
   height: 1.7rem;
@@ -1141,7 +1158,8 @@ html:has(.lightbox[open]) {
 }
 /* As large as fits the window, 72vh high at most, in the photo's own
    proportions (`--proporcja`, set by the script), so the frame has its size
-   before the photo arrives. */
+   before the photo arrives. Gallery.astro asks for the photo's file by the
+   same width: change both together. */
 .lightbox img {
   display: block;
   background: var(--color-sand) center / cover no-repeat;
@@ -1249,6 +1267,11 @@ html:has(.lightbox[open]) {
   color: var(--color-white);
   text-decoration-color: var(--color-yellow);
 }
+/* The column titles are headings, set like the footer's text. */
+.site-footer h2 {
+  color: inherit;
+  letter-spacing: normal;
+}
 .site-footer :focus-visible {
   outline-color: var(--color-yellow);
 }
@@ -1284,7 +1307,9 @@ html:has(.lightbox[open]) {
       color 200ms ease;
   }
 
-  html {
+  /* Same-page links glide; only once the page has loaded (ruch.ts), so the
+     jump to a link's #target when a page opens is instant. */
+  html.zaladowana {
     scroll-behavior: smooth;
   }
 
@@ -1325,15 +1350,7 @@ html:has(.lightbox[open]) {
       overlay 260ms allow-discrete,
       display 260ms allow-discrete;
   }
-  /* The page behind an open photo stays put; the scrollbar's room stays too,
-   so nothing behind shifts sideways. */
-html {
-  scrollbar-gutter: stable;
-}
-html:has(.lightbox[open]) {
-  overflow: hidden;
-}
-.lightbox::backdrop {
+  .lightbox::backdrop {
     transition:
       opacity 200ms ease,
       overlay 260ms allow-discrete,
@@ -1481,8 +1498,20 @@ html[data-galeria] .lightbox img {
   .mapa,
   .btn,
   form,
-  footer nav {
+  footer nav,
+  #footer-strony,
+  /* "albo zadzwoń" is left over from the hidden order button; the number
+     after it stays. */
+  .zamow .ramka .miekki,
+  /* The drive's scene once, at the first stop, not at every stop. */
+  .stop ~ .stop .kadr {
     display: none !important;
+  }
+  /* The footer's white on asphalt prints as black on the paper. */
+  .site-footer,
+  .site-footer a,
+  .site-footer .soft {
+    color: var(--color-ink);
   }
   h1,
   h2,
@@ -1494,9 +1523,10 @@ html[data-galeria] .lightbox img {
   figure {
     break-inside: avoid;
   }
-  /* Boards and the drive's scene keep their colours: a board's white text
-     would otherwise print white on white. */
+  /* Boards, stickers and the drive's scene keep their colours: their white
+     text would otherwise print white on white. */
   .sign,
+  .naklejka,
   .scena {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
@@ -1505,11 +1535,11 @@ html[data-galeria] .lightbox img {
 
 /* A rail beside the content (the FAQ's contact, the order form's steps):
    from `lg` up it stays in view just under the pinned header while the
-   content scrolls. */
+   content scrolls, on a window tall enough to show all of it. */
 .rail {
   align-self: start;
 }
-@media (min-width: 64rem) {
+@media (min-width: 64rem) and (min-height: 42rem) {
   .rail {
     position: sticky;
     top: calc(var(--header-height) + 1.5rem);

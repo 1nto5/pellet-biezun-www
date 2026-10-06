@@ -49,6 +49,19 @@ export function initRuch(): void {
   document.documentElement.classList.add("ruch");
   initPrzyjazdy();
   initPasek();
+  initPlynnePrzewijanie();
+}
+
+/**
+ * Smooth scrolling (`html.zaladowana`, global.css) starts only after the
+ * load and the frame after it: the browser keeps jumping to a link's
+ * #target until the page has loaded, and smooth, that jump crawled down the
+ * new page for over a second.
+ */
+function initPlynnePrzewijanie(): void {
+  const wlacz = () => requestAnimationFrame(() => document.documentElement.classList.add("zaladowana"));
+  if (document.readyState === "complete") wlacz();
+  else window.addEventListener("load", wlacz, { once: true });
 }
 
 function initPrzyjazdy(): void {
