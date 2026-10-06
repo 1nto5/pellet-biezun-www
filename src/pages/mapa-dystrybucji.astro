@@ -26,13 +26,13 @@ const grupy = wojewodztwa
 
 <Base
   title="Mapa dystrybucji – dokąd dowozimy pellet"
-  description={`Dokąd dowozimy pellet z magazynu we Władysławowie pod Bieżuniem: gratis do ok. ${DARMOWA_DOSTAWA_KM} km drogą, dalej po uzgodnieniu. ${miejsca.length} miejscowości w ${wojewodztwa.length} województwach.`}
+  description={`Dokąd dowozimy pellet z magazynu we Władysławowie pod Bieżuniem: dostawa gratis ${DARMOWA_DOSTAWA_KM} km drogą, dalej po uzgodnieniu. ${miejsca.length} miejscowości w ${wojewodztwa.length} województwach.`}
 >
   <PageShell>
     <PageHeader
       slot="header"
       title="Mapa dystrybucji"
-      lead={`Nasz magazyn jest we Władysławowie pod Bieżuniem. Do ok. ${DARMOWA_DOSTAWA_KM} km od magazynu, licząc po drogach, dowozimy pellet gratis, dalej warunki ustalamy indywidualnie. Kliknij punkt na mapie, aby zobaczyć odległość.`}
+      lead={`Nasz magazyn jest we Władysławowie pod Bieżuniem. Dostawa gratis ${DARMOWA_DOSTAWA_KM} km od magazynu, licząc po drogach, dalej warunki ustalamy indywidualnie. Kliknij punkt na mapie, aby zobaczyć odległość.`}
     />
 
     <Mapa miejsca={miejsca} label="Mapa: magazyn i miejscowości, do których dowozimy" />

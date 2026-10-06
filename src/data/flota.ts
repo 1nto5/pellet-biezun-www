@@ -31,7 +31,7 @@ export interface Auto {
 export const flota: Auto[] = [
   {
     model: "Iveco Daily",
-    szczegoly: ["2 auta", "7,2 t", "winda", "do 4 palet, także na ciasne dojazdy"],
+    szczegoly: ["2 auta", "7,2 t", "winda", "do 4 palet, także na dojazd w trudno dostępne miejsca"],
     min: 4,
     max: 4,
     m: 7,

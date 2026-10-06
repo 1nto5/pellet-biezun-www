@@ -39,7 +39,7 @@ export const GET: APIRoute = ({ site }) => {
     ]),
     "## Dostawa",
     "",
-    `Dostawa gratis do ok. ${DARMOWA_DOSTAWA_KM} km od magazynu (odległość drogowa, jak w nawigacji), dalej warunki ustalamy indywidualnie. ` +
+    `Dostawa gratis ${DARMOWA_DOSTAWA_KM} km od magazynu (odległość drogowa, jak w nawigacji), dalej warunki ustalamy indywidualnie. ` +
       "Własne samochody, każdy z elektrycznym wózkiem paletowym: 2 × Iveco Daily 7,2 t z windą (do 4 palet), Volvo FM 26 t z windą (12–14 palet), Volvo FH z windą (14–16 palet), Volvo FH16 z naczepą kurtynową (26 palet). " +
       "Odbiór osobisty w magazynie po wcześniejszym telefonie. Przy większych zamówieniach cena do negocjacji.",
     "",

@@ -28,11 +28,11 @@ export const faq: { q: string; a: string }[] = [
     : []),
   {
     q: "Ile kosztuje dostawa?",
-    a: `Do ok. ${DARMOWA_DOSTAWA_KM} km od magazynu, licząc po drogach jak nawigacja, dostawa jest gratis. Dalej warunki ustalamy indywidualnie – zadzwoń: ${firma.phone.label}.`,
+    a: `Dostawa gratis ${DARMOWA_DOSTAWA_KM} km od magazynu, licząc po drogach jak nawigacja. Dalej warunki ustalamy indywidualnie – zadzwoń: ${firma.phone.label}.`,
   },
   {
     q: "Jak wygląda rozładunek?",
-    a: "Iveco i solówki Volvo mają windę, a każdy nasz samochód elektryczny wózek paletowy, więc paletę zdejmujemy z auta i podwozimy na miejsce. Na ciasne dojazdy mamy mniejsze auta Iveco Daily.",
+    a: "Iveco i solówki Volvo mają windę, a każdy nasz samochód elektryczny wózek paletowy, więc paletę zdejmujemy z auta i podwozimy na miejsce. Na dojazd w trudno dostępne miejsca mamy mniejsze auta Iveco Daily.",
   },
   {
     q: "Czy pellet można trzymać na zewnątrz?",

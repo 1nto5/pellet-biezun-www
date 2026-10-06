@@ -28,9 +28,9 @@ const pytania = ["Ile kosztuje dostawa?", "Czy pellet można trzymać na zewnąt
  * the title only where no other place on the page says it.
  */
 const kafelki: { tytul: string; tekst?: string }[] = [
-  { tytul: `Gratis do ok. ${DARMOWA_DOSTAWA_KM} km` },
+  { tytul: `Dostawa gratis ${DARMOWA_DOSTAWA_KM} km` },
   { tytul: "Winda i wózek paletowy", tekst: "paletę zdejmujemy z auta i podwozimy na miejsce" },
-  { tytul: "Iveco Daily na ciasny dojazd" },
+  { tytul: "Iveco Daily na dojazd w trudno dostępne miejsca" },
 ];
 
 /** Each vehicle's width on its strip, as a share of the longest's. */
@@ -57,7 +57,7 @@ const webSite = {
         </h1>
         <p class="naklejka">
           <span>Dostawa gratis</span>
-          <strong>do {DARMOWA_DOSTAWA_KM}&nbsp;km!</strong>
+          <strong>{DARMOWA_DOSTAWA_KM}&nbsp;km!</strong>
         </p>
       </div>
       <div class="hero-dol">
