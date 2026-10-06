@@ -59,16 +59,18 @@
 
   --color-white: #ffffff;
   --color-black: #000000;
-  /* Direction boards, links. White text on it. */
-  --color-sign: #177a00;
-  --color-sign-deep: #0f5200;
+  /* Direction boards, links. White text on it. The green and the red are
+     measured in the client's own material: the printer's banner, the
+     fleet's photos. */
+  --color-sign: #1d6a05;
+  --color-sign-deep: #134803;
   /* Accents only, black text on it. */
   --color-brand: #2bd900;
   /* Stripes, arrows, the primary button. Black text on it. */
   --color-yellow: #ffcc00;
   /* The road, the footer. White text on it. */
   --color-asphalt: #2e3134;
-  --color-red: #d8231f;
+  --color-red: #a8101c;
   /* Polish information signs (traffic blue, RAL 5017), in the drive only.
      White text on it. */
   --color-info: #0e518d;
