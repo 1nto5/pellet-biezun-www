@@ -674,6 +674,14 @@ html:not([data-js]) .menu-toggle {
 .table td {
   font-weight: 600;
 }
+/* On a phone the parameters' three columns fit the screen with narrower
+   gaps, so the table does not scroll sideways. */
+@media (width < 30rem) {
+  .table th,
+  .table td {
+    padding-right: 0.5rem;
+  }
+}
 /* A column of norms beside the results: plain, so the results stand out. */
 .table .wymaganie {
   font-weight: 400;
@@ -1512,6 +1520,10 @@ html[data-galeria] .lightbox img {
   .site-footer a,
   .site-footer .soft {
     color: var(--color-ink);
+  }
+  /* Also when the printer is asked for background graphics. */
+  .site-footer {
+    background: none;
   }
   h1,
   h2,
