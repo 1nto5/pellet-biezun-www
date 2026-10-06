@@ -54,11 +54,9 @@
   --shift: calc(var(--km) * 8 * var(--u));
   position: absolute;
   inset: 0;
-  /* At the customer's the camera closes in (`--zoom`) by up to `--zoom-max`,
-     on the garage door behind the parked truck, the road staying on the
-     bottom edge. */
-  transform: scale(calc(1 + var(--zoom, 0) * (var(--zoom-max, 1.4) - 1)));
-  transform-origin: calc(100% - 11 * var(--u)) 100%;
+  /* The page draws the scene smaller about its bottom centre (Droga.astro),
+     the road staying on the bottom edge. */
+  transform-origin: 50% 100%;
 }
 .scena svg {
   display: block;
@@ -208,32 +206,10 @@
   bottom: 0;
   width: calc(76 * var(--u));
 }
-/* The end-of-zone sign, just ahead of the truck parked at `--at`. */
-.w-koniec {
+/* The free delivery sign, just ahead of the truck parked at `--at`. */
+.w-znak {
   left: calc((-17 - var(--at) * 8) * var(--u));
   width: calc(16 * var(--u));
-  /* The camera closing in would cut it at the left edge: it fades instead. */
-  opacity: calc(1 - var(--zoom, 0));
-}
-/* A km post: white, black cap, the number on it. */
-.w-slupek {
-  left: calc((30 - 2 - var(--at) * 8) * var(--u));
-  width: calc(4 * var(--u));
-  height: calc(7 * var(--u));
-  padding-top: calc(2.2 * var(--u));
-  border: calc(0.3 * var(--u)) solid var(--color-black);
-  border-top-width: calc(1.6 * var(--u));
-  border-radius: calc(0.6 * var(--u)) calc(0.6 * var(--u)) 0 0;
-  background: var(--color-white);
-  box-shadow: calc(0.4 * var(--u)) calc(0.3 * var(--u)) calc(0.6 * var(--u)) rgb(0 0 0 / 0.25);
-  color: var(--color-black);
-  font-size: calc(1.9 * var(--u));
-  font-weight: 800;
-  line-height: 1;
-  text-align: center;
-}
-.w-slupek::before {
-  content: attr(data-km);
 }
 /* A direction board on two posts. */
 .w-tablica {
@@ -282,7 +258,7 @@
   width: calc(60 * var(--u));
 }
 /* Driving off (`--odjazd`), the truck leaves by the left edge, 5 units past
-   it; the "delivered" tag, in the other rig, stays. */
+   it. */
 .rig-auto {
   left: calc(var(--x0) - var(--odjazd, 0) * (var(--x0) + 65 * var(--u)));
 }
@@ -302,17 +278,6 @@
   left: 0;
 }
 
-/* The truck's moving parts, driven by the same properties. SVG units. */
-/* "Delivered", over the garage (Gotowe.astro). */
-.gotowe {
-  transform: translateY(calc((1 - var(--gotowe)) * 5px));
-  opacity: var(--gotowe);
-}
-.znak-gotowe {
-  font: 800 8.6px var(--font-display);
-  letter-spacing: 0.1px;
-  fill: #fff;
-}
 
 /* Lettering in the drawings. */
 .znak-duzy {
@@ -328,8 +293,10 @@
 .znak-km {
   font: 900 10px var(--font-display);
 }
-.znak-tekst {
-  font: 800 7.6px var(--font-display);
+.znak-dostawa {
+  font: 800 9.6px var(--font-display);
+  letter-spacing: 0.2px;
+  fill: #fff;
 }
 
 /* ---- The stops' texts --------------------------------------------------- */
@@ -339,40 +306,6 @@
 .stop h2 {
   font-size: 1.6rem;
   line-height: 1.1;
-}
-/* A km post beside the heading, like the ones along the road. Only the stops
-   carry numbers, because they are points on the way. */
-.slupek {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  flex: none;
-  min-width: 2.6rem;
-  padding: 0 0.35rem 0.2rem;
-  border: 2px solid var(--color-black);
-  border-top-width: 0;
-  border-radius: 0.3rem 0.3rem 0 0;
-  background: var(--color-white);
-  font-size: 1.2rem;
-  font-weight: 800;
-  line-height: 1.1;
-}
-.slupek span {
-  align-self: stretch;
-  margin-inline: -0.4rem;
-  margin-bottom: 0.15rem;
-  padding: 0.15rem 0 0.05rem;
-  border-radius: 0.3rem 0.3rem 0 0;
-  background: var(--color-black);
-  color: var(--color-white);
-  font-size: 0.7rem;
-  text-align: center;
-}
-/* The km post and the heading in one row. */
-.stop-tekst {
-  display: flex;
-  align-items: center;
-  gap: 0.9rem;
 }
 
 /* ---- Static: the stops one under another ------------------------------- */
@@ -414,7 +347,6 @@
   aspect-ratio: 2 / 1;
   --uh: 2;
   --uw: 0.74;
-  --zoom-max: 1.8;
 }
 @media (min-width: 40rem) {
   .stopy {
@@ -424,7 +356,6 @@
     aspect-ratio: 3 / 1;
     --uh: 2;
     --uw: 0.9;
-    --zoom-max: 1.5;
   }
 }
 /* Wider: the text beside its frame, the content across both under them. */
@@ -477,7 +408,6 @@
     pointer-events: none;
   }
   html[data-js] .droga-scena {
-    --zoom-max: 2;
     display: block;
     position: sticky;
     z-index: 1;
@@ -540,11 +470,6 @@
     font-weight: 900;
     line-height: 1;
     letter-spacing: -0.03em;
-  }
-  html[data-js] .licznik {
-    top: 0.5rem;
-    right: 0.75rem;
-    font-size: 0.9rem;
   }
   /* The header's road band starts once the scene leaves the screen. It
      starts as this element's bottom reaches the window's (ruch.ts), so the
@@ -670,38 +595,4 @@
     line-height: 1.02;
     letter-spacing: -0.02em;
   }
-  /* The odometer moves to the scene's bottom left corner, on the road:
-     the top right is the stops' content. A white ring keeps it apart from
-     the asphalt. */
-  html[data-js] .licznik {
-    top: auto;
-    right: auto;
-    bottom: 1rem;
-    left: 1rem;
-    box-shadow: 0 0 0 0.15rem var(--color-white);
-  }
-}
-
-/* The odometer in the scene's corner, once the drive has started. */
-.licznik {
-  opacity: 0;
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  padding: 0.3rem 0.6rem 0.15rem;
-  border-radius: var(--radius-sign);
-  background: var(--color-black);
-  color: var(--color-white);
-  font-size: 1.05rem;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.2;
-}
-.is-driving .licznik {
-  opacity: 1;
-}
-.licznik span {
-  display: inline-block;
-  min-width: 2ch;
-  text-align: right;
 }

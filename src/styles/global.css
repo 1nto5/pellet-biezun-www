@@ -69,6 +69,9 @@
   /* The road, the footer. White text on it. */
   --color-asphalt: #2e3134;
   --color-red: #d8231f;
+  /* Polish information signs (traffic blue, RAL 5017), in the drive only.
+     White text on it. */
+  --color-info: #0e518d;
 
   --color-sand: #f2f2f0;
   --color-ink: #000000;
@@ -1258,15 +1261,6 @@ html:has(.lightbox[open]) {
 /* Secondary text on asphalt, 8.5:1. */
 .site-footer .soft {
   color: color-mix(in srgb, var(--color-white) 77%, var(--color-asphalt));
-}
-/* The road's centre line along the top edge. */
-.site-footer::before {
-  content: "";
-  display: block;
-  height: 0.35rem;
-  background: repeating-linear-gradient(90deg, var(--color-white) 0 2.5rem, transparent 2.5rem 4.5rem);
-  opacity: 0.85;
-  margin-top: 1.4rem;
 }
 
 /* ---------------------------------------------------------------------------

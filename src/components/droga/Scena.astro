@@ -1,10 +1,9 @@
 ---
 /**
  * One view of the road: pine forest and the roadside grass behind, the hall,
- * km posts, direction boards and the end-of-zone sign along the way, the
- * road, the customer's house on the near side of the road, the truck, and
- * the "delivered" tag in front of all. The truck faces left and the world
- * passes it to the right; the house is drawn behind the truck, so the truck
+ * direction boards and the free delivery sign along the way, the road, the
+ * customer's house on the near side of the road, and the truck. The truck
+ * faces left and the world passes it to the right; the house is drawn behind the truck, so the truck
  * passes in front of it, and never stands over it once parked. `stan` sets
  * where everything stands (see `trasa.ts`), as custom properties: the live
  * drive on wide screens changes them as the reader scrolls, the still frames
@@ -13,18 +12,17 @@
  * a line in its `ruchy` list too.
  *
  * Only a picture: the story it shows is told in text next to it. Its few
- * words (the km posts, the towns on the boards) are drawn by CSS from data
+ * words (the towns on the boards) are drawn by CSS from data
  * attributes, so they are not part of the page's text: the scene is there
  * four times, and its words would be read out of context.
  */
 import Ciezarowka from "./Ciezarowka.astro";
 import Hala from "./Hala.astro";
 import Dom from "./Dom.astro";
-import KoniecStrefy from "./KoniecStrefy.astro";
-import Gotowe from "./Gotowe.astro";
+import ZnakDostawy from "./ZnakDostawy.astro";
 import { obrazy } from "./obrazy";
 import { KM_DOJAZD, stanStyle, type Stan } from "./trasa";
-import { tablice, slupki } from "./tablice";
+import { tablice } from "./tablice";
 import { DARMOWA_DOSTAWA_KM } from "../../data/miejsca";
 
 interface Props {
@@ -54,7 +52,6 @@ const pasy = [
     <div class="pola"></div>
     <div class="swiat">
       <div class="w-hala"><Hala eager={live} /></div>
-      {slupki.map((km) => <div class="w-slupek" style={`--at:${km}`} data-km={km} />)}
       {
         tablice.map((t) => (
           <div class="w-tablica" style={`--at:${t.naDrodze}`}>
@@ -66,17 +63,12 @@ const pasy = [
           </div>
         ))
       }
-      <div class="w-koniec" style={`--at:${KM_DOJAZD}`}><KoniecStrefy km={DARMOWA_DOSTAWA_KM} /></div>
+      <div class="w-znak" style={`--at:${KM_DOJAZD}`}><ZnakDostawy km={DARMOWA_DOSTAWA_KM} /></div>
     </div>
     <div class="jezdnia"></div>
     <div class="swiat">
       <div class="w-dom" style={`--at:${KM_DOJAZD}`}><Dom eager={live} /></div>
     </div>
     <div class="rig rig-auto"><Ciezarowka eager={live} /></div>
-    <div class="rig">
-      <svg viewBox="0 0 240 108" overflow="visible" aria-hidden="true" focusable="false">
-        <Gotowe />
-      </svg>
-    </div>
   </div>
 </div>

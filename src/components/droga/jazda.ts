@@ -41,9 +41,13 @@ const PARALAKSA = { las: 0.3, pola: 0.6 };
 type Ruch = [Element, (s: Stan) => Keyframe];
 
 export interface Jazda {
-  /** The scene width and unit (px) it was set up for; others need a new setup. */
+  /**
+   * The scene width and unit (px) and the picture's width it was set up
+   * for; others need a new setup.
+   */
   szerokosc: number;
   u: number;
+  widok: number;
   /** Shows the moment `t` (0–100) of the drive at once. */
   ustaw(t: number): void;
   /** Plays the drive on to the moment `t` (0–100), or back to it. */
@@ -53,18 +57,22 @@ export interface Jazda {
 
 /**
  * Sets up the drive on the live scene (`[data-scena-live]`), at its start.
- * `naKm` gets the odometer's whole km whenever it changes. `margines` widens
- * the bands behind the road by that many px on both sides, for a scene the
- * page draws smaller (Droga.astro), so they still reach its edges.
+ * For a scene the page draws smaller (Droga.astro), `margines` widens the
+ * bands behind the road by that many px on both sides, so they still reach
+ * the picture's edges, and `widok` is how many times the scene's own width
+ * the picture is at the end of the drive: the truck drives off past its
+ * left edge.
  */
-export function uruchomJazde(scena: HTMLElement, naKm: (km: number) => void, margines = 0): Jazda {
+export function uruchomJazde(scena: HTMLElement, margines = 0, widok = 1): Jazda {
   for (const [k, v] of Object.entries(stanVars(start))) scena.style.setProperty(k, v);
   scena.style.setProperty("--z", "1");
 
+  // Both from the layout, which the page's own scale of the scene
+  // (Droga.astro) leaves out: measured with that scale in, the unit came out
+  // short, and the truck parked over the house.
   const szerokosc = scena.clientWidth;
-  const u = scena.querySelector<HTMLElement>(".rig")!.getBoundingClientRect().width / 60;
+  const u = parseFloat(getComputedStyle(scena.querySelector(".rig")!).width) / 60;
   const px = (x: number) => `${Math.round(x * 100) / 100}px`;
-  const zoomMax = parseFloat(getComputedStyle(scena).getPropertyValue("--zoom-max")) || 1.4;
 
   // The truck's front: the same formula as `--x0` in droga.css, in pixels.
   const x0 = (s: Stan) =>
@@ -88,17 +96,17 @@ export function uruchomJazde(scena: HTMLElement, naKm: (km: number) => void, mar
     el.style.right = px(-margines);
   }
 
+  // Driving off, the truck's front goes 65 units past the picture's left
+  // edge (droga.css), which a scene drawn smaller about its bottom centre
+  // shows left of its own.
+  const odjazdDo = (szerokosc / 2) * (1 - widok) - 65 * u;
+
   // Each moving part and its frame for a given state.
   const ruchy: Ruch[] = [
     ...wszystkie(".swiat").map((el): Ruch => [el, (s) => ({ transform: `translateX(${px(przesuniecie(s) + kamera(s))})` })]),
-    // Driving off, the truck's front goes from `--x0` to 65 units left of the edge (droga.css).
-    [jeden(".rig-auto"), (s) => ({ transform: `translateX(${px(kamera(s) - s.odjazd * (x0(s) + 65 * u))})` })],
-    ...wszystkie(".rig:not(.rig-auto)").map((el): Ruch => [el, (s) => ({ transform: `translateX(${px(kamera(s))})` })]),
+    [jeden(".rig-auto"), (s) => ({ transform: `translateX(${px(kamera(s) - s.odjazd * (x0(s) - odjazdDo))})` })],
     ...pasma.map(([el, ile]): Ruch => [el, (s) => ({ transform: `translateX(${px(przesuniecie(s) * ile)})` })]),
     ...wszystkie(".w-tablica").map((el): Ruch => [el, (s) => ({ opacity: Math.min(1, s.km / 2) })]),
-    [jeden(".gotowe"), (s) => ({ transform: `translateY(${(1 - s.gotowe) * 5}px)`, opacity: s.gotowe })],
-    [jeden(".w-koniec"), (s) => ({ opacity: 1 - s.zoom })],
-    [scena, (s) => ({ transform: `scale(${1 + s.zoom * (zoomMax - 1)})` })],
   ];
 
   const chwile = Array.from({ length: PROBKI + 1 }, (_, i) => (100 * i) / PROBKI);
@@ -119,15 +127,6 @@ export function uruchomJazde(scena: HTMLElement, naKm: (km: number) => void, mar
   const zegar = (ms: number) => (wstecz ? CALOSC_MS - ms : ms);
   const teraz = () => zegar(Number(animacje[0]!.currentTime ?? 0));
 
-  // The odometer is text, so it is written from here, only when the whole
-  // km changes.
-  let km = -1;
-  const licz = (ms: number) => {
-    const k = Math.round(stanAt((100 * ms) / CALOSC_MS).km);
-    if (k !== km) naKm(k);
-    km = k;
-  };
-
   /** Where the drive is going, in ms, and its pace there; 0 = standing. */
   let cel = 0;
   let tempo = 0;
@@ -139,7 +138,6 @@ export function uruchomJazde(scena: HTMLElement, naKm: (km: number) => void, mar
       a.currentTime = zegar(ms);
     }
     tempo = 0;
-    licz(ms);
   };
   // All of them start from one moment of the timeline, so they stay in step.
   const graj = (noweTempo: number) => {
@@ -174,7 +172,6 @@ export function uruchomJazde(scena: HTMLElement, naKm: (km: number) => void, mar
       return;
     }
     dobierzTempo(ms);
-    licz(ms);
     klatka = requestAnimationFrame(sledz);
   };
 
@@ -197,6 +194,7 @@ export function uruchomJazde(scena: HTMLElement, naKm: (km: number) => void, mar
   return {
     szerokosc,
     u,
+    widok,
     ustaw,
     jedz,
     zatrzymaj() {

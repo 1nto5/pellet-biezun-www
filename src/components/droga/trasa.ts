@@ -17,7 +17,7 @@ export const KM_U = 8;
 
 /**
  * Where the truck stops at the customer's: inside the free zone, close
- * enough to its edge that the end-of-zone sign shows ahead of the parked
+ * enough to its edge that the free delivery sign shows ahead of the parked
  * truck.
  */
 export const KM_DOJAZD = DARMOWA_DOSTAWA_KM - 6;
@@ -26,33 +26,27 @@ export const KM_DOJAZD = DARMOWA_DOSTAWA_KM - 6;
  * The scene's state. The truck faces left and drives left. `km` odometer;
  * `cam` 1 = truck shifted left so the hall behind its back shows, 0 = truck
  * centred; `park` 1 = the truck stands at a fixed place near the right edge,
- * so the house behind it and the sign ahead both fit; `zoom` 1 = the camera
- * close on the garage; `gotowe` 1 = the "delivered" tag shows over the
- * garage; `odjazd` 1 = the truck has driven off the left edge, leaving the
- * house behind.
+ * past the house behind it, with the sign ahead; `odjazd` 1 = the truck has
+ * driven off the left edge, leaving the house behind.
  */
 export interface Stan {
   km: number;
   cam: number;
   park: number;
-  zoom: number;
-  gotowe: number;
   odjazd: number;
 }
 
 /**
  * Moments on the 0–100 clock. The truck stands at the hall only briefly, the
- * road takes three fifths, and the stop at the customer's, with "delivered"
- * and the truck driving off, the last third: it is what the reader most
- * wants to see.
+ * road takes three fifths, and the stop at the customer's, the truck
+ * standing at the house and then driving off, the last third: it is what
+ * the reader most wants to see.
  */
 export const CZAS = {
   odjazd: 6,
   rozped: 12,
   hamowanie: 56,
   postoj: 66,
-  /** "Delivered" has fully risen over the garage. */
-  dostarczone: 76,
 };
 /** Km reached when the truck is up to speed, and when it starts to brake. */
 const KM_ROZPED = 6;
@@ -68,9 +62,9 @@ const lagodnie: Ease = (x) => (x < 0.5 ? 2 * x * x : 1 - (-2 * x + 2) ** 2 / 2);
 type Tor = [number, number, Ease?][];
 
 /**
- * At the customer's, from the stop (`U`): the camera closes in on the
- * garage, "delivered" rises over it and stays a moment, then the camera draws
- * back and the truck drives off.
+ * At the customer's, from the stop (`U`): the truck stands past the house
+ * while the reader takes in the last stop, then drives off out of the
+ * picture.
  */
 const U = CZAS.postoj;
 
@@ -89,20 +83,10 @@ const tory: Record<keyof Stan, Tor> = {
     [CZAS.hamowanie, 0],
     [CZAS.postoj, 1, lagodnie],
   ],
-  zoom: [
-    [U + 1, 0],
-    [U + 7, 1, lagodnie],
-    [U + 18, 1],
-    [U + 24, 0, lagodnie],
-  ],
-  // The tag rises once the camera is close, so the reader sees it arrive.
-  gotowe: [
-    [CZAS.dostarczone - 3, 0],
-    [CZAS.dostarczone, 1, lagodnie],
-  ],
+  // Gone a little before the end, so the drive ends on the house alone.
   odjazd: [
-    [U + 23, 0],
-    [100, 1, przyspiesz],
+    [U + 22, 0],
+    [97, 1, przyspiesz],
   ],
 };
 
@@ -139,8 +123,6 @@ export function stanVars(s: Stan): Record<string, string> {
     "--km": String(s.km),
     "--cam": String(s.cam),
     "--park": String(s.park),
-    "--zoom": String(s.zoom),
-    "--gotowe": String(s.gotowe),
     "--odjazd": String(s.odjazd),
   };
 }

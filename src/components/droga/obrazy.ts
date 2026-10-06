@@ -4,10 +4,10 @@
  * the largest size each one shows at in a 1440 px wide window. The truck, the
  * hall and the house are <img> with a `srcset` (Ciezarowka.astro and the
  * rest), whose `sizes` is the widest share of the window each takes in the
- * scene, the truck's and the house's with the camera close on the garage
- * (`--zoom-max`); a phone takes the house a little soft there rather than a
- * file twice as large. The forest and the verge are background bands, so
- * they come in two sizes, the small one for phones (droga.css).
+ * scene; the truck's and the house's were set when the camera still closed
+ * in at the end, so they are a little generous. The forest and the verge
+ * are background bands, so they come in two sizes, the small one for phones
+ * (droga.css).
  *
  * Only for the server side: `trasa.ts` also goes to the browser, so it must
  * not import this.

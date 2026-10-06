@@ -1,6 +1,6 @@
 /**
- * What stands by the road in the drive (`trasa.ts`): the direction boards
- * and the km posts, and the still frames, which show the boards. Built from
+ * What stands by the road in the drive (`trasa.ts`): the direction boards,
+ * and the still frames, which show the boards. Built from
  * the towns in `miejsca.ts`, at build time only.
  *
  * Distances on the boards are the straight-line km from `miejsca.ts`. The
@@ -51,13 +51,11 @@ export const tablice: Tablica[] = (() => {
   return rzedy.map((miasta, i) => ({ naDrodze: Math.round(od + i * krok), miasta }));
 })();
 
-/** Km posts, every 10 km, leaving the customer's driveway clear. */
-export const slupki: number[] = Array.from({ length: Math.floor((KM_DOJAZD - 14) / 10) + 1 }, (_, i) => i * 10);
-
 /** The frames shown when the drive does not move (reduced motion, no script). */
 export const kadry = {
   zaladunek: stanAt(0),
   tablice: stanAt(czasKm((tablice[1] ?? tablice[0])!.naDrodze - 4)),
   naMiejscu: stanAt(CZAS.postoj),
-  rozladunek: stanAt(CZAS.dostarczone),
+  // The drive's end: the truck gone, the house and the sign.
+  koniec: stanAt(100),
 };
