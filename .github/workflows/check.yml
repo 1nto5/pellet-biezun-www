@@ -1,0 +1,45 @@
+# Checks types and templates on every push. Cloudflare Pages builds and
+# serves the site itself (main on pelletbiezun.pl, other branches on their
+# own *.pages.dev address), but it does not run `astro check`.
+#
+# The check runs other people's code (packages, their install scripts), so
+# it gets a read-only token and keeps no credentials.
+name: Check
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .node-version
+
+      # The version in package.json's packageManager, the one the lockfile was made with.
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: check-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          restore-keys: check-${{ runner.os }}-
+
+      - run: bun install --frozen-lockfile
+
+      - run: bun run check

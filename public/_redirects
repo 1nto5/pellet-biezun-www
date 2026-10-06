@@ -1,6 +1,6 @@
 # Cloudflare Pages redirects
 # (https://developers.cloudflare.com/pages/configuration/redirects/).
 # The local pages live under /dostawa/<town>/; the folder itself has no page.
-# Astro also builds a refresh page there for hosts without this file (the
-# GitHub Pages preview); here it is a real 301, without the extra page load.
+# Astro also builds a refresh page there for hosts without this file; here it
+# is a real 301, without the extra page load.
 /dostawa/ /mapa-dystrybucji/ 301

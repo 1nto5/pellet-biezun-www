@@ -3,8 +3,8 @@
  *
  * - Cloudflare Pages sets CF_PAGES_BRANCH during its build; any branch other
  *   than main is a preview on its own *.pages.dev address.
- * - A copy hosted elsewhere (GitHub Pages) is built with its own address in
- *   SITE (astro.config.mjs).
+ * - A copy hosted elsewhere is built with its own address in SITE
+ *   (astro.config.mjs).
  *
  * A local build has neither and counts as production.
  */

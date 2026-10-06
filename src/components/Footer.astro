@@ -12,8 +12,8 @@ const year = new Date().getFullYear();
 
 // A preview says which build it is, so a reader testing it can tell a fresh
 // copy from one their browser kept: when it was built, Polish time, and
-// from which commit (GitHub Actions gives it in GITHUB_SHA).
-const commit = process.env.GITHUB_SHA?.slice(0, 7);
+// from which commit (Cloudflare Pages gives it in CF_PAGES_COMMIT_SHA).
+const commit = process.env.CF_PAGES_COMMIT_SHA?.slice(0, 7);
 const wersja = isPreview
   ? [
       new Date().toLocaleString("pl-PL", {

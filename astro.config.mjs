@@ -3,14 +3,12 @@ import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
 
 // Canonical links, the sitemap, robots.txt, llms.txt and the JSON-LD all
-// build their addresses from this, so it is the only place to change once
-// the client picks a domain.
-// TODO(produkcja): the domain is not bought yet; put the real one here.
+// build their addresses from this, so it is the only place to change if the
+// domain ever changes.
 const productionSite = "https://pelletbiezun.pl/";
 
-// A preview copy hosted elsewhere is built with its own full address, path
-// included, e.g. the GitHub Pages workflow runs
-// `SITE=https://1nto5.github.io/pellet-biezun-www/ bun run build`.
+// A copy hosted elsewhere is built with its own full address, path included,
+// e.g. `SITE=https://example.github.io/pellet-biezun-www/ bun run build`.
 // Such a build is a preview and carries `noindex` (src/lib/env.ts).
 const site = new URL(process.env.SITE ?? productionSite);
 // The base must end with a slash, whether or not SITE did.
