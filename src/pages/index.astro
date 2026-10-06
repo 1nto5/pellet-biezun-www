@@ -79,7 +79,7 @@ const webSite = {
     <div slot="zaladunek" class="produkty ramka">
       <ul role="list" class="produkty-lista">
         {
-          produkty.map((p) => {
+          produkty.map((p, i) => {
             const tona = cenyLabel(p)[1];
             const worek = cenaWorkaLabel(p);
             return (
@@ -90,6 +90,7 @@ const webSite = {
                   width={240}
                   widths={[120, 240]}
                   sizes="5rem"
+                  loading={i === 0 ? "eager" : "lazy"}
                   class="produkt-foto"
                 />
                 <div class="produkt-opis">
@@ -119,7 +120,7 @@ const webSite = {
           auta.map((f) => (
             <li class="flota-auto">
               <div class="flota-opis">
-                <p class="flota-model">{f.model}</p>
+                <h3 class="flota-model">{f.model}</h3>
                 <p class="miekki">{szczegolyLabel(f)}</p>
               </div>
               <span class="flota-pas">
@@ -185,7 +186,7 @@ const webSite = {
       </p>
     </div>
 
-    <div slot="dostarczone" class="zamow">
+    <div slot="zamowienie" class="zamow">
       <div class="zamow-panel ramka">
         <Button href={orderLink.href}>{orderLink.label}</Button>
         <p class="miekki">albo zadzwoń</p>
@@ -349,6 +350,25 @@ const webSite = {
       padding-bottom: 0.3rem;
     }
   }
+  /* Landscape windows too low for the live drive get the phone's drive
+     (droga.css), and as on a phone the first screen holds the hero and the
+     whole scene under it: the wordmark gives way as far as that needs.
+     `--reszta` is the hero's paddings and a strip of white under the road.
+     The sticker gets only a quarter smaller, to stay readable, so it would
+     cover more of the wordmark: the actions move out past its overhang. */
+  @media (min-width: 56rem) and (min-aspect-ratio: 1 / 1) and (height < 38rem) {
+    .hero {
+      --odstep: 8.5rem;
+      --reszta: 2.4rem;
+      --wm-ekran: calc((100svh - var(--header-height) - var(--scena-h) - var(--reszta)) / 1.715);
+    }
+    .wordmark {
+      --wm: max(3.5rem, min(30svh, 17rem, (100cqi - 17rem - var(--odstep)) / 3.2, var(--wm-ekran, 17rem)));
+    }
+    .hero .naklejka {
+      font-size: 0.75rem;
+    }
+  }
 
   /* The phone written like on the truck: big, heavy, black. */
   .telefon {
@@ -406,38 +426,48 @@ const webSite = {
   .produkty .naklejka {
     margin: 1.25rem 0 0;
   }
+  /* Sized in em, so a low window can set the whole disc smaller with one
+     font size. */
   @media (min-width: 56rem) and (min-aspect-ratio: 1 / 1) {
     .hero .naklejka {
       justify-content: center;
-      width: 11rem;
+      width: 11em;
       aspect-ratio: 1;
-      padding: 1rem;
+      padding: 1em;
       border-radius: 50%;
-      box-shadow: 0 0 0 0.3rem var(--color-white);
+      box-shadow: 0 0 0 0.3em var(--color-white);
     }
     /* As on a shop's promotion sticker: "GRATIS!" larger than the disc,
        spilling over its edge on both sides (the negative margins centre the
        overflow), outlined in the disc's red so it reads on the page around
        it too. */
     .hero .naklejka span {
-      font-size: 1.2rem;
+      font-size: 1.2em;
     }
     .hero .naklejka strong {
-      margin-inline: -3rem;
-      font-size: 3.4rem;
+      margin-inline: calc(-3em / 3.4);
+      font-size: 3.4em;
       line-height: 0.9;
       -webkit-text-stroke: 0.16em var(--color-red);
       paint-order: stroke fill;
       text-shadow: 0 0.08em 0.06em rgb(0 0 0 / 0.3);
     }
   }
+  /* In forced colours the outline takes the text's colour and fills the
+     letters in: plain text there. */
+  @media (forced-colors: active) {
+    .hero .naklejka strong {
+      -webkit-text-stroke: 0;
+      text-shadow: none;
+    }
+  }
 
   /* ---- The drive's stops (Droga.astro): what each one says -------------- */
 
   /* Set at the drive's size: smaller than a page's sections, as each stop
-     shares the screen with the scene. The wide version's media query is
-     the live drive's (droga.css), so the products stand as cards and the
-     tiles in a row there; elsewhere one column. */
+     shares the screen with the scene. The products stand as cards and the
+     tiles in a row from 64rem landscape, the width the live drive needs
+     (droga.css), with or without the motion; elsewhere one column. */
   .miekki {
     color: var(--color-ink-soft);
   }
@@ -522,7 +552,6 @@ const webSite = {
       width: 3.5rem;
     }
     .produkt-cena {
-      padding-inline: 0.9rem;
       font-size: 1rem;
     }
   }
@@ -537,12 +566,10 @@ const webSite = {
     .produkt-cena {
       font-size: 1.1rem;
     }
-  }
-  /* Where the three cards still fit beside it, the sticker is a disc in its
-     own column at the frame's right end, so it covers no card; it pokes out
-     over the frame's corner, as if stuck on it. Narrower, it stays the tag
-     under the cards. */
-  @media (min-width: 80rem) and (orientation: landscape) {
+    /* Where the three cards still fit beside it, the sticker is a disc in
+       its own column at the frame's right end, so it covers no card; it
+       pokes out over the frame's corner, as if stuck on it. Narrower, it
+       stays the tag under the cards. */
     .produkty {
       display: flex;
       align-items: flex-start;
@@ -565,17 +592,15 @@ const webSite = {
     .produkty .naklejka strong {
       font-size: 1.35rem;
     }
-  }
-  /* Without the drive's motion each stop has its still frame right above
-     the frame: there the disc does not poke out over it. */
-  @media (min-width: 80rem) and (orientation: landscape) and (prefers-reduced-motion: reduce) {
-    .produkty .naklejka {
-      margin-top: 0;
-    }
-  }
-  @media (min-width: 80rem) and (orientation: landscape) {
+    /* Without the drive's motion each stop has its still frame right above
+       the frame: there the disc does not poke out over it. */
     :global(html:not([data-js])) .produkty .naklejka {
       margin-top: 0;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .produkty .naklejka {
+        margin-top: 0;
+      }
     }
   }
 
@@ -596,9 +621,14 @@ const webSite = {
     font-size: 0.85rem;
     line-height: 1.3;
   }
+  /* A heading for the screen reader's list of headings, set as the label
+     it was. */
   .flota-model {
+    font-family: inherit;
     font-size: 1rem;
     font-weight: 700;
+    letter-spacing: normal;
+    text-wrap: pretty;
   }
   .flota-pas {
     display: block;
@@ -624,7 +654,8 @@ const webSite = {
       gap: 1rem 2.5rem;
     }
     .flota-auto {
-      grid-template-columns: 18rem minmax(0, 1fr);
+      /* The strip gives way before the text drops under 8rem. */
+      grid-template-columns: minmax(0, 18rem) minmax(8rem, 1fr);
       align-items: end;
       gap: 1.5rem;
     }
@@ -635,15 +666,12 @@ const webSite = {
   }
 
   /* The towns' boards: two a row on a phone (global.css); on a wide screen
-     as many as fit, the distance under the name. */
+     as many as fit. */
   @media (min-width: 64rem) and (orientation: landscape) {
     .miasta .tablice {
       grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
     }
     .miasta :global(.tablica) {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.1rem;
       padding: 0.75rem 0.95rem 0.65rem;
       font-size: 1.05rem;
       line-height: 1.25;
