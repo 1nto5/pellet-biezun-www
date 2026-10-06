@@ -22,17 +22,17 @@
    inline script in the head), so the layout never jumps when the script
    loads; the script follows whichever version the CSS names in `--droga`.
    Only the sticky stage waits for it, as its size on the first screen
-   (`--z`) has to be measured: it fades in once drawn rather than shrink in
-   view.
+   (the scale Droga.astro gives `.scena-in`) has to be measured: it fades in
+   once drawn rather than shrink in view.
    ------------------------------------------------------------------------ */
 
 /* ---- The scene ---------------------------------------------------------- */
 
 /* `--u` is the scene's unit: `--uh`% of its height, or `--uw`% of its width
    if that is less, so the truck always fits across. Everything in the scene
-   is sized in it. `--z` scales it down while the hero is on screen. The
-   truck faces left and stands at `--x0` (its front); the world slides right
-   past it by `--shift`. */
+   is sized in it. The truck faces left and stands at `--x0` (its front);
+   the world slides right past it by `--shift`, 8 units a km (`KM_U` in
+   trasa.ts, which the other `* 8` here are too). */
 .scena {
   position: relative;
   container-type: size;
@@ -42,7 +42,7 @@
   background: linear-gradient(to top, #dfe9ef 0%, #f3f7f9 38%, var(--color-white) 70%);
 }
 .scena-in {
-  --u: calc(min(var(--uh, 1) * 1cqh, var(--uw, 0.9) * 1cqw) * var(--z, 1));
+  --u: min(var(--uh, 1) * 1cqh, var(--uw, 0.9) * 1cqw);
   /* `--cam` moves the truck left by up to 22 units, never past the edge, so
      the hall behind its back shows on the right. `--park` puts its front 100
      units from the right edge, where the house behind it and the sign ahead
@@ -275,33 +275,17 @@
 .znak-duzy {
   font: 900 19px var(--font-display);
   letter-spacing: -0.5px;
-  fill: #fff;
+  fill: var(--color-white);
 }
 .znak-maly {
   font: 800 8.5px var(--font-display);
   letter-spacing: 2.4px;
-  fill: #fff;
+  fill: var(--color-white);
 }
 .znak-dostawa {
   font: 800 9.6px var(--font-display);
   letter-spacing: 0.2px;
-  fill: #fff;
-}
-
-/* ---- The stops' texts --------------------------------------------------- */
-
-/* The stop's content (the page's slot) is styled by the page; here only
-   where it stands. The stops carry no visible title, the content says what
-   each one is; the heading stays for screen readers, which move through the
-   page by its headings. */
-.stop-tekst {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
+  fill: var(--color-white);
 }
 
 /* ---- Static: the stops one under another ------------------------------- */
@@ -327,7 +311,8 @@
   max-width: var(--container-6xl);
   padding-inline: 1rem;
 }
-/* The still frame first, then the content. */
+/* The still frame first, then the content. The content (the page's slot)
+   is styled by the page; here only where it stands. */
 .stop {
   display: grid;
   gap: 1rem;
@@ -407,7 +392,7 @@
   /* The moving parts keep layers of their own whether the drive plays or
      stands (jazda.ts), so neither moving them nor stopping them repaints
      the scene. */
-  html[data-js] :is(.droga-scena, .stop[data-przyjazd] .kadr) :is(.scena-in, .las, .pola, .jezdnia, .swiat, .rig) {
+  html[data-js] :is(.droga-scena, .stop[data-przyjazd] .kadr) :is(.las, .pola, .jezdnia, .swiat, .rig) {
     will-change: transform;
   }
   html[data-js] :is(.droga-scena, .stop[data-przyjazd] .kadr) .w-tablica {
@@ -466,7 +451,7 @@
     height: 100%;
   }
   /* As in the two scenes' version: layers of their own for the moving
-     parts. */
+     parts, and for the scene, which the page scales here (Droga.astro). */
   html[data-js] .droga-scena :is(.scena-in, .las, .pola, .jezdnia, .swiat, .rig) {
     will-change: transform;
   }

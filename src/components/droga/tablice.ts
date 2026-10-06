@@ -20,7 +20,7 @@ const MIN_ODSTEP_KM = 5;
 export interface Tablica {
   /** The odometer reading at which the board stands. */
   naDrodze: number;
-  miasta: { nazwa: string; km: number }[];
+  miasta: { nazwa: string }[];
 }
 
 /**
@@ -32,10 +32,11 @@ export interface Tablica {
  * windows, and on short ones the boards stay hidden until the truck moves
  * (droga.css).
  */
-export const miastaWStrefie = podstrony
+const miastaWStrefie = podstrony
   .filter(wStrefieDarmowej)
   .map((m: MiejsceZPodstrona) => ({ nazwa: m.nazwa, km: odlegloscKm(m) }))
-  .sort((a, b) => a.km - b.km);
+  .sort((a, b) => a.km - b.km)
+  .map(({ nazwa }) => ({ nazwa }));
 
 export const tablice: Tablica[] = (() => {
   const rzedy: Tablica["miasta"][] = [];
@@ -51,10 +52,18 @@ export const tablice: Tablica[] = (() => {
   return rzedy.map((miasta, i) => ({ naDrodze: Math.round(od + i * krok), miasta }));
 })();
 
-/** The frames shown when the drive does not move (reduced motion, no script). */
+/**
+ * The frames shown when the drive does not move (reduced motion, no script).
+ * Each shows whole boards or none. The towns' frame stands midway between
+ * the first two boards, so both are in sight whole: with boards 12 km apart
+ * (96 units) they span 130 of the narrowest frame's 135 units.
+ */
 export const kadry = {
   zaladunek: stanAt(0),
-  tablice: stanAt(czasKm((tablice[1] ?? tablice[0])!.naDrodze - 4)),
+  tablice: (() => {
+    const [a, b] = tablice;
+    return stanAt(czasKm(b ? (a!.naDrodze + b.naDrodze) / 2 : a!.naDrodze));
+  })(),
   naMiejscu: stanAt(CZAS.postoj),
   // The drive's end: the truck gone, the house and the sign.
   koniec: stanAt(100),

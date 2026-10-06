@@ -3,9 +3,9 @@
  * `src/assets/droga/` stay as they are; the build serves WebP at about twice
  * the largest size each one shows at in a 1440 px wide window. The truck, the
  * hall and the house are <img> with a `srcset` (Ciezarowka.astro and the
- * rest), whose `sizes` is the widest share of the window each takes in the
- * scene; the truck's and the house's were set when the camera still closed
- * in at the end, so they are a little generous. The forest and the verge
+ * rest), whose `sizes` is the widest share of the window each takes in any
+ * scene, measured: 40, 51 and 56vw from 64rem, 45, 57 and 63vw below it
+ * (60, 76 and 84 units of the scene). The forest and the verge
  * are background bands, so they come in two sizes, the small one for phones
  * (droga.css).
  *

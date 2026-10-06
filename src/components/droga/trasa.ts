@@ -61,13 +61,6 @@ const lagodnie: Ease = (x) => (x < 0.5 ? 2 * x * x : 1 - (-2 * x + 2) ** 2 / 2);
 /** A track: [time, value] points, with the ease used on the way to each point. */
 type Tor = [number, number, Ease?][];
 
-/**
- * At the customer's, from the stop (`U`): the truck stands past the house
- * while the reader takes in the last stop, then drives off out of the
- * picture.
- */
-const U = CZAS.postoj;
-
 const tory: Record<keyof Stan, Tor> = {
   km: [
     [CZAS.odjazd, 0],
@@ -83,9 +76,12 @@ const tory: Record<keyof Stan, Tor> = {
     [CZAS.hamowanie, 0],
     [CZAS.postoj, 1, lagodnie],
   ],
-  // Gone a little before the end, so the drive ends on the house alone.
+  // At the customer's the truck stands past the house for a good part of
+  // the last stop, while the reader takes it in, then drives off out of the
+  // picture, gone a little before the end so the drive ends on the house
+  // alone.
   odjazd: [
-    [U + 22, 0],
+    [CZAS.postoj + 22, 0],
     [97, 1, przyspiesz],
   ],
 };

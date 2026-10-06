@@ -1,14 +1,14 @@
 /**
- * The drive on the screens where the live drive does not run (droga.css):
- * one scene pinned above the stops' texts, the same timeline (`stanAt`),
- * following the moment the scroll position stands for (Droga.astro).
+ * Plays the drive on any moving scene (droga.css: the live stage, or the
+ * phones' two scenes), the same timeline (`stanAt`), following the moment
+ * the scroll position stands for (Droga.astro).
  *
  * Built to run smoothly on a phone. Every moving part moves by a transform or
  * an opacity, set up once as Web Animations keyframes sampled from the
  * timeline. The scroll only sets where the drive should be; the animations
  * then play there by themselves, faster the further they have to go, and
- * stop on it. Played, they run in the browser's compositor, as the loop
- * phones once had did, and stay smooth while the page scrolls.
+ * stop on it. Played, they run in the browser's compositor and stay smooth
+ * while the page scrolls.
  *
  * Tied to the scroll step by step, they were not: on an iPhone the page
  * scrolls apart from its script, which learns of each step late and
@@ -34,6 +34,16 @@ const CALOSC_MS = 20000;
 const DOGON_MS = 100;
 const TEMPO_MIN = 0.5;
 const TEMPO_MAX = 60;
+/**
+ * A jump further than this shows the new moment at once instead of playing
+ * there. Above the longest stretch one stop has on the clock (the last one,
+ * 66 to 100), so scrolling a stop on, even a window at a time, still plays;
+ * Home, End or the scrollbar dragged far cross several stops, and played at
+ * the fastest pace they ran the whole drive past the reader for a third of
+ * a second. A scroll so fast that the drive falls this far behind also
+ * jumps.
+ */
+const SKOK_MS = 0.4 * CALOSC_MS;
 
 /** As in droga.css: how fast the forest and the verge pass, against the road. */
 const PARALAKSA = { las: 0.3, pola: 0.6 };
@@ -56,7 +66,7 @@ export interface Jazda {
 }
 
 /**
- * Sets up the drive on the live scene (`[data-scena-live]`), at its start.
+ * Sets up the drive on one scene, at its start.
  * For a scene the page draws smaller (Droga.astro), `margines` widens the
  * bands behind the road by that many px on both sides, so they still reach
  * the picture's edges, and `widok` is how many times the scene's own width
@@ -65,7 +75,6 @@ export interface Jazda {
  */
 export function uruchomJazde(scena: HTMLElement, margines = 0, widok = 1): Jazda {
   for (const [k, v] of Object.entries(stanVars(start))) scena.style.setProperty(k, v);
-  scena.style.setProperty("--z", "1");
 
   // Both from the layout, which the page's own scale of the scene
   // (Droga.astro) leaves out: measured with that scale in, the unit came out
@@ -182,7 +191,12 @@ export function uruchomJazde(scena: HTMLElement, margines = 0, widok = 1): Jazda
   const jedz = (t: number) => {
     cel = naMs(t);
     const ms = teraz();
-    if (Math.abs(cel - ms) < 1) {
+    const daleko = Math.abs(cel - ms);
+    if (daleko > SKOK_MS) {
+      stoj(cel);
+      return;
+    }
+    if (daleko < 1) {
       if (tempo) stoj(cel);
       return;
     }

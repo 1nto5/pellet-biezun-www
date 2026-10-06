@@ -66,11 +66,14 @@ const stopy: Stop[] = [
     id: "w-drodze",
     od: CZAS.odjazd,
     tytul: "W drodze",
-    // Up to speed, the hall going out of sight behind.
-    kadr: stanAt(CZAS.rozped),
+    // Under way: only the hall's open door still in sight behind, its
+    // board gone, and the first direction board still well past the
+    // picture's left edge. Up to speed, that board stood cut in half there.
+    kadr: stanAt(CZAS.rozped - 1.5),
   },
   {
     id: "miasta",
+    // A little before the first board passes the truck, so it is in sight.
     od: czasKm(pierwsza.naDrodze) - 3,
     tytul: "Miasta po drodze",
     kadr: kadry.tablice,
@@ -84,7 +87,7 @@ const stopy: Stop[] = [
     przyjazd: true,
   },
   {
-    id: "dostarczone",
+    id: "zamowienie",
     od: CZAS.postoj,
     tytul: "Zamówienie",
     kadr: kadry.koniec,
@@ -104,7 +107,10 @@ const stopy: Stop[] = [
       {
         stopy.map((s) => (
           <li class="stop" data-stop data-od={s.od} data-przyjazd={s.przyjazd ? "" : undefined}>
-            <div class="stop-tekst">
+            {/* No visible title, the content says what each stop is; the heading
+                stays for screen readers, which move through the page by its
+                headings. */}
+            <div class="sr-only">
               <h2>{s.tytul}</h2>
             </div>
             <div class="stop-tresc">
@@ -197,12 +203,13 @@ const stopy: Stop[] = [
     // How many times the scene's own width the picture is during the
     // drive: the truck drives off past its edge (jazda.ts).
     let widok = 1;
+    // Room in px kept between the content above and the scene's tallest part.
+    const ODSTEP = 12;
 
     const measure = () => {
       const odcinek = Math.round(ODCINEK * window.innerHeight);
       const dlugosc = `${odcinek * stopy.length}px`;
-      // Only a real change: the spacer's height resizes the box the
-      // ResizeObserver below watches.
+      // Only a real change: each one lays the page out again.
       if (dystans.style.getPropertyValue("--dlugosc") !== dlugosc) dystans.style.setProperty("--dlugosc", dlugosc);
       const top = dystans.getBoundingClientRect().top + window.scrollY;
       driveStart = Math.max(1, top - window.innerHeight);
@@ -211,10 +218,6 @@ const stopy: Stop[] = [
 
       szerokosc = scena.clientWidth;
       u1 = rig.offsetWidth / 60;
-      // The tallest thing at the start, the hall, reaches 34 units up: it
-      // has to fit under the hero.
-      const room = droga.clientHeight - hero.offsetHeight - 12;
-      z0 = Math.min(1, Math.max(0.35, room / (34 * u1)));
       // During the drive the direction boards, high on their posts, and the
       // free delivery sign stand taller than the hall: sized for the hall
       // alone, the boards covered the towns' list on a laptop's screen. So
@@ -224,8 +227,13 @@ const stopy: Stop[] = [
         34,
         ...[...scena.querySelectorAll<HTMLElement>(".w-hala, .w-tablica, .w-znak")].map((el) => (scena.clientHeight - el.offsetTop) / u1),
       );
-      const zmiesci = (droga.clientHeight - lista.offsetHeight - 12) / (wysokosc * u1);
+      const zmiesci = (droga.clientHeight - lista.offsetHeight - ODSTEP) / (wysokosc * u1);
       zDrive = Math.min(1, Math.max(0.35, zmiesci));
+      // The tallest thing at the start, the hall, reaches 34 units up: it
+      // has to fit under the hero. Never larger than during the drive, or
+      // the scene would shrink as the hero scrolls away.
+      const room = droga.clientHeight - hero.offsetHeight - ODSTEP;
+      z0 = Math.min(zDrive, Math.max(0.35, room / (34 * u1)));
       widok = Math.round((1 / zDrive) * 1000) / 1000;
       shownZ = -1;
     };
@@ -365,7 +373,7 @@ const stopy: Stop[] = [
     // CSS offers it (droga.css), else WebP; the phone's size or the full one.
     const wczytaj = (src: string) => Object.assign(new Image(), { src }).decode();
     const scenaBox = scena.parentElement!;
-    const adres = (zmienna: string) => scenaBox.style.getPropertyValue(zmienna).match(/url\((.*)\)/)?.[1] ?? "";
+    const adres = (zmienna: string) => scenaBox.style.getPropertyValue(zmienna).match(/url\("?(.*?)"?\)/)?.[1] ?? "";
     const probaAvif = scenaBox.dataset.probaAvif;
     const avif =
       probaAvif && CSS.supports("background-image", 'image-set(url("x.avif") type("image/avif"))')
@@ -386,10 +394,15 @@ const stopy: Stop[] = [
     // Heights change when the font and the images arrive.
     window.addEventListener("load", refresh);
     document.fonts?.ready.then(refresh);
-    // The stops' content sets the live scene's size, and stands apart from
-    // the page's flow there, so it is watched on its own.
-    const obserwator = new ResizeObserver(refresh);
-    obserwator.observe(podroz);
+    // The hero and the stops' content set the scene's place and size (the
+    // stops stand apart from the page's flow in the live version), so they
+    // are watched; not the whole box, which the spacer's height set in
+    // refresh resizes. Refreshed on the next frame, not inside the
+    // observer's report: the spacer's new height resizes the page too, and
+    // other observers of the page (ruch.ts) then missed it, which WebKit
+    // reports as a ResizeObserver loop error.
+    const obserwator = new ResizeObserver(() => requestAnimationFrame(refresh));
+    obserwator.observe(hero);
     obserwator.observe(lista);
   }
 </script>
