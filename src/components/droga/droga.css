@@ -223,8 +223,10 @@
 .w-tablica::after {
   content: "";
   display: block;
-  /* Tall posts: the board sits above the truck's roof as it passes. */
-  height: calc(22 * var(--u));
+  /* Posts just tall enough for the board to clear the truck's roof as it
+     passes: taller ones made the scene need more sky than the rest of the
+     drive uses, and left the stops' content far above it. */
+  height: calc(14 * var(--u));
   background: linear-gradient(90deg, transparent 22%, var(--color-asphalt) 22% 25%, transparent 25% 75%, var(--color-asphalt) 75% 78%, transparent 78%);
 }
 .w-tablica .sign {
@@ -452,9 +454,9 @@
     display: block;
     position: absolute;
     inset: 0;
-    /* The truck about 40% of the window's width. */
+    /* The truck about 45% of the window's width. */
     --uh: 1.45;
-    --uw: 0.667;
+    --uw: 0.75;
     opacity: 0;
     transition: opacity 0.3s;
     animation: droga-pokaz 0s 3s forwards;
