@@ -66,8 +66,13 @@ export async function narysujMape(el: HTMLElement): Promise<void> {
   // instead of dragging the map. The +/- buttons zoom, and two fingers
   // still move and zoom the map.
   const map = L.map(el, { scrollWheelZoom: false, dragging: !L.Browser.mobile, zoomControl: false });
-  // Leaflet names its buttons in English; the page is Polish.
+  // Leaflet names its buttons and its own credit link in English; the page
+  // is Polish.
   L.control.zoom({ zoomInTitle: "Przybliż", zoomOutTitle: "Oddal" }).addTo(map);
+  const prefix = map.attributionControl.options.prefix;
+  if (typeof prefix === "string") {
+    map.attributionControl.setPrefix(prefix.replace(/title="[^"]*"/, 'title="Biblioteka do map interaktywnych"'));
+  }
   map.on("popupopen", (e) => e.popup.getElement()?.querySelector(".leaflet-popup-close-button")?.setAttribute("aria-label", "Zamknij"));
   L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 18,
@@ -92,13 +97,18 @@ export async function narysujMape(el: HTMLElement): Promise<void> {
     bounds.extend([m.lat, m.lng]);
   }
 
-  // The warehouse last, so its pin is above every dot.
+  // The warehouse last, so its pin is above every dot. The pin is a square
+  // of 1.7rem (`.pin` in global.css, which must match) turned by -45deg: the
+  // tip of its sharp corner, black edge included, is on the warehouse, and
+  // the popup opens a little above its round top.
+  const bok = 1.7 * parseFloat(getComputedStyle(document.documentElement).fontSize);
+  const czubek = bok / 2 + bok / Math.SQRT2 + 2 * Math.SQRT2;
   const icon = L.divIcon({
     className: "",
     html: '<div class="pin"></div>',
-    iconSize: [28, 28],
-    iconAnchor: [4, 30],
-    popupAnchor: [10, -26],
+    iconSize: [bok, bok],
+    iconAnchor: [bok / 2, czubek],
+    popupAnchor: [0, -czubek - 10],
   });
   L.marker([magazyn.lat, magazyn.lng], { icon, title: `Magazyn ${magazyn.nazwa}`, alt: `Magazyn ${magazyn.nazwa}` })
     .addTo(map)
@@ -109,6 +119,10 @@ export async function narysujMape(el: HTMLElement): Promise<void> {
   } else {
     map.fitBounds(bounds, { padding: [24, 24] });
   }
+  // Leaflet draws the dots, once the map has its view, in one SVG, which a
+  // screen reader would announce as an image without a name; the list under
+  // the map names the same towns.
+  map.getPanes().overlayPane.querySelector("svg")?.setAttribute("aria-hidden", "true");
 
   if (!L.Browser.mobile) return;
   // One finger scrolls the page past the map; a reader who meant to move

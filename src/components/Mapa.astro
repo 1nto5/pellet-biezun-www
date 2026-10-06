@@ -8,13 +8,13 @@
  *
  * The warehouse is always on the map, as a pin drawn in CSS (`divIcon`).
  * Leaflet's default pin is a PNG whose path breaks once the build moves it,
- * so it is never used. Towns are small dots (`circleMarker`), one look inside
- * the free-delivery zone and another outside it; the zone itself is an
- * optional circle. Dots and circle get a class, and their colours come from
- * the tokens in `global.css`.
+ * so it is never used. Towns are small dots (`circleMarker`), the page's own
+ * town larger; their colours come from the tokens in `global.css`.
  *
  * The map is decoration on top of the facts: every page that shows one also
  * lists the same places as text, which is what works without JavaScript.
+ * Without JavaScript, or when Leaflet fails to load, the box goes rather than
+ * say "Ładowanie mapy…" for ever.
  */
 import { firma, addressLine } from "../data/firma";
 import type { Miejsce } from "../data/miejsca";
@@ -59,16 +59,34 @@ const dane: DaneMapy = {
 
 <script>
   // Leaflet (about 150 KB) and its stylesheet load only when a map comes
-  // within half a screen of view.
+  // within half a screen of view. The connection to the tile server opens at
+  // the same moment, so the first tiles do not wait for it after Leaflet.
+  let polaczono = false;
   const obserwator = new IntersectionObserver(
     (wpisy) => {
       for (const wpis of wpisy) {
         if (!wpis.isIntersecting) continue;
         obserwator.unobserve(wpis.target);
-        import("./mapa").then(({ narysujMape }) => narysujMape(wpis.target as HTMLElement));
+        if (!polaczono) {
+          polaczono = true;
+          document.head.append(Object.assign(document.createElement("link"), { rel: "preconnect", href: "https://tile.openstreetmap.org" }));
+        }
+        const el = wpis.target as HTMLElement;
+        import("./mapa")
+          .then(({ narysujMape }) => narysujMape(el))
+          .catch(() => {
+            el.hidden = true;
+          });
       }
     },
     { rootMargin: "50% 0px" },
   );
   for (const el of document.querySelectorAll<HTMLElement>("[data-mapa]")) obserwator.observe(el);
 </script>
+
+<style>
+  /* Without JavaScript nothing draws the map; the places are listed as text. */
+  :global(html:not([data-js])) .mapa {
+    display: none;
+  }
+</style>

@@ -16,3 +16,18 @@
 # file gets a new name: browsers may keep them for a year without asking.
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
+
+# The icons keep their names when they change, so browsers keep them for a
+# week, then ask again.
+/favicon.svg
+  Cache-Control: public, max-age=604800
+/favicon.ico
+  Cache-Control: public, max-age=604800
+/apple-touch-icon.png
+  Cache-Control: public, max-age=604800
+
+# The project's own pages.dev address serves the same build as
+# pelletbiezun.pl; search engines must index only the domain. A rule with a
+# full address applies to that host alone, so the domain never gets it.
+https://pellet-biezun-www.pages.dev/*
+  X-Robots-Tag: noindex

@@ -19,11 +19,16 @@ const { photos } = Astro.props;
 
 /**
  * The grid is four columns from `lg`, three from `sm`, two below that, inside
- * the page's gutters (36px on phones, 72px from `sm`); the first photo takes
- * two by two.
+ * the page's gutters (36px on phones, 72px from `sm`) with 9px gaps, and no
+ * wider than 1224px (68rem), which it reaches at a 1296px window; the first
+ * photo takes two by two, the last the whole row. The widths are in px, not
+ * rem: in `sizes` a rem is the browser's 16px, not the page's 18px.
  */
-const sizes = "(min-width: 64rem) 17rem, (min-width: 40rem) calc(33vw - 24px), calc(50vw - 18px)";
-const sizesPierwsze = "(min-width: 64rem) 35rem, (min-width: 40rem) calc(66vw - 48px), calc(100vw - 36px)";
+const sizes =
+  "(min-width: 1296px) 300px, (min-width: 64rem) calc(25vw - 25px), (min-width: 40rem) calc(33.4vw - 30px), calc(50vw - 22px)";
+const sizesPierwsze =
+  "(min-width: 1296px) 608px, (min-width: 64rem) calc(50vw - 40px), (min-width: 40rem) calc(66.7vw - 51px), calc(100vw - 36px)";
+const sizesOstatnie = "(min-width: 1296px) 1224px, (min-width: 40rem) calc(100vw - 72px), calc(100vw - 36px)";
 /** About as many photos as the first screen shows; they load at once. */
 const OD_RAZU = 3;
 
@@ -63,7 +68,7 @@ const items = await Promise.all(
                   width={1400}
                   widths={[700, 1000, 1400]}
                   quality={65}
-                  sizes="(min-width: 64rem) 70rem, calc(100vw - 36px)"
+                  sizes={sizesOstatnie}
                   loading="lazy"
                 />
               ) : i === 0 ? (
@@ -73,7 +78,7 @@ const items = await Promise.all(
                   width={1400}
                   height={1050}
                   fit="cover"
-                  widths={[560, 700, 1000, 1400]}
+                  widths={[560, 700, 1000, 1100, 1400]}
                   quality={65}
                   sizes={sizesPierwsze}
                   loading="eager"
@@ -86,10 +91,11 @@ const items = await Promise.all(
                   width={700}
                   height={525}
                   fit="cover"
-                  widths={[400, 700]}
+                  widths={[320, 400, 560, 700]}
                   quality={65}
                   sizes={sizes}
                   loading={i < OD_RAZU ? "eager" : "lazy"}
+                  fetchpriority={i < OD_RAZU ? undefined : "low"}
                 />
               )}
             </span>
@@ -129,6 +135,17 @@ const items = await Promise.all(
     ...dialog.closest("[data-gallery]")!.querySelectorAll<HTMLButtonElement>("button[data-full]"),
   ];
 
+  /**
+   * How wide a photo of proportions `proporcja` is shown, as `sizes`: the
+   * same terms as the `.lightbox img` width in global.css, which must match.
+   * A wide window does not get a wider photo, as the height limits it.
+   */
+  function szerokosc(proporcja: string | undefined): string {
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+    const p = Number(proporcja) || 4 / 3;
+    return `${Math.round(Math.min(innerWidth * 0.92 - 2 * rem, 62 * rem, innerHeight * 0.72 * p))}px`;
+  }
+
   /** Shows photo `index` (any whole number; it wraps round) in the dialog. */
   function show(dialog: HTMLDialogElement, index: number) {
     const thumbs = thumbsOf(dialog);
@@ -146,7 +163,7 @@ const items = await Promise.all(
     // Until the large photo arrives, its thumbnail stands in under it.
     const maly = thumb.querySelector("img")?.currentSrc;
     image.style.backgroundImage = maly ? `url("${maly}")` : "";
-    image.sizes = "100vw";
+    image.sizes = szerokosc(thumb.dataset.proporcja);
     image.srcset = thumb.dataset.srcset ?? "";
     image.src = thumb.dataset.full!;
     image.alt = thumb.dataset.alt ?? "";
@@ -159,7 +176,11 @@ const items = await Promise.all(
     // The neighbours load in the background, so a step to either is instant.
     for (const near of [index - 1, index + 1]) {
       const sasiad = thumbs[(near + n) % n]!;
-      Object.assign(new Image(), { sizes: "100vw", srcset: sasiad.dataset.srcset ?? "", src: sasiad.dataset.full! });
+      Object.assign(new Image(), {
+        sizes: szerokosc(sasiad.dataset.proporcja),
+        srcset: sasiad.dataset.srcset ?? "",
+        src: sasiad.dataset.full!,
+      });
     }
     return image;
   }
@@ -272,11 +293,16 @@ const items = await Promise.all(
     dialog.addEventListener("pointercancel", () => (start = null));
 
     // Closed, the focus goes back to the photo last shown, not the one the
-    // reader opened, and the page brings it into view.
+    // reader opened. The page brings it into view only when less than half of
+    // it shows below the pinned header: a photo the reader can see stays put.
     dialog.addEventListener("close", () => {
       const thumb = thumbsOf(dialog)[Number(dialog.dataset.index ?? 0)];
-      thumb?.focus({ preventScroll: true });
-      thumb?.scrollIntoView({ block: "nearest" });
+      if (!thumb) return;
+      thumb.focus({ preventScroll: true });
+      const r = thumb.getBoundingClientRect();
+      const top = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-height")) || 0;
+      const widac = Math.min(r.bottom, innerHeight) - Math.max(r.top, top);
+      if (widac < r.height / 2) thumb.scrollIntoView({ block: "nearest" });
     });
   }
 </script>
