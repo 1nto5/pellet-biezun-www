@@ -1,7 +1,8 @@
 import type { APIRoute } from "astro";
 import { firma, addressLine, hoursRange } from "../data/firma";
 import { produkty, cenyLabel, cenaWorkaLabel, paletaLabel, cenyZDnia } from "../data/oferta";
-import { DARMOWA_DOSTAWA_KM, miejsca, podstrony, wojewodztwa, miejsceHref } from "../data/miejsca";
+import { ZASADA_DOSTAWY, DOSTAWA_DALEJ, miejsca, podstronyPoOdleglosci, wojewodztwa, miejsceHref } from "../data/miejsca";
+import { flota } from "../data/flota";
 import { faq } from "../data/faq";
 import { strony } from "../data/nav";
 import { pelnaNazwa } from "../lib/miejsce";
@@ -39,11 +40,11 @@ export const GET: APIRoute = ({ site }) => {
     ]),
     "## Dostawa",
     "",
-    `Dostawa gratis do ${DARMOWA_DOSTAWA_KM} km od magazynu (odległość drogowa, jak w nawigacji), dalej warunki ustalamy indywidualnie. ` +
-      "Własne samochody, każdy z elektrycznym wózkiem paletowym: 2 × Iveco Daily 7,2 t z windą (do 4 palet), Volvo FM 26 t z windą (12–14 palet), Volvo FH z windą (14–16 palet), Volvo FH16 z naczepą kurtynową (26 palet). " +
+    `${ZASADA_DOSTAWY} ${DOSTAWA_DALEJ}. ` +
+      `Własne samochody, każdy z elektrycznym wózkiem paletowym: ${flota.map((f) => `${f.model} (${f.szczegoly.join(", ")})`).join(", ")}. ` +
       "Odbiór osobisty w magazynie po wcześniejszym telefonie. Przy większych zamówieniach cena do negocjacji.",
     "",
-    ...podstrony.map((m) => `- [Pellet ${m.podstrona.wMiejscowosci}](${url(miejsceHref(m))})`),
+    ...podstronyPoOdleglosci.map((m) => `- [Pellet ${m.podstrona.wMiejscowosci}](${url(miejsceHref(m))})`),
     "",
     "Wszystkie miejscowości, do których dowozimy:",
     "",

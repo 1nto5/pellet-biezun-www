@@ -1,6 +1,7 @@
 /**
- * The fleet, each truck with a tail lift and an electric pallet truck: the
- * offer page and the drive on the home page read this list.
+ * The fleet, each truck with an electric pallet truck, all but the FH16 with
+ * a tail lift: the offer page, the drive on the home page and llms.txt read
+ * this list.
  * `min`–`max` is how many pallets it takes; the row of blocks draws it, the
  * details say it. The label is the make and model, set as the main text,
  * with the details in a smaller line under it (`szczegolyLabel`). The two

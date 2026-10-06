@@ -20,7 +20,7 @@ import { miejsca } from "../data/miejsca";
     />
 
     <div class="grid gap-12 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-      <Formularz action="/api/zamowienie" submitLabel="Wyślij zamówienie" purpose="przyjęcia i realizacji zamówienia">
+      <Formularz action="/api/zamowienie" submitLabel="Wyślij zamówienie" purpose="przyjęcia zamówienia i dostawy">
         <fieldset class="space-y-5">
           <legend class="mb-4 text-3xl">Co zamawiasz</legend>
           <div class="grid gap-5 sm:grid-cols-2">
@@ -36,10 +36,12 @@ import { miejsca } from "../data/miejsca";
               <span id="ilosc-hint" class="hint">Np. „2 palety”.{produkty.filter((p) => p.cenaWorek).map((p) => ` ${p.nazwa} sprzedajemy też na worki.`)}</span>
             </div>
           </div>
-          <div class="field sm:max-w-xs">
-            <label for="termin">Preferowany termin dostawy</label>
-            <input id="termin" name="termin" type="date" class="input" aria-describedby="termin-hint" />
-            <span id="termin-hint" class="hint">Postaramy się go uwzględnić i potwierdzimy telefonicznie.</span>
+          <div class="grid gap-5 sm:grid-cols-2">
+            <div class="field">
+              <label for="termin">Preferowany termin dostawy</label>
+              <input id="termin" name="termin" type="date" class="input" aria-describedby="termin-hint" />
+              <span id="termin-hint" class="hint">Postaramy się go uwzględnić i potwierdzimy telefonicznie.</span>
+            </div>
           </div>
         </fieldset>
 

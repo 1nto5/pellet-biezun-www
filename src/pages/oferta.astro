@@ -8,7 +8,7 @@ import Pasy from "../components/Pasy.astro";
 import { firma, firmaId, addressLine } from "../data/firma";
 import { orderLink, strony } from "../data/nav";
 import { produkty, cenyLabel, cenaWorkaLabel, paletaLabel, cenyZDnia } from "../data/oferta";
-import { DARMOWA_DOSTAWA_KM } from "../data/miejsca";
+import { ZASADA_DOSTAWY, DOSTAWA_DALEJ } from "../data/miejsca";
 import { flota, najdluzszy, szczegolyLabel } from "../data/flota";
 
 /**
@@ -28,7 +28,13 @@ const produktyLd = await Promise.all(
       url: `${new URL(strony.oferta.href, Astro.site)}#produkt-${p.id}`,
       price: p.cenaPaleta,
       priceCurrency: "PLN",
-      eligibleQuantity: { "@type": "QuantitativeValue", value: 1, unitText: "paleta" },
+      // The price is per pallet: a unit price, not a minimum order.
+      priceSpecification: {
+        "@type": "UnitPriceSpecification",
+        price: p.cenaPaleta,
+        priceCurrency: "PLN",
+        referenceQuantity: { "@type": "QuantitativeValue", value: 1, unitText: "paleta" },
+      },
       itemCondition: "https://schema.org/NewCondition",
       // TODO(produkcja): availability (schema.org/InStock) once the client says how stock is kept.
       seller: { "@id": firmaId },
@@ -132,8 +138,8 @@ const produktyLd = await Promise.all(
       <h2 id="dostawa" class="mt-6 text-3xl md:text-4xl">Dostawa i odbiór</h2>
       <div class="prose mt-5">
         <p>
-          Dostawa gratis do {DARMOWA_DOSTAWA_KM} km od magazynu, licząc po drogach. Dalej warunki ustalamy
-          indywidualnie. Sprawdź swoją miejscowość na <a href={strony.mapa.href}>mapie dystrybucji</a>.
+          {ZASADA_DOSTAWY} {DOSTAWA_DALEJ}. Sprawdź swoją miejscowość na
+          <a href={strony.mapa.href}>mapie dystrybucji</a>.
         </p>
         <p>Dowozimy własnymi samochodami. Każdy ma elektryczny wózek paletowy:</p>
       </div>

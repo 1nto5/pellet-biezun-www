@@ -7,7 +7,8 @@ import NazwaMiejsca from "../components/NazwaMiejsca.astro";
 import Tablica from "../components/Tablica.astro";
 import { firma } from "../data/firma";
 import {
-  DARMOWA_DOSTAWA_KM,
+  ZASADA_DOSTAWY,
+  DOSTAWA_DALEJ,
   miejsca,
   podstronyPoOdleglosci,
   wojewodztwa,
@@ -25,14 +26,14 @@ const grupy = wojewodztwa
 ---
 
 <Base
-  title="Mapa dystrybucji – dokąd dowozimy pellet"
-  description={`Dokąd dowozimy pellet z magazynu we Władysławowie pod Bieżuniem, z dostawą gratis: ${miejsca.length} miejscowości w ${wojewodztwa.length} województwach.`}
+  title="Mapa dystrybucji: dokąd dowozimy pellet"
+  description={`Dokąd dowozimy pellet z magazynu we Władysławowie pod Bieżuniem: ${miejsca.length} miejscowości w ${wojewodztwa.length} województwach. ${ZASADA_DOSTAWY}`}
 >
   <PageShell>
     <PageHeader
       slot="header"
       title="Mapa dystrybucji"
-      lead={`Nasz magazyn jest we Władysławowie pod Bieżuniem. Dostawa gratis do ${DARMOWA_DOSTAWA_KM} km od magazynu, licząc po drogach, dalej warunki ustalamy indywidualnie.`}
+      lead={`Nasz magazyn jest we Władysławowie pod Bieżuniem. ${ZASADA_DOSTAWY} ${DOSTAWA_DALEJ}.`}
     />
 
     <Mapa miejsca={miejsca} label="Mapa: magazyn i miejscowości, do których dowozimy" />
@@ -43,7 +44,7 @@ const grupy = wojewodztwa
 
     <section class="mt-12" aria-labelledby="podstrony">
       <h2 id="podstrony" class="text-3xl">Dostawa w Twojej okolicy</h2>
-            <ul role="list" class="tablice mt-6" aria-labelledby="podstrony" data-ruch-grupa="tablica">
+      <ul role="list" class="tablice mt-6" data-ruch-grupa="tablica">
         {
           podstronyPoOdleglosci.map((m) => (
             <li>

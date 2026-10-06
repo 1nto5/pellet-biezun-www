@@ -1,6 +1,6 @@
 /**
- * Addresses inside the site. The site may live under a sub-path (the GitHub
- * Pages copy is served from /pellet-biezun-www/), so an internal link is
+ * Addresses inside the site. The site may be built under a sub-path (`SITE`
+ * in astro.config.mjs), so an internal link is
  * never written as a bare "/oferta/": it goes through `href()`, which puts
  * Astro's `base` in front. At the domain root `base` is empty and nothing
  * changes.

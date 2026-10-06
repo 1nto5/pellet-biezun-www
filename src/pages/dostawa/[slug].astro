@@ -15,14 +15,15 @@ import NazwaMiejsca from "../../components/NazwaMiejsca.astro";
 import { firma, addressLine } from "../../data/firma";
 import { strony } from "../../data/nav";
 import {
-  DARMOWA_DOSTAWA_KM,
+  ZASADA_DOSTAWY,
+  DOSTAWA_DALEJ,
   miejsca,
   podstrony,
   miejsceHref,
   odlegloscKm,
   type MiejsceZPodstrona,
 } from "../../data/miejsca";
-import { produkty, cenyLabel, paletaLabel, cenyZDnia } from "../../data/oferta";
+import { produkty, cenyLabel, cenaWorkaLabel, paletaLabel, cenyZDnia } from "../../data/oferta";
 import { distanceKm } from "../../lib/geo";
 import { maPodstrone, pelnaNazwa } from "../../lib/miejsce";
 
@@ -66,10 +67,7 @@ const lead = `Dowozimy pellet ${doM} i okolic.`;
       <div class="prose">
         <h2>Dostawa</h2>
         {opis && <p>{opis}</p>}
-        <p>
-          Dostawa gratis do {DARMOWA_DOSTAWA_KM} km od magazynu, licząc po drogach. Dalej warunki ustalamy
-          indywidualnie przez telefon.
-        </p>
+        <p>{ZASADA_DOSTAWY} {DOSTAWA_DALEJ}.</p>
         <p>
           Dowozimy własnymi samochodami. Iveco i solówki Volvo mają windę, a każde auto elektryczny
           wózek paletowy, więc paletę zdejmujemy z auta i podwozimy na miejsce. Na dojazd w trudno dostępne miejsca mamy mniejsze auta Iveco Daily.
@@ -85,7 +83,7 @@ const lead = `Dowozimy pellet ${doM} i okolic.`;
           {
             produkty.map((p) => (
               <li>
-                {p.nazwa}: <strong>{cenyLabel(p).join(", ")}</strong> ({paletaLabel(p)})
+                {p.nazwa}: <strong>{[...cenyLabel(p), ...(p.cenaWorek ? [`worek ${cenaWorkaLabel(p)}`] : [])].join(", ")}</strong> ({paletaLabel(p)})
               </li>
             ))
           }
@@ -146,9 +144,6 @@ const lead = `Dowozimy pellet ${doM} i okolic.`;
     padding: 1.1rem 1.3rem 1rem;
   }
   .okolica li {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
     padding: 0.3rem 0 0.2rem;
     border-top: 1px solid color-mix(in srgb, var(--color-white) 40%, transparent);
     font-weight: 700;

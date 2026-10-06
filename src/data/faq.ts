@@ -8,7 +8,7 @@
  */
 import { firma, addressLine } from "./firma";
 import { produkty, paletaLabel, certyfikatZNazwa, cenaWorkaLabel } from "./oferta";
-import { DARMOWA_DOSTAWA_KM } from "./miejsca";
+import { ZASADA_DOSTAWY, DOSTAWA_DALEJ } from "./miejsca";
 
 export const faq: { q: string; a: string }[] = [
   {
@@ -28,7 +28,7 @@ export const faq: { q: string; a: string }[] = [
     : []),
   {
     q: "Ile kosztuje dostawa?",
-    a: `Dostawa gratis do ${DARMOWA_DOSTAWA_KM} km od magazynu, licząc po drogach jak nawigacja. Dalej warunki ustalamy indywidualnie – zadzwoń: ${firma.phone.label}.`,
+    a: `${ZASADA_DOSTAWY} ${DOSTAWA_DALEJ}: ${firma.phone.label}.`,
   },
   {
     q: "Jak wygląda rozładunek?",

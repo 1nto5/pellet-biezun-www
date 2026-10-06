@@ -15,7 +15,8 @@
  * `action` is the Pages Function that will receive the form. Until
  * `formularzeWlaczone` is on, the script below stops the submit once the
  * fields are checked and gives the phone number instead, so a reader never
- * takes an unsent form for a sent one.
+ * takes an unsent form for a sent one. Without scripts the button stays
+ * disabled and the same note shows above the fields, before anyone types.
  *
  * The script checks the fields itself, by the browser's own rules (required,
  * type, pattern, min), and writes what is wrong in Polish under each field,
@@ -43,6 +44,17 @@ const { action, submitLabel, purpose, consent = false } = Astro.props;
 ---
 
 <form method="post" action={href(action)} class="space-y-6" data-form data-live={String(formularzeWlaczone)}>
+  {
+    // TODO(produkcja): goes with formularzeWlaczone once the forms send (stage 3).
+    !formularzeWlaczone && (
+      <noscript>
+        <p class="form-status mb-6 font-semibold">
+          Formularz chwilowo nie działa. Zadzwoń:
+          <a href={firma.phone.href}>{firma.phone.label}</a>.
+        </p>
+      </noscript>
+    )
+  }
   <slot />
 
   <div class="hp" aria-hidden="true">
@@ -72,7 +84,7 @@ const { action, submitLabel, purpose, consent = false } = Astro.props;
   <div data-turnstile></div>
 
   <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
-    <button type="submit" class="btn btn-primary">{submitLabel}</button>
+    <button type="submit" class="btn btn-primary" disabled={!formularzeWlaczone}>{submitLabel}</button>
     <p class="text-sm text-ink-soft"><span class="req">*</span> pole wymagane</p>
   </div>
 
@@ -128,6 +140,9 @@ const { action, submitLabel, purpose, consent = false } = Astro.props;
 
   for (const form of document.querySelectorAll<HTMLFormElement>("[data-form]")) {
     form.noValidate = true;
+    // Disabled in the HTML only for a reader without scripts; this one checks
+    // the fields and gives the phone number on submit.
+    form.querySelector("button[type=submit]")?.removeAttribute("disabled");
     const pola = [...form.querySelectorAll<Pole>("input, select, textarea")].filter((p) => p.name !== "strona_www" && p.willValidate);
 
     // A field already marked wrong is checked again as the reader fixes it.

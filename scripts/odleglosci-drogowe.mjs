@@ -1,7 +1,7 @@
 /**
  * Road distances from the warehouse to every town on the map, written to
- * src/data/drogi.json. The site shows distances as a satnav counts them,
- * never in a straight line.
+ * src/data/drogi.json. The free delivery zone is counted by road, as a satnav
+ * counts it, never in a straight line; the site itself shows no distances.
  *
  * Run it again after adding a town or moving the warehouse:
  *   bun scripts/odleglosci-drogowe.mjs
