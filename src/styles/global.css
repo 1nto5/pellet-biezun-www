@@ -115,12 +115,6 @@ html {
 @media (width >= 64rem) {
   html {
     --header-height: 5.15rem;
-    /* On a large window everything set in rem grows with it, text,
-       spacing and the page's width alike, so the page fills the screen
-       rather than sit small under a lot of empty room. Mostly with the
-       window's height: a taller window gets the room for taller content.
-       18 px on a 1280 × 720 window, at most 25.6 px. */
-    font-size: clamp(1.125rem, 1.6vh + 0.35vw, 1.6rem);
   }
 }
 
