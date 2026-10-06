@@ -1,23 +1,17 @@
 ---
 /**
  * The free delivery sign, set as a Polish information sign: a blue plate
- * with a white rim and white words, "DARMOWA DOSTAWA", and under it a white
- * plate with a black edge giving the distance, as the plates under road
- * signs are. A thin grey line round the rim keeps it apart from the pale
- * sky. 64 × 120 drawing units, ground at the bottom edge.
+ * with a white rim and white words, "DARMOWA DOSTAWA", on its post. No
+ * distance: the site says "dostawa gratis" without one. A thin grey line
+ * round the rim keeps it apart from the pale sky. 64 × 120 drawing units,
+ * ground at the bottom edge.
  */
-interface Props {
-  km: number;
-}
-const { km } = Astro.props;
 ---
 
 <svg viewBox="0 0 64 120" aria-hidden="true" focusable="false">
-  <rect x="30" y="64" width="4" height="56" fill="#2e3134" />
+  <rect x="30" y="46" width="4" height="74" fill="#2e3134" />
   <rect x="1.5" y="1.5" width="61" height="45" rx="4.5" fill="#fff" stroke="#8d9296" stroke-width="0.6" />
   <rect x="3.6" y="3.6" width="56.8" height="40.8" rx="3" fill="var(--color-info)" />
   <text x="32" y="20.6" class="znak-dostawa" text-anchor="middle">DARMOWA</text>
   <text x="32" y="34" class="znak-dostawa" text-anchor="middle">DOSTAWA</text>
-  <rect x="8" y="49" width="48" height="16" rx="2" fill="#fff" stroke="#000" stroke-width="2" />
-  <text x="32" y="61" class="znak-km" text-anchor="middle">{km} km</text>
 </svg>

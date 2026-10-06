@@ -12,7 +12,7 @@
  * a line in its `ruchy` list too.
  *
  * Only a picture: the story it shows is told in text next to it. Its few
- * words (the towns on the boards) are drawn by CSS from data
+ * words (the towns' names on the boards) are drawn by CSS from data
  * attributes, so they are not part of the page's text: the scene is there
  * four times, and its words would be read out of context.
  */
@@ -23,7 +23,6 @@ import ZnakDostawy from "./ZnakDostawy.astro";
 import { obrazy } from "./obrazy";
 import { KM_DOJAZD, stanStyle, type Stan } from "./trasa";
 import { tablice } from "./tablice";
-import { DARMOWA_DOSTAWA_KM } from "../../data/miejsca";
 
 interface Props {
   stan: Stan;
@@ -57,13 +56,13 @@ const pasy = [
           <div class="w-tablica" style={`--at:${t.naDrodze}`}>
             <div class="sign">
               {t.miasta.map((m) => (
-                <p data-nazwa={m.nazwa} data-km={m.km} />
+                <p data-nazwa={m.nazwa} />
               ))}
             </div>
           </div>
         ))
       }
-      <div class="w-znak" style={`--at:${KM_DOJAZD}`}><ZnakDostawy km={DARMOWA_DOSTAWA_KM} /></div>
+      <div class="w-znak" style={`--at:${KM_DOJAZD}`}><ZnakDostawy /></div>
     </div>
     <div class="jezdnia"></div>
     <div class="swiat">

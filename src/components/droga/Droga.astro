@@ -3,9 +3,9 @@
  * The drive on the home page: the truck leaves the hall, drives past the
  * direction boards and delivers to a customer's house inside the free zone,
  * with the free delivery sign ahead, while the reader scrolls. It carries the
- * page's content: one stop per screen, each with a heading and what the
- * page has to say there (the products at the hall, the fleet on the road,
- * the towns, the delivery terms, the order). The content comes from the page
+ * page's content: one stop per screen, each with what the page has to say
+ * there (the products at the hall, the fleet on the road, the towns, the
+ * delivery terms, the order) and a heading for screen readers only. The content comes from the page
  * as a named slot per stop, so its markup and styles stay with the page.
  *
  * Built so the page is complete without it moving. The HTML holds every stop
@@ -16,13 +16,14 @@
  * scroll: the same scroll position always shows the same frame.
  *
  * - On a wide landscape screen, one sticky stage with the scroll length
- *   reserved under it, one stop at a time in the sky above the scene: the
- *   heading over the content, across the page's width. Each stop gets the same
- *   stretch of scroll, whatever its share of the drive's clock, so a stop
- *   with a lot to read stays as long as one with little.
- * - Elsewhere, phones above all, one scene pinned under the header with the
- *   stops scrolling freely under it, the drive reaching each stop's moment
- *   as the stop comes up to the scene.
+ *   reserved under it, one stop at a time in the sky above the scene,
+ *   across the page's width. Each stop gets the same stretch of scroll,
+ *   whatever its share of the drive's clock, so a stop with a lot to read
+ *   stays as long as one with little.
+ * - Elsewhere, phones above all, nothing pinned: the scene under the hero,
+ *   the truck leaving the hall as the first screen scrolls away, and again
+ *   over the stop at the customer's, the truck arriving and parking as that
+ *   scene comes into view. The stops in between have the whole screen.
  *
  * In both the scroll only sets the moment the scene should show, and its
  * animations play there by themselves (`jazda.ts`): they move nothing but
@@ -48,6 +49,8 @@ interface Stop {
   od: number;
   tytul: string;
   kadr: Stan;
+  /** Its frame is the second scene on phones, the truck arriving (droga.css). */
+  przyjazd?: boolean;
 }
 
 const pierwsza = tablice[0]!;
@@ -78,6 +81,7 @@ const stopy: Stop[] = [
     od: czasKm(KM_DOJAZD - 20),
     tytul: "Na miejscu",
     kadr: kadry.naMiejscu,
+    przyjazd: true,
   },
   {
     id: "dostarczone",
@@ -92,16 +96,14 @@ const stopy: Stop[] = [
   <slot />
 
   <section class="droga" aria-label="Jak pellet jedzie do klienta" data-droga>
-    <div class="droga-tor" data-droga-tor>
-      <div class="droga-scena" data-droga-scena>
-        <Scena stan={start} live />
-      </div>
+    <div class="droga-scena" data-droga-scena>
+      <Scena stan={start} live />
     </div>
 
     <ol class="stopy" role="list" data-stopy>
       {
         stopy.map((s) => (
-          <li class="stop" data-stop data-od={s.od}>
+          <li class="stop" data-stop data-od={s.od} data-przyjazd={s.przyjazd ? "" : undefined}>
             <div class="stop-tekst">
               <h2>{s.tytul}</h2>
             </div>
@@ -122,6 +124,7 @@ const stopy: Stop[] = [
 
 <script>
   import { uruchomJazde, type Jazda } from "./jazda";
+  import { CZAS } from "./trasa";
 
   const podroz = document.querySelector<HTMLElement>("[data-podroz]");
   const hero = podroz?.firstElementChild as HTMLElement | null | undefined;
@@ -129,31 +132,35 @@ const stopy: Stop[] = [
   const scena = podroz?.querySelector<HTMLElement>("[data-scena-live]");
   const rig = scena?.querySelector<HTMLElement>(".rig");
   const dystans = podroz?.querySelector<HTMLElement>("[data-dystans]");
-  const tor = podroz?.querySelector<HTMLElement>("[data-droga-tor]");
   const pudelko = podroz?.querySelector<HTMLElement>("[data-droga-scena]");
   const lista = podroz?.querySelector<HTMLElement>("[data-stopy]");
   const stopy = [...(podroz?.querySelectorAll<HTMLElement>("[data-stop]") ?? [])];
+  const stopPrzyjazdu = stopy.find((s) => s.hasAttribute("data-przyjazd"));
+  const scenaPrzyjazdu = stopPrzyjazdu?.querySelector<HTMLElement>(".kadr .scena-in");
+  const rigPrzyjazdu = scenaPrzyjazdu?.querySelector<HTMLElement>(".rig");
 
-  if (podroz && hero && droga && scena && rig && dystans && tor && pudelko && lista && stopy.length) {
+  if (podroz && hero && droga && scena && rig && dystans && pudelko && lista && stopy.length && stopPrzyjazdu && scenaPrzyjazdu && rigPrzyjazdu) {
     // The CSS decides which version shows and names it in `--droga`
     // (droga.css). A turned tablet or a resized window can switch between
     // them, so this is asked again on every refresh, and only then: asking
     // while scrolling would force a layout.
-    type Tryb = "live" | "przypieta" | "nieruchoma";
+    type Tryb = "live" | "dwie" | "nieruchoma";
     let tryb: Tryb | null = null;
     let live = false;
     let jazda: Jazda | null = null;
+    // The second scene of the phones' version, the truck arriving.
+    let przyjazd: Jazda | null = null;
     const clamp = (x: number) => Math.min(1, Math.max(0, x));
     const od = stopy.map((s) => Number(s.dataset.od));
 
-    // Both versions map the scroll to the drive's moment along an axis:
-    // pairs of a scroll position and a moment, both growing, one pair where
-    // each stop starts and one where the drive ends. Between two of them the
-    // drive moves evenly with the scroll. Measured on load, resize and
-    // layout changes, never while scrolling.
+    // Each moving scene maps the scroll to the drive's moment along an
+    // axis: pairs of a scroll position and a moment, both growing. Between
+    // two of them the drive moves evenly with the scroll. Measured on load,
+    // resize and layout changes, never while scrolling.
     type Os = [y: number, t: number][];
     let os: Os = [[0, 0]];
-    const chwila = (y: number): number => {
+    let osPrzyjazdu: Os = [[0, 0]];
+    const naOsi = (os: Os, y: number): number => {
       if (y <= os[0]![0]) return os[0]![1];
       for (let i = 1; i < os.length; i++) {
         const [y1, t1] = os[i]!;
@@ -164,6 +171,7 @@ const stopy: Stop[] = [
       }
       return os.at(-1)![1];
     };
+    const chwila = (y: number) => naOsi(os, y);
 
     // Live: the stage is sticky in CSS; the drive runs over the spacer after
     // it, from the spacer's top reaching the bottom of the window (the stage
@@ -258,50 +266,51 @@ const stopy: Stop[] = [
       window.scrollTo({ top: Math.round((os[i]![0] + os[i + 1]![0]) / 2), behavior: "instant" });
     });
 
-    // Pinned (droga.css): the stops scroll freely under the scene. The drive
-    // reaches a stop's moment as the stop's top comes up to the scene's
-    // bottom (the last stop's earlier, below), and its end as the last
-    // stop's top reaches it. The scene then scrolls away with that stop: on a
-    // short phone the stop is taller than the room under the scene, and held
-    // any longer the scene would cover its order button.
-    const zmierzOs = (): Os => {
-      const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
-      const linia = parseFloat(getComputedStyle(pudelko).top) + pudelko.offsetHeight + rem;
-      const y = window.scrollY - linia;
-      const os: Os = stopy.map((s, i) => [Math.round(s.getBoundingClientRect().top + y), od[i]!]);
-      // The last stop is about as tall as the room under the scene, so from
-      // its top at the line to its end there is next to no scroll, and the
-      // delivery (the truck standing at the house, driving off) would flash
-      // by. Its moment
-      // starts earlier instead, half the room before its top reaches the
-      // line: the delivery plays while the order rises into view.
-      const doNa = os.at(-1)![0];
-      const wczesniej = Math.round((window.innerHeight - linia) / 2);
-      os[os.length - 1]![0] = Math.max(os.at(-2)?.[0] ?? 0, doNa - wczesniej);
-      os.push([doNa, 100]);
-
-      // The scene stays pinned through its track (`--tor`, droga.css) and
-      // leaves as the drive ends: it scrolls away together with the last
-      // stop, the order button never cut by the scene.
-      const torOd = tor.getBoundingClientRect().top + window.scrollY - parseFloat(getComputedStyle(pudelko).top);
-      tor.style.setProperty("--tor", `${Math.max(0, Math.round(os.at(-1)![0] - torOd))}px`);
-      return os;
+    // Two scenes (droga.css), each played by the scroll while it is on
+    // screen. Under the hero the truck leaves the hall: standing at the top
+    // of the page, up to speed with the hall out of sight once half the scene
+    // has scrolled away. Over the stop at the customer's it arrives: the house
+    // comes into view as the scene comes up from the window's bottom, and the
+    // truck has parked past it once the scene's top is a third of the way
+    // down the window, where it stays.
+    const ODJAZD_DO = CZAS.odjazd + 10;
+    const zmierzDwie = () => {
+      const y = window.scrollY;
+      const h = window.innerHeight;
+      const odjazd = pudelko.getBoundingClientRect();
+      os = [
+        [0, CZAS.odjazd],
+        [Math.max(1, Math.round(odjazd.top + y + odjazd.height / 2)), ODJAZD_DO],
+      ];
+      const dojazd = scenaPrzyjazdu.getBoundingClientRect().top + y;
+      osPrzyjazdu = [
+        [Math.round(dojazd - h), Number(stopPrzyjazdu.dataset.od)],
+        [Math.round(dojazd - h / 3), CZAS.postoj],
+      ];
     };
-    // The scroll only sets where the drive goes; it plays there by itself.
-    const przewin = () => jazda?.jedz(chwila(window.scrollY));
+    // The scroll only sets where each drive goes; it plays there by itself.
+    const przewin = () => {
+      const y = window.scrollY;
+      jazda?.jedz(chwila(y));
+      przyjazd?.jedz(naOsi(osPrzyjazdu, y));
+    };
 
     const refresh = () => {
       const nowy = (getComputedStyle(podroz).getPropertyValue("--droga").trim() || "nieruchoma") as Tryb;
       live = nowy === "live";
 
-      // Either moving version sets the drive up for one scene size; another
-      // size, or another version, sets it up again. The live scene, drawn
-      // smaller at first, has its bands widened to still reach its edges.
-      if (nowy !== tryb || (jazda && (jazda.szerokosc !== scena.clientWidth || Math.abs(jazda.u - rig.offsetWidth / 60) > 0.05))) {
+      // Either moving version sets its drives up for one scene size;
+      // another size, or another version, sets them up again. The live scene,
+      // drawn smaller at first, has its bands widened to still reach its
+      // edges.
+      const inny = (j: Jazda | null, sc: HTMLElement, r: HTMLElement) =>
+        j !== null && (j.szerokosc !== sc.clientWidth || Math.abs(j.u - r.offsetWidth / 60) > 0.05);
+      if (nowy !== tryb || inny(jazda, scena, rig) || inny(przyjazd, scenaPrzyjazdu, rigPrzyjazdu)) {
         jazda?.zatrzymaj();
         jazda = null;
+        przyjazd?.zatrzymaj();
+        przyjazd = null;
         scena.style.removeProperty("scale");
-        tor.style.removeProperty("--tor");
         stopy.forEach((s) => s.classList.remove("is-active"));
         shownStop = -2;
         tryb = nowy;
@@ -313,8 +322,8 @@ const stopy: Stop[] = [
           jazda.zatrzymaj();
           jazda = null;
         }
-      } else if (nowy === "przypieta") os = zmierzOs();
-      if (!jazda && nowy !== "nieruchoma") zbuduj();
+      } else if (nowy === "dwie") zmierzDwie();
+      if ((!jazda || (nowy === "dwie" && !przyjazd)) && nowy !== "nieruchoma") zbuduj();
 
       if (live) render();
       else przewin();
@@ -333,9 +342,15 @@ const stopy: Stop[] = [
       czeka = true;
       const teraz = () => {
         czeka = false;
-        if (jazda || tryb === "nieruchoma" || tryb === null) return;
-        jazda = uruchomJazde(scena, live ? szerokosc * widok : 0, live ? widok : 1);
-        jazda.ustaw(chwila(window.scrollY));
+        if (tryb === "nieruchoma" || tryb === null) return;
+        if (!jazda) {
+          jazda = uruchomJazde(scena, live ? szerokosc * widok : 0, live ? widok : 1);
+          jazda.ustaw(chwila(window.scrollY));
+        }
+        if (tryb === "dwie" && !przyjazd) {
+          przyjazd = uruchomJazde(scenaPrzyjazdu);
+          przyjazd.ustaw(naOsi(osPrzyjazdu, window.scrollY));
+        }
         zbudowana = true;
       };
       if (zbudowana) teraz();

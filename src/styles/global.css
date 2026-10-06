@@ -102,8 +102,9 @@
    ------------------------------------------------------------------------ */
 html {
   /* The pinned header's height, measured by the header script; until then
-     as it comes out: one row on a phone, the menu's board from `lg`. */
-  --header-height: 4.35rem;
+     as the menu's board comes out from `lg`. Below `lg` the header is not
+     pinned, so nothing has to stop clear of it. */
+  --header-height: 0px;
   font-size: 112.5%; /* 18px */
   -webkit-text-size-adjust: 100%;
   color-scheme: light;
@@ -405,24 +406,29 @@ main :where(p, address, dd, td) > a:not(.btn),
 /* ---------------------------------------------------------------------------
    Header. The company's name set like its sign, then the sections on one
    green direction board from `lg` up; below that the same links in a
-   <dialog> drawer that slides in from the left, under the pinned row. The
+   <dialog> drawer that slides in from the left, under the header row. The
    drawer is not modal, so its shade is an element of its own.
+   Pinned to the top only from `lg` up: on a phone or tablet the header
+   scrolls away with the page, so it does not take a slice of a small
+   screen.
    ------------------------------------------------------------------------ */
 .site-header {
-  position: sticky;
-  top: 0;
-  z-index: 1000; /* above Leaflet's panes, which go up to 1000 */
+  position: relative;
+  /* Above Leaflet's panes, which go up to 1000. `relative`, not `static`,
+     where it is not pinned, so this still holds for the drawer inside. */
+  z-index: 1000;
   pointer-events: none;
+}
+@media (width >= 64rem) and (height > 26rem) {
+  .site-header {
+    position: sticky;
+    top: 0;
+  }
 }
 .header-surface {
   background: var(--color-white);
   border-bottom: 2px solid var(--color-black);
   pointer-events: auto;
-}
-@media (max-height: 26rem) {
-  .site-header {
-    position: static;
-  }
 }
 .pinned-row {
   padding-block: 0.55rem;
@@ -706,12 +712,8 @@ a.tablica:hover .tablica-nazwa {
 .sign .text-ink-soft {
   color: inherit;
 }
-.tablica-km {
-  flex: none;
-  font-weight: 800;
-}
-/* On a phone two boards a row, the distance under the name: the list takes
-   half the scroll it would one board a row. */
+/* On a phone two boards a row: the list takes half the scroll it would one
+   board a row. */
 @media (width < 30rem) {
   .tablice {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -806,16 +808,6 @@ a.tablica:hover .tablica-nazwa {
   font-weight: 900;
   line-height: 1;
   letter-spacing: -0.03em;
-}
-.drogowskaz-km {
-  font-size: clamp(1.6rem, 4.5vw, 2.8rem);
-  font-weight: 900;
-  line-height: 1;
-}
-.drogowskaz-uwaga {
-  flex-basis: 100%;
-  font-size: 1rem;
-  font-weight: 600;
 }
 
 /* ---------------------------------------------------------------------------

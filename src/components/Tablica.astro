@@ -1,11 +1,10 @@
 ---
 /**
- * A green direction board for one town, linking its page: the name and the
- * distance from the warehouse. `.tablica` in global.css.
+ * A green direction board for one town, linking its page, with the town's
+ * name. `.tablica` in global.css.
  */
 import NazwaMiejsca from "./NazwaMiejsca.astro";
 import type { Miejsce } from "../data/miejsca";
-import { odlegloscKm } from "../data/miejsca";
 
 interface Props {
   miejsce: Miejsce;
@@ -17,5 +16,4 @@ const { miejsce, href } = Astro.props;
 
 <a href={href} class="sign tablica">
   <span class="tablica-nazwa"><NazwaMiejsca miejsce={miejsce} /></span>
-  <span class="tablica-km">{odlegloscKm(miejsce)} km</span>
 </a>

@@ -2,8 +2,8 @@
 /**
  * One page per town in `podstrony`: what a buyer from that town needs to
  * know, in sentences a search engine or an AI answer can quote. What makes
- * each page its own is the distance, the zone, the towns around it and the
- * client's own words about the town (`podstrona.opis`).
+ * each page its own is the town's name, the towns around it and the client's
+ * own words about the town (`podstrona.opis`).
  */
 import type { GetStaticPaths } from "astro";
 import Base from "../../layouts/Base.astro";
@@ -38,28 +38,25 @@ const OKOLICA_KM = 25;
 
 const { miejsce } = Astro.props;
 const { wMiejscowosci: w, doMiejscowosci: doM, opis } = miejsce.podstrona;
-const km = odlegloscKm(miejsce);
 
-// Nearest to the warehouse first, as the board shows their distance from it.
+// Nearest to the warehouse first.
 const okolica = miejsca
   .filter((m) => m.nazwa !== miejsce.nazwa && distanceKm(miejsce.geo, m.geo) <= OKOLICA_KM)
   .sort((a, b) => odlegloscKm(a) - odlegloscKm(b));
 
-const lead = `Dowozimy pellet ${doM} i okolic. Z naszego magazynu we Władysławowie pod Bieżuniem to ok. ${km} km drogą.`;
+const lead = `Dowozimy pellet ${doM} i okolic.`;
 ---
 
 <Base
   title={`Pellet ${w} z dostawą`}
-  description={`Pellet drzewny w workach 15 kg ${doM}: ok. ${km} km od magazynu pod Bieżuniem, dostawa własnymi autami. Ceny, rozładunek windą, odbiór w magazynie.`}
+  description={`Pellet drzewny w workach 15 kg ${doM}, dostawa własnymi autami z magazynu pod Bieżuniem. Ceny, rozładunek windą, odbiór w magazynie.`}
 >
   <PageShell>
     <PageHeader slot="header" title={`Pellet ${w}`} lead={lead}>
-      <div class="drogowskaz mt-8" role="img" aria-label={`${miejsce.nazwa}: ${km} km od magazynu`}>
+      <div class="drogowskaz mt-8" role="img" aria-label={miejsce.nazwa}>
         <div>
           <div>
             <span class="drogowskaz-nazwa">{miejsce.nazwa}</span>
-            <span class="drogowskaz-km">{km} km</span>
-            <span class="drogowskaz-uwaga">od magazynu</span>
           </div>
         </div>
       </div>
@@ -70,7 +67,7 @@ const lead = `Dowozimy pellet ${doM} i okolic. Z naszego magazynu we Władysław
         <h2>Dostawa</h2>
         {opis && <p>{opis}</p>}
         <p>
-          Dostawa gratis {DARMOWA_DOSTAWA_KM} km od magazynu, licząc po drogach. Dalej warunki ustalamy
+          Dostawa gratis do {DARMOWA_DOSTAWA_KM} km od magazynu, licząc po drogach. Dalej warunki ustalamy
           indywidualnie przez telefon.
         </p>
         <p>
@@ -121,11 +118,9 @@ const lead = `Dowozimy pellet ${doM} i okolic. Z naszego magazynu we Władysław
                         <NazwaMiejsca miejsce={m} />
                       )}
                     </span>
-                    <span class="font-extrabold">{odlegloscKm(m)} km</span>
                   </li>
                 ))}
               </ul>
-              <p class="mt-3 text-sm">Odległość od magazynu po drogach, jak w nawigacji.</p>
             </section>
           )
         }

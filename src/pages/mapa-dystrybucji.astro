@@ -26,13 +26,13 @@ const grupy = wojewodztwa
 
 <Base
   title="Mapa dystrybucji – dokąd dowozimy pellet"
-  description={`Dokąd dowozimy pellet z magazynu we Władysławowie pod Bieżuniem: dostawa gratis ${DARMOWA_DOSTAWA_KM} km drogą, dalej po uzgodnieniu. ${miejsca.length} miejscowości w ${wojewodztwa.length} województwach.`}
+  description={`Dokąd dowozimy pellet z magazynu we Władysławowie pod Bieżuniem, z dostawą gratis: ${miejsca.length} miejscowości w ${wojewodztwa.length} województwach.`}
 >
   <PageShell>
     <PageHeader
       slot="header"
       title="Mapa dystrybucji"
-      lead={`Nasz magazyn jest we Władysławowie pod Bieżuniem. Dostawa gratis ${DARMOWA_DOSTAWA_KM} km od magazynu, licząc po drogach, dalej warunki ustalamy indywidualnie. Kliknij punkt na mapie, aby zobaczyć odległość.`}
+      lead={`Nasz magazyn jest we Władysławowie pod Bieżuniem. Dostawa gratis do ${DARMOWA_DOSTAWA_KM} km od magazynu, licząc po drogach, dalej warunki ustalamy indywidualnie.`}
     />
 
     <Mapa miejsca={miejsca} label="Mapa: magazyn i miejscowości, do których dowozimy" />
@@ -56,9 +56,6 @@ const grupy = wojewodztwa
 
     <section class="mt-12" aria-labelledby="wszystkie">
       <h2 id="wszystkie" class="text-3xl">Wszystkie miejscowości</h2>
-      <p class="mt-2 max-w-prose text-ink-soft">
-        Odległość od magazynu po drogach, jak w nawigacji.
-      </p>
       <div class="miejscowosci mt-6">
         {
           grupy.map((g, i) => (
@@ -66,13 +63,8 @@ const grupy = wojewodztwa
               <h3 id={`wojewodztwo-${i}`} class="text-xl">Województwo {g.wojewodztwo}</h3>
               <ul role="list" class="mt-3">
                 {g.miejsca.map((m) => (
-                  <li class="flex items-baseline justify-between gap-4 border-b border-line py-1">
-                    <span>
-                      <NazwaMiejsca miejsce={m} />
-                    </span>
-                    <span class="shrink-0 text-sm">
-                      <span class="inline-block min-w-[3.6em] text-right font-semibold tabular-nums">{odlegloscKm(m)} km</span>
-                    </span>
+                  <li class="border-b border-line py-1">
+                    <NazwaMiejsca miejsce={m} />
                   </li>
                 ))}
               </ul>

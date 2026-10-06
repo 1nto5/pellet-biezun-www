@@ -18,7 +18,7 @@
  */
 import { firma, addressLine } from "../data/firma";
 import type { Miejsce } from "../data/miejsca";
-import { miejsceHref, odlegloscKm } from "../data/miejsca";
+import { miejsceHref } from "../data/miejsca";
 import { maPodstrone, pelnaNazwa } from "../lib/miejsce";
 import type { DaneMapy } from "./mapa";
 
@@ -49,7 +49,6 @@ const dane: DaneMapy = {
     nazwa: pelnaNazwa(m),
     lat: m.geo.lat,
     lng: m.geo.lng,
-    km: odlegloscKm(m),
     href: maPodstrone(m) ? miejsceHref(m) : null,
     wyroznione: wyroznione !== undefined && m.nazwa === wyroznione.nazwa && m.geo.lat === wyroznione.geo.lat,
   })),

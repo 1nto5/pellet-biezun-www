@@ -1,12 +1,12 @@
 /**
  * What stands by the road in the drive (`trasa.ts`): the direction boards,
- * and the still frames, which show the boards. Built from
- * the towns in `miejsca.ts`, at build time only.
+ * and the still frames, which show the boards. Built from the towns in
+ * `miejsca.ts`, at build time only.
  *
- * Distances on the boards are the straight-line km from `miejsca.ts`. The
- * boards stand evenly along the first part of the road, high on their posts
- * so the truck never covers them, and the last one is gone before the
- * customer's house comes into view.
+ * The boards give the towns' names only, nearest first: the site shows no
+ * distances. They stand evenly along the first part of the road, high on
+ * their posts so the truck never covers them, and the last one is gone
+ * before the customer's house comes into view.
  */
 import { podstrony, odlegloscKm, wStrefieDarmowej } from "../../data/miejsca";
 import type { MiejsceZPodstrona } from "../../data/miejsca";

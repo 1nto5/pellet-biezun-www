@@ -28,7 +28,6 @@ export interface DaneMapy {
     nazwa: string;
     lat: number;
     lng: number;
-    km: number;
     href: string | null;
     wyroznione: boolean;
   }[];
@@ -78,10 +77,7 @@ export async function narysujMape(el: HTMLElement): Promise<void> {
   const bounds = L.latLngBounds([[magazyn.lat, magazyn.lng]]);
 
   for (const m of dane.miejsca) {
-    const lines: (string | Node)[] = [
-      strong(m.nazwa),
-      `ok.\u00a0${m.km}\u00a0km od magazynu drogą`,
-    ];
+    const lines: (string | Node)[] = [strong(m.nazwa)];
     if (m.href) lines.push(link(m.href, "Dostawa i ceny"));
 
     L.circleMarker([m.lat, m.lng], {
