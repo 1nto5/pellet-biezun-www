@@ -8,7 +8,7 @@
  */
 import { firma, addressLine } from "./firma";
 import { produkty, paletaLabel, certyfikatZNazwa, cenaWorkaLabel } from "./oferta";
-import { ZASADA_DOSTAWY, DOSTAWA_DALEJ } from "./miejsca";
+import { ZASADA_DOSTAWY } from "./miejsca";
 
 export const faq: { q: string; a: string }[] = [
   {
@@ -28,7 +28,7 @@ export const faq: { q: string; a: string }[] = [
     : []),
   {
     q: "Ile kosztuje dostawa?",
-    a: `${ZASADA_DOSTAWY} ${DOSTAWA_DALEJ}: ${firma.phone.label}.`,
+    a: ZASADA_DOSTAWY,
   },
   {
     q: "Jak wygląda rozładunek?",

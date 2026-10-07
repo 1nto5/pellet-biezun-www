@@ -17,7 +17,7 @@ import type { Geo } from "../lib/geo";
 import { maPodstrone } from "../lib/miejsce";
 import { href } from "../lib/url";
 import drogi from "./drogi.json";
-import { DARMOWA_DOSTAWA_KM, ZASADA_DOSTAWY, DOSTAWA_DALEJ } from "./dostawa";
+import { DARMOWA_DOSTAWA_KM, ZASADA_DOSTAWY } from "./dostawa";
 
 export type Wojewodztwo = "mazowieckie" | "łódzkie" | "podlaskie" | "kujawsko-pomorskie" | "warmińsko-mazurskie";
 
@@ -50,7 +50,7 @@ export interface Miejsce {
 export type MiejsceZPodstrona = Miejsce & { podstrona: Podstrona };
 
 /** Free delivery distance in km, by road from the warehouse, and the rule's sentences (`dostawa.ts`). */
-export { DARMOWA_DOSTAWA_KM, ZASADA_DOSTAWY, DOSTAWA_DALEJ };
+export { DARMOWA_DOSTAWA_KM, ZASADA_DOSTAWY };
 
 export const miejsca: Miejsce[] = [
   { nazwa: "Bieżuń", wojewodztwo: "mazowieckie", geo: { lat: 52.9618, lng: 19.89 } },

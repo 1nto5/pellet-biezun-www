@@ -1,7 +1,7 @@
 import type { APIRoute } from "astro";
 import { firma, addressLine, hoursRange } from "../data/firma";
 import { produkty, cenyLabel, cenaWorkaLabel, paletaLabel, cenyZDnia } from "../data/oferta";
-import { ZASADA_DOSTAWY, DOSTAWA_DALEJ, miejsca, podstronyPoOdleglosci, wojewodztwa, miejsceHref } from "../data/miejsca";
+import { ZASADA_DOSTAWY, miejsca, podstronyPoOdleglosci, wojewodztwa, miejsceHref } from "../data/miejsca";
 import { flota } from "../data/flota";
 import { faq } from "../data/faq";
 import { strony } from "../data/nav";
@@ -40,7 +40,7 @@ export const GET: APIRoute = ({ site }) => {
     ]),
     "## Dostawa",
     "",
-    `${ZASADA_DOSTAWY} ${DOSTAWA_DALEJ}. ` +
+    `${ZASADA_DOSTAWY} ` +
       `Własne samochody, każdy z elektrycznym wózkiem paletowym: ${flota.map((f) => `${f.model} (${f.szczegoly.join(", ")})`).join(", ")}. ` +
       "Odbiór osobisty w magazynie po wcześniejszym telefonie. Przy większych zamówieniach cena do negocjacji.",
     "",

@@ -16,7 +16,6 @@ import { firma, addressLine } from "../../data/firma";
 import { strony } from "../../data/nav";
 import {
   ZASADA_DOSTAWY,
-  DOSTAWA_DALEJ,
   miejsca,
   podstrony,
   miejsceHref,
@@ -67,9 +66,8 @@ const lead = `Dowozimy pellet ${doM} i okolic.`;
       <div class="prose">
         <h2>Dostawa</h2>
         {opis && <p>{opis}</p>}
-        <p>{ZASADA_DOSTAWY} {DOSTAWA_DALEJ}.</p>
         <p>
-          Dowozimy własnymi samochodami. Iveco i solówki Volvo mają windę, a każde auto elektryczny
+          {ZASADA_DOSTAWY} Dowozimy własnymi samochodami. Iveco i solówki Volvo mają windę, a każde auto elektryczny
           wózek paletowy, więc paletę zdejmujemy z auta i podwozimy na miejsce. Na dojazd w trudno dostępne miejsca mamy mniejsze auta Iveco Daily.
         </p>
         {
