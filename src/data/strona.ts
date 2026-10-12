@@ -14,9 +14,20 @@
 export const przedStartem = false;
 
 /**
- * The order and contact forms post to Pages Functions in `functions/api/`,
- * which come in stage 3. Until then a submit stays on the page and points
- * the reader to the phone.
+ * The order and contact forms post to the Pages Functions in `functions/api/`,
+ * which send them by e-mail. Set it to false when sending breaks: a submit
+ * then stays on the page and points the reader to the phone.
  */
-// TODO(produkcja): true once functions/api/ is deployed (stage 3).
-export const formularzeWlaczone = false;
+export const formularzeWlaczone = true;
+
+/**
+ * The public half of the Turnstile widget's key pair; the secret half is
+ * TURNSTILE_SECRET in Cloudflare. The widget ("pelletbiezun.pl formularze" in
+ * the Cloudflare account) works on pelletbiezun.pl and on the *.pages.dev
+ * previews, not on localhost.
+ *
+ * A local build takes Cloudflare's test key from PUBLIC_TURNSTILE_SITE_KEY in
+ * `.env` instead (see functions/README.md). Git ignores `.env`, so the test
+ * key never reaches a build Cloudflare makes.
+ */
+export const turnstileSiteKey: string = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAAFUvwGuojb66AxFW";

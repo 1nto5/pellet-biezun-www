@@ -1,0 +1,31 @@
+---
+/**
+ * Where the order form sends the buyer once the order has gone out
+ * (`functions/api/zamowienie.ts`). Not a page to find in a search engine:
+ * `noindex`, and left out of the sitemap in astro.config.mjs.
+ */
+import Base from "../../layouts/Base.astro";
+import PageShell from "../../components/PageShell.astro";
+import PageHeader from "../../components/PageHeader.astro";
+import { firma } from "../../data/firma";
+import { strony } from "../../data/nav";
+---
+
+<Base title="Dziękujemy za zamówienie" description="Zamówienie zostało przyjęte." noindex>
+  <PageShell>
+    <PageHeader
+      slot="header"
+      title="Dziękujemy za zamówienie"
+      lead="Potwierdzenie wysłaliśmy na podany adres e-mail. Oddzwonimy w ciągu 24 godzin, żeby ustalić termin dostawy i formę płatności."
+    />
+    <div class="max-w-prose space-y-4">
+      <p>
+        Nie widzisz potwierdzenia? Sprawdź folder ze spamem albo zadzwoń:
+        <a href={firma.phone.href} class="link-strong">{firma.phone.label}</a>.
+      </p>
+      <p>
+        <a href={strony.home.href} class="link-strong">Wróć na stronę główną</a>
+      </p>
+    </div>
+  </PageShell>
+</Base>
