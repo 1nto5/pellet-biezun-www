@@ -374,6 +374,27 @@ const webSite = {
       font-size: 0.75rem;
     }
   }
+  /* Reduced motion on a wide screen: no drive, but the first still frame,
+     the truck at the hall, belongs on the first screen with the hero
+     (droga.css, where `--scena-h` is that frame's height). The wordmark
+     gives way as far as that needs. `--reszta` is the hero's paddings, the
+     space above the frame and a strip of white under its road. */
+  @media (prefers-reduced-motion: reduce) and (min-width: 56rem) and (min-aspect-ratio: 1 / 1) {
+    .hero {
+      --reszta: 6rem;
+      --wm-ekran: calc((100svh - var(--header-height) - var(--scena-h) - var(--reszta)) / 1.715);
+    }
+    .wordmark {
+      --wm: max(3.5rem, min(30svh, 17rem, (100cqi - 17rem - var(--odstep)) / 3.2, var(--wm-ekran, 17rem)));
+    }
+  }
+  /* On a low window the wordmark is small by then: a smaller sticker covers
+     no more of it than on a tall one. */
+  @media (prefers-reduced-motion: reduce) and (min-width: 56rem) and (min-aspect-ratio: 1 / 1) and (height < 46rem) {
+    .hero .naklejka {
+      font-size: 0.75rem;
+    }
+  }
 
   /* The phone written like on the truck: big, heavy, black. */
   .telefon {

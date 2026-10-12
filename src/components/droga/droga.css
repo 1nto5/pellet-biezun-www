@@ -335,6 +335,22 @@
     --uw: 0.9;
   }
 }
+/* A reader who asked for reduced motion gets these still frames on a wide
+   screen too, where the hero used to fill the first screen and push the
+   first frame, the truck at the hall, below it. That frame is now lower,
+   with less sky (the hall, 34 units tall, still fits), and the hero's
+   wordmark gives way to it (`--scena-h`, index.astro), so the truck is on
+   the first screen. */
+@media screen and (prefers-reduced-motion: reduce) and (min-width: 56rem) and (min-aspect-ratio: 1 / 1) {
+  .podroz {
+    --scena-h: min((min(100vw, var(--container-6xl)) - 4rem) / 4, 36svh);
+  }
+  .stop:first-child .kadr .scena {
+    aspect-ratio: auto;
+    height: var(--scena-h);
+    --uh: 2.7;
+  }
+}
 
 /* ---- Two scenes: leaving the hall, arriving at the house --------------- */
 
