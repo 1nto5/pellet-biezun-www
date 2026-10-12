@@ -366,25 +366,13 @@ const stopy: Stop[] = [
       else setTimeout(teraz, 300);
     };
 
-    // The scene shows once its photos are in, not piece by piece: the
-    // truck, the hall and the forest band this screen gets;
-    // 2.5 s on at the latest. The band is a CSS background, so the script
-    // loads the same file to know: AVIF where the browser takes it and the
-    // CSS offers it (droga.css), else WebP; the phone's size or the full one.
-    const wczytaj = (src: string) => Object.assign(new Image(), { src }).decode();
-    const scenaBox = scena.parentElement!;
-    const adres = (zmienna: string) => scenaBox.style.getPropertyValue(zmienna).match(/url\("?(.*?)"?\)/)?.[1] ?? "";
-    const probaAvif = scenaBox.dataset.probaAvif;
-    const avif =
-      probaAvif && CSS.supports("background-image", 'image-set(url("x.avif") type("image/avif"))')
-        ? wczytaj(probaAvif).then(() => true, () => false)
-        : Promise.resolve(false);
-    const pasmo = avif.then((tak) =>
-      wczytaj(adres(`--las${window.matchMedia("(min-width: 48rem)").matches ? "" : "-maly"}${tak ? "-avif" : ""}`)),
-    );
-    const zdjecia = [...scena.querySelectorAll<HTMLImageElement>(".auto-foto, .w-hala img")];
+    // The scene shows once the truck's photo is in, 2.5 s on at the latest.
+    // It used to wait for the hall and the forest band too: on a slow
+    // connection that left the first screen without the truck for seconds.
+    // The hall and the band, the larger files, now come in after it.
+    const auto = scena.querySelector<HTMLImageElement>(".auto-foto");
     Promise.race([
-      Promise.allSettled([...zdjecia.map((img) => img.decode()), pasmo]),
+      auto ? auto.decode().catch(() => {}) : Promise.resolve(),
       new Promise((gotowe) => setTimeout(gotowe, 2500)),
     ]).then(() => podroz.classList.add("is-ready"));
 
