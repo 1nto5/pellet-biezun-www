@@ -59,7 +59,7 @@ const { action, submitLabel, purpose, consent = false } = Astro.props;
 
 <form method="post" action={href(action)} class="space-y-6" data-form data-live={String(formularzeWlaczone)}>
   {
-    // TODO(produkcja): goes with formularzeWlaczone once the forms send (stage 3).
+    // Only while the forms are switched off (formularzeWlaczone in strona.ts).
     !formularzeWlaczone && (
       <noscript>
         <p class="form-status mb-6 font-semibold">
@@ -122,7 +122,7 @@ const { action, submitLabel, purpose, consent = false } = Astro.props;
   <p class="form-status font-semibold" role="status" data-form-status></p>
 
   {
-    // TODO(produkcja): goes with formularzeWlaczone once the forms send (stage 3).
+    // Only while the forms are switched off (formularzeWlaczone in strona.ts).
     !formularzeWlaczone && (
       <template data-form-nie-wysyla>
         Formularz chwilowo nie działa. Zadzwoń:

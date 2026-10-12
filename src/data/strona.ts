@@ -15,12 +15,9 @@ export const przedStartem = false;
 
 /**
  * The order and contact forms post to the Pages Functions in `functions/api/`,
- * which send them by e-mail. While false, a submit stays on the page and
- * points the reader to the phone.
+ * which send them by e-mail. Set it to false when sending breaks: a submit
+ * then stays on the page and points the reader to the phone.
  */
-// TODO(produkcja): true only on the `forms` branch for now. It must not reach
-// `main` before a test order and a test message sent from the branch's preview
-// arrive by e-mail.
 export const formularzeWlaczone = true;
 
 /**
