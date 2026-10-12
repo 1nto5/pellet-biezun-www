@@ -294,8 +294,8 @@
 .droga-dystans {
   display: none;
 }
-/* A moving scene shows once its photos are in (Droga.astro), not piece by
-   piece; should the script never say so, after 3 s anyway. */
+/* A moving scene shows once the truck's photo is in (Droga.astro); should
+   the script never say so, after 3 s anyway. */
 @keyframes droga-pokaz {
   to {
     opacity: 1;

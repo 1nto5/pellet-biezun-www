@@ -33,9 +33,8 @@ interface Props {
 const { stan, live = false } = Astro.props;
 
 /**
- * The two bands behind the road, as CSS backgrounds (droga.css). Quoted:
- * WebKit hands an unquoted url in a custom property back to the script
- * escaped, and the address the page read from it (Droga.astro) was broken.
+ * The two bands behind the road, as CSS backgrounds (droga.css), each
+ * address quoted.
  */
 const pasy = [
   `--las:url("${obrazy.las.duzy}")`,

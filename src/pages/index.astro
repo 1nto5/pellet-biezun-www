@@ -323,76 +323,82 @@ const webSite = {
       flex-wrap: wrap;
     }
   }
-  /* Wide landscape windows: the two actions beside the
-     wordmark, at its foot. The wordmark leaves them at least 17rem: PELLET
-     is about 3.2 times its font size wide. Should they still not fit (a
-     reader's own wider letter spacing), they go under it. An upright window
-     keeps the phone's layout, which suits its height. */
+  /* Wide landscape windows: the sign in one line across the page, PELLET
+     BIEŻUŃ at one size, so it uses the window's width and leaves its height
+     to the scene under it. The line is about 6.5 times its font size wide
+     (the gap between the words included) and 0.97 times tall (the room for
+     the dot of Ż and the stroke of Ń included). The sticker stands past the
+     end of Ń and is sized with the sign, a tenth of its font size to the
+     sticker's em: it takes about 1.1 times the sign's font size beside it,
+     hence the 7.6. The two actions go under the sign. Should the line not
+     fit (a reader's own wider letter spacing), BIEŻUŃ goes under PELLET. An
+     upright window keeps the phone's layout, which suits its height.
+     `--wm1` is set on the sign's box, so the sticker can read it too. */
   @media (min-width: 56rem) and (min-aspect-ratio: 1 / 1) {
     .hero {
-      --odstep: clamp(2rem, 5vw, 4.5rem);
       container-type: inline-size;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: flex-end;
-      gap: 1.25rem var(--odstep);
-    }
-    .wordmark {
-      --wm: min(30svh, 17rem, (100cqi - 17rem - var(--odstep)) / 3.2);
     }
     .hero-znak {
-      flex: none;
+      --wm1: min(17rem, 24svh, 100cqi / 7.6);
+    }
+    .wordmark {
+      --wm: var(--wm1);
+      flex-flow: row wrap;
+      align-items: flex-end;
+      gap: 0.2em calc(var(--wm) * 0.24);
+      padding-top: calc(var(--wm) * 0.17);
+    }
+    .wordmark-miasto {
+      margin-top: 0;
+      margin-left: 0;
+      font-size: var(--wm);
+      letter-spacing: -0.045em;
     }
     .hero .naklejka {
       top: 0;
       bottom: auto;
-      transform: translate(78%, -4%) rotate(-10deg);
+      font-size: clamp(0.5rem, var(--wm1) / 10, 1rem);
+      transform: translate(92%, 8%) rotate(-10deg);
     }
     .hero-dol {
-      flex: 1 0 17rem;
-      max-width: 24rem;
-      margin-top: 0;
-      padding-bottom: 0.3rem;
+      margin-top: 1.4rem;
     }
   }
   /* Landscape windows too low for the live drive get the phone's drive
      (droga.css), and as on a phone the first screen holds the hero and the
      whole scene under it: the wordmark gives way as far as that needs.
-     `--reszta` is the hero's paddings and a strip of white under the road.
-     The sticker gets only a quarter smaller, to stay readable, so it would
-     cover more of the wordmark: the actions move out past its overhang. */
+     `--reszta` is the hero's paddings, the row of actions with the space
+     above it and a strip of white under the road. */
   @media (min-width: 56rem) and (min-aspect-ratio: 1 / 1) and (height < 38rem) {
     .hero {
-      --odstep: 8.5rem;
-      --reszta: 2.4rem;
-      --wm-ekran: calc((100svh - var(--header-height) - var(--scena-h) - var(--reszta)) / 1.715);
+      --reszta: 7rem;
+      --wm-ekran: calc((100svh - var(--header-height) - var(--scena-h) - var(--reszta)) / 0.97);
     }
-    .wordmark {
-      --wm: max(3.5rem, min(30svh, 17rem, (100cqi - 17rem - var(--odstep)) / 3.2, var(--wm-ekran, 17rem)));
-    }
-    .hero .naklejka {
-      font-size: 0.75rem;
+    .hero-znak {
+      --wm1: max(3.5rem, min(17rem, 24svh, 100cqi / 7.6, var(--wm-ekran, 17rem)));
     }
   }
   /* Reduced motion on a wide screen: no drive, but the first still frame,
      the truck at the hall, belongs on the first screen with the hero
      (droga.css, where `--scena-h` is that frame's height). The wordmark
      gives way as far as that needs. `--reszta` is the hero's paddings, the
-     space above the frame and a strip of white under its road. */
+     row of actions with the space above it, the space above the frame and a
+     strip of white under its road. */
   @media (prefers-reduced-motion: reduce) and (min-width: 56rem) and (min-aspect-ratio: 1 / 1) {
     .hero {
-      --reszta: 6rem;
-      --wm-ekran: calc((100svh - var(--header-height) - var(--scena-h) - var(--reszta)) / 1.715);
+      --reszta: 10.5rem;
+      --wm-ekran: calc((100svh - var(--header-height) - var(--scena-h) - var(--reszta)) / 0.97);
     }
-    .wordmark {
-      --wm: max(3.5rem, min(30svh, 17rem, (100cqi - 17rem - var(--odstep)) / 3.2, var(--wm-ekran, 17rem)));
+    .hero-znak {
+      --wm1: max(3.5rem, min(17rem, 24svh, 100cqi / 7.6, var(--wm-ekran, 17rem)));
     }
   }
-  /* On a low window the wordmark is small by then: a smaller sticker covers
-     no more of it than on a tall one. */
-  @media (prefers-reduced-motion: reduce) and (min-width: 56rem) and (min-aspect-ratio: 1 / 1) and (height < 46rem) {
-    .hero .naklejka {
-      font-size: 0.75rem;
+  /* Under 64rem the header is not pinned, so `--header-height` is 0 though
+     the header still stands over the hero at the top of the page: its
+     height comes off the room too. */
+  @media (prefers-reduced-motion: reduce) and (min-width: 56rem) and (width < 64rem) and (min-aspect-ratio: 1 / 1) {
+    .hero {
+      --reszta: 14.6rem;
     }
   }
 
@@ -424,8 +430,8 @@ const webSite = {
   /* A shop-window sticker, after the red "DOSTAWA GRATIS!" disc on the
      printer's banner: a tilted tag on phones, a disc on wide screens. The
      products' disc stands in a column of its own at the frame's right end,
-     poking over its corner; the hero's stands over the actions, once the
-     hero sets them beside the wordmark. */
+     poking over its corner; the hero's stands past the end of the sign, once
+     the hero sets it in one line. */
   .naklejka {
     display: inline-flex;
     flex-direction: column;
