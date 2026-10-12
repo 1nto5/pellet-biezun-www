@@ -69,7 +69,8 @@ bunx wrangler pages dev dist --port 8799
 Run it from the repo root, so it finds `functions/` and `.dev.vars`. Pick any
 free port.
 
-Local settings go in `.dev.vars` in the repo root, which git ignores:
+Local settings go in two files in the repo root, both ignored by git.
+`.dev.vars`, read by Wrangler:
 
 ```
 TURNSTILE_SECRET=1x0000000000000000000000000000000AA
@@ -77,8 +78,15 @@ MAIL_TO=sprzedawca@example.com
 MAIL_FROM=Pellet Bieżuń <formularz@example.com>
 ```
 
-That secret is Cloudflare's test secret that always passes; it pairs with the
-test site key in `strona.ts`
+`.env`, read by `bun run build` and `bun run dev`:
+
+```
+PUBLIC_TURNSTILE_SITE_KEY=1x00000000000000000000AA
+```
+
+The real widget does not work on localhost, so a local build swaps its site
+key for Cloudflare's test key, whose widget always passes; the secret above is
+the test secret that pairs with it
 (https://developers.cloudflare.com/turnstile/troubleshooting/testing/). With
 no `RESEND_API_KEY` a valid form ends in the "could not send" error, which is
 enough to check everything up to the e-mail. Never put a real Resend key in a

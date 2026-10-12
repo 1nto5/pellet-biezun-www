@@ -25,11 +25,12 @@ export const formularzeWlaczone = true;
 
 /**
  * The public half of the Turnstile widget's key pair; the secret half is
- * TURNSTILE_SECRET in Cloudflare. This one is Cloudflare's test key, whose
- * visible widget always passes
- * (https://developers.cloudflare.com/turnstile/troubleshooting/testing/). Its
- * token passes only with a test secret, which the functions take only on
- * localhost.
+ * TURNSTILE_SECRET in Cloudflare. The widget ("pelletbiezun.pl formularze" in
+ * the Cloudflare account) works on pelletbiezun.pl and on the *.pages.dev
+ * previews, not on localhost.
+ *
+ * A local build takes Cloudflare's test key from PUBLIC_TURNSTILE_SITE_KEY in
+ * `.env` instead (see functions/README.md). Git ignores `.env`, so the test
+ * key never reaches a build Cloudflare makes.
  */
-// TODO(produkcja): the real widget's site key
-export const turnstileSiteKey = "1x00000000000000000000AA";
+export const turnstileSiteKey: string = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAAFUvwGuojb66AxFW";
