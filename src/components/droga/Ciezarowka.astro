@@ -19,8 +19,8 @@ import auto from "../../assets/droga/auto-fm.png";
 
 interface Props {
   /**
-   * Loads at once in the live scene, at the browser's own priority: the
-   * scene waits for the truck before it shows (Droga.astro).
+   * Loads at once in the live scene and ahead of the page's other images:
+   * the scene waits for the truck before it shows (Droga.astro).
    */
   eager?: boolean;
 }
@@ -51,4 +51,5 @@ const gora = `${Math.round((Y0 / 108) * 10000) / 100}%`;
   class="auto-foto"
   style={`top:${gora}`}
   loading={eager ? "eager" : "lazy"}
+  fetchpriority={eager ? "high" : undefined}
 />

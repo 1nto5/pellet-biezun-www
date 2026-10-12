@@ -1,0 +1,47 @@
+---
+/**
+ * About the company, in the owner's words. The address, the phone and the
+ * delivery rule come from the data files, as everywhere else.
+ */
+import Base from "../layouts/Base.astro";
+import PageShell from "../components/PageShell.astro";
+import PageHeader from "../components/PageHeader.astro";
+import { firma, addressLine } from "../data/firma";
+import { strony } from "../data/nav";
+import { ZASADA_DOSTAWY } from "../data/miejsca";
+---
+
+<Base
+  title="O nas"
+  description="Pellet Bieżuń: sprzedaż pelletu drzewnego w workach 15 kg, własne samochody z windą, magazyn we Władysławowie pod Bieżuniem."
+>
+  <PageShell>
+    <PageHeader slot="header" title="O nas" />
+
+    <div class="prose">
+      <p>
+        Specjalizujemy się w sprzedaży wysokiej jakości pelletu drzewnego do ogrzewania domów, budynków gospodarczych i
+        obiektów przemysłowych. Od początku stawiamy na opał przyjazny dla środowiska, ekonomiczny i efektywny.
+      </p>
+      <p>
+        Nasz pellet powstaje wyłącznie z czystych trocin sosnowych, bez dodatków chemicznych i sztucznych lepiszczy.
+        Dzięki temu ma wysoką wartość opałową, niską wilgotność i daje mało popiołu.
+      </p>
+      <p>
+        Sprzedajemy pellet z certyfikatami producentów ENplus A1 i DINplus, w workach 15 kg na paletach. Obsługujemy
+        klientów indywidualnych i hurtowych. Dbamy o dobrą obsługę, konkurencyjne ceny i terminową dostawę. Ceny i parametry pelletu znajdziesz w{" "}
+        <a href={strony.oferta.href}>ofercie</a>.
+      </p>
+      <p>
+        Pellet dowozimy własnymi samochodami. {ZASADA_DOSTAWY} Współpracujemy z zaufanymi producentami pelletu.
+        Doradzamy też, jaki pellet wybrać i jak go efektywnie używać.
+      </p>
+
+      <h2>Magazyn</h2>
+      <p>
+        {addressLine()}. Przed przyjazdem zadzwoń pod{" "}
+        <a href={firma.phone.href}>{firma.phone.label}</a>.
+      </p>
+    </div>
+  </PageShell>
+</Base>

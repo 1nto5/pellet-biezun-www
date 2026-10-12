@@ -10,11 +10,13 @@
  * Certificates belong to the producers, not to the company: without a trader's
  * certificate the pages may show the original bags, but never the ENplus mark
  * itself, and the text says whose certificate it is (`certyfikat`).
+ *
+ * The Wielbark pellet's name states its origin with "IKEA": the client's wish,
+ * decided by the owner on 2026-10-12. The IKEA logo is still never used.
  */
 import type { ImageMetadata } from "astro";
 import hitonZdjecie from "../assets/produkty/hiton.jpg";
 import wielbarkZdjecie from "../assets/produkty/wielbark.jpg";
-import lavaZdjecie from "../assets/produkty/lava.jpg";
 
 /** The date of the ads the prices come from. */
 // TODO(produkcja): confirm the prices with the client, and whether they include VAT.
@@ -35,7 +37,11 @@ export interface Zdjecie {
 export interface Produkt {
   /** Sent with the order form; keep it stable once orders come in. */
   id: string;
-  /** Goes into headings: the name printed on the bag or the origin, never a brand the company may not use. */
+  /**
+   * Goes into headings: the name printed on the bag or the origin. The
+   * Wielbark pellet's says "IKEA" (the owner's decision of 2026-10-12, at the
+   * client's wish); no page shows the IKEA logo.
+   */
   nazwa: string;
   podtytul: string;
   opis: string;
@@ -60,7 +66,7 @@ export const produkty: Produkt[] = [
   {
     id: "hiton",
     nazwa: "Pellet HITON",
-    podtytul: "Pellet drzewny premium, 100% sosna",
+    podtytul: "Pellet drzewny certyfikowany, 100% sosna, 6\u00a0mm",
     opis: "Pellet z czystych trocin sosnowych, bez dodatków chemicznych, klejów i innych zanieczyszczeń. Ma stałe, powtarzalne parametry i nie tworzy spieków. Siarki jest bardzo mało, co chroni kocioł przed korozją. Popiół można wykorzystać jako nawóz w ogrodzie.",
     workiKg: 15,
     workowNaPalecie: 65,
@@ -79,9 +85,9 @@ export const produkty: Produkt[] = [
   },
   {
     id: "wielbark",
-    nazwa: "Pellet sosnowy z Wielbarka",
-    podtytul: "Pellet drzewny sosnowy, 6 mm",
-    opis: "Pellet z zakładu IKEA Industry w Wielbarku, z mocno sprasowanych czystych trocin sosnowych, bez kory i innych dodatków. Daje mało popiołu i nie tworzy spieków. Na worku jest napis „Wood Pellets”.",
+    nazwa: "Wood Pellets z IKEA Wielbark",
+    podtytul: "Pellet drzewny certyfikowany, 100% sosna, 6\u00a0mm",
+    opis: "Pellet z zakładu IKEA Industry w Wielbarku, z mocno sprasowanych czystych trocin sosnowych, bez kory i innych dodatków. Daje mało popiołu i nie tworzy spieków.",
     workiKg: 15,
     workowNaPalecie: 72,
     kgNaPalecie: 1080,
@@ -103,26 +109,6 @@ export const produkty: Produkt[] = [
     zrodloParametrow:
       "sprawozdanie z badań nr DBL-2026-5826-01-BLS z 09.09.2026, Sieć Badawcza Łukasiewicz – Poznański Instytut Technologiczny (laboratorium akredytowane, PCA AB 053).",
     zdjecie: { src: wielbarkZdjecie, alt: "Worek pelletu z napisem „Wood Pellets”" },
-  },
-  {
-    // Neither the bag nor the ad names a certificate, and the producer comes
-    // only from the ad, so the pages name neither.
-    id: "lava",
-    nazwa: "Pellet LAVA",
-    podtytul: "Pellet drzewny z sosny i świerku, 6 mm",
-    opis: "Pellet z drewna sosnowego i świerkowego. Na czerwonym worku jest napis „LAVA Premium Pellets”.",
-    workiKg: 15,
-    workowNaPalecie: 65,
-    kgNaPalecie: 975,
-    cenaPaleta: 2300,
-    parametry: [
-      { nazwa: "Wartość opałowa", wartosc: "≥ 4,6 kWh/kg" },
-      { nazwa: "Popiół", wartosc: "≤ 0,70%" },
-      { nazwa: "Średnica", wartosc: "6 mm" },
-      { nazwa: "Topliwość popiołu", wartosc: "≥ 1200 °C" },
-    ],
-    zrodloParametrow: "dane producenta z worka.",
-    zdjecie: { src: lavaZdjecie, alt: "Worek pelletu LAVA 15 kg" },
   },
 ];
 

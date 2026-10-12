@@ -35,8 +35,6 @@ const TLO = 55;
  * the verge about 45 device pixels tall.
  */
 export const obrazy = {
-  /** A tiny AVIF: the page decodes it to learn whether the browser takes the AVIF bands (Droga.astro). */
-  probaAvif: (await getImage({ src: pobocze, width: 2, format: "avif" })).src,
   las: { duzy: await webp(las, 1500, TLO), maly: await webp(las, 640, TLO), duzyAvif: await avif(las, 1500), malyAvif: await avif(las, 640) },
   pobocze: {
     duzy: await webp(pobocze, 800, TLO),

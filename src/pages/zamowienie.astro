@@ -10,13 +10,13 @@ import { miejsca } from "../data/miejsca";
 
 <Base
   title="Zamów pellet z dostawą"
-  description="Zamów pellet drzewny z dostawą. Wypełnij formularz, a oddzwonimy, żeby potwierdzić cenę i termin. Bez płatności online."
+  description="Zamów pellet drzewny z dostawą. Wypełnij formularz, a oddzwonimy w ciągu 24 godzin. Bez płatności online."
 >
   <PageShell>
     <PageHeader
       slot="header"
       title="Zamów pellet"
-      lead="Wypełnij formularz, a oddzwonimy, żeby potwierdzić cenę i termin dostawy. Strona nie pobiera płatności."
+      lead="Wypełnij formularz, a oddzwonimy w ciągu 24 godzin, żeby ustalić termin dostawy i formę płatności. Strona nie pobiera płatności."
     />
 
     <div class="grid gap-12 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
@@ -34,13 +34,6 @@ import { miejsca } from "../data/miejsca";
               <label for="ilosc">Ilość <span class="req">*</span></label>
               <input id="ilosc" name="ilosc" type="text" class="input" required aria-describedby="ilosc-hint" />
               <span id="ilosc-hint" class="hint">Np. „2 palety”.{produkty.filter((p) => p.cenaWorek).map((p) => ` ${p.nazwa} sprzedajemy też na worki.`)}</span>
-            </div>
-          </div>
-          <div class="grid gap-5 sm:grid-cols-2">
-            <div class="field">
-              <label for="termin">Preferowany termin dostawy</label>
-              <input id="termin" name="termin" type="date" class="input" aria-describedby="termin-hint" />
-              <span id="termin-hint" class="hint">Postaramy się go uwzględnić i potwierdzimy telefonicznie.</span>
             </div>
           </div>
         </fieldset>
@@ -118,7 +111,7 @@ import { miejsca } from "../data/miejsca";
         <h2 id="jak-to-dziala" class="text-2xl">Jak to działa</h2>
         <ol class="kroki">
           <li>Wysyłasz formularz, a na e-mail dostajesz potwierdzenie jego przyjęcia.</li>
-          <li>Oddzwaniamy, żeby potwierdzić cenę i termin dostawy.</li>
+          <li>Oddzwaniamy w ciągu 24 godzin, żeby ustalić termin dostawy i formę płatności.</li>
           <li>Przywozimy pellet i rozładowujemy go windą i elektrycznym wózkiem paletowym.</li>
         </ol>
         <p>
@@ -139,11 +132,6 @@ import { miejsca } from "../data/miejsca";
   const miejscowosc = document.querySelector<HTMLInputElement>("#miejscowosc");
   const podana = parametry.get("miejscowosc");
   if (miejscowosc && podana && !miejscowosc.value) miejscowosc.value = podana;
-
-  // No delivery date before today, in the reader's own time zone. Swedish
-  // writes dates as YYYY-MM-DD, the form a date input takes.
-  const termin = document.querySelector<HTMLInputElement>("#termin");
-  if (termin) termin.min = new Date().toLocaleDateString("sv-SE");
 
   // A phone's number pad has no hyphen: the code takes digits and puts the
   // hyphen in itself, 09320 → 09-320.
