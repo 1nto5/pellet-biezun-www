@@ -205,6 +205,18 @@ const stopy: Stop[] = [
     let widok = 1;
     // Room in px kept between the content above and the scene's tallest part.
     const ODSTEP = 12;
+    // On a tall window the one-line hero leaves a lot of empty sky over the
+    // scene. Where it fits, the first stop (the products with their prices)
+    // shows from the start, under the hero, goes up with the hero as it
+    // scrolls away and stops at the stops' own place. It follows the scroll
+    // by a scroll-driven animation (droga.css), which the browser runs
+    // itself: moved by this script it trailed the hero by a frame. Without
+    // such animations the stop comes in after the hero, as on a low window.
+    const POD_HERO = 24;
+    const pierwszy = stopy[0]!;
+    const trescPierwszego = pierwszy.querySelector<HTMLElement>(".stop-tresc");
+    const animacjeScrolla = CSS.supports("animation-timeline: scroll()");
+    let ofertaNaStarcie = false;
 
     const measure = () => {
       const odcinek = Math.round(ODCINEK * window.innerHeight);
@@ -232,7 +244,22 @@ const stopy: Stop[] = [
       // The tallest thing at the start, the hall, reaches 34 units up: it
       // has to fit under the hero. Never larger than during the drive, or
       // the scene would shrink as the hero scrolls away.
-      const room = droga.clientHeight - hero.offsetHeight - ODSTEP;
+      let room = droga.clientHeight - hero.offsetHeight - ODSTEP;
+      // The first stop under the hero: only where the hall then still fits
+      // at four fifths of its size or more. The hero's foot at the top of
+      // the page, counted from the stage's top (the stage's foot is the
+      // window's).
+      const heroDol =
+        podroz.getBoundingClientRect().top + window.scrollY + hero.offsetTop + hero.offsetHeight - (window.innerHeight - droga.clientHeight);
+      const wysokoscTresci = trescPierwszego?.offsetHeight ?? 0;
+      const roomZOferta = droga.clientHeight - heroDol - POD_HERO - wysokoscTresci - ODSTEP;
+      ofertaNaStarcie = animacjeScrolla && wysokoscTresci > 0 && roomZOferta / (34 * u1) >= 0.8;
+      if (ofertaNaStarcie) {
+        room = roomZOferta;
+        const podHero = `${Math.max(0, Math.round(heroDol + POD_HERO - parseFloat(getComputedStyle(lista).paddingTop)))}px`;
+        if (lista.style.getPropertyValue("--pod-hero") !== podHero) lista.style.setProperty("--pod-hero", podHero);
+      }
+      lista.toggleAttribute("data-pod-hero", ofertaNaStarcie);
       z0 = Math.min(zDrive, Math.max(0.35, room / (34 * u1)));
       widok = Math.round((1 / zDrive) * 1000) / 1000;
       shownZ = -1;
@@ -245,9 +272,11 @@ const stopy: Stop[] = [
 
     // The scroll position sets the moment of the drive; the scene plays
     // there by itself (jazda.ts), the stop and the size follow the scroll at
-    // once. The stop is the one whose stretch the scroll is in.
+    // once. The stop is the one whose stretch the scroll is in; before the
+    // first stretch none, or the first where it shows under the hero.
     let shownStop = -2;
-    const stopLive = (y: number) => (y < os[0]![0] + 2 ? -1 : Math.min(stopy.length - 1, os.findLastIndex(([y0]) => y >= y0)));
+    const stopLive = (y: number) =>
+      y < os[0]![0] + 2 ? (ofertaNaStarcie ? 0 : -1) : Math.min(stopy.length - 1, os.findLastIndex(([y0]) => y >= y0));
     const render = () => {
       const y = window.scrollY;
       pomniejsz(Math.round((z0 + (zDrive - z0) * clamp(y / driveStart)) * 1000) / 1000);
@@ -270,7 +299,9 @@ const stopy: Stop[] = [
       // In its stretch already; past the drive's end the last stop still
       // counts as shown, but the page has scrolled on and its top is gone.
       const y = window.scrollY;
-      if (i < 0 || (y >= os[i]![0] && y < os[i + 1]![0])) return;
+      // The first stop under the hero is on show from the top of the page.
+      const odY = i === 0 && ofertaNaStarcie ? 0 : os[i]?.[0];
+      if (i < 0 || (y >= odY! && y < os[i + 1]![0])) return;
       window.scrollTo({ top: Math.round((os[i]![0] + os[i + 1]![0]) / 2), behavior: "instant" });
     });
 
@@ -319,6 +350,8 @@ const stopy: Stop[] = [
         przyjazd?.zatrzymaj();
         przyjazd = null;
         scena.style.removeProperty("scale");
+        ofertaNaStarcie = false;
+        lista.removeAttribute("data-pod-hero");
         stopy.forEach((s) => s.classList.remove("is-active"));
         shownStop = -2;
         tryb = nowy;

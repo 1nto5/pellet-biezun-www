@@ -515,4 +515,24 @@
     pointer-events: auto;
     transition-delay: 0.12s;
   }
+  /* On a tall window the first stop shows from the start, under the hero
+     (Droga.astro marks the list and gives `--pod-hero`, how far under its
+     own place that is). It goes up with the hero, a pixel for each pixel of
+     scroll, and stays at its place once there: the animation runs over that
+     many pixels of the page's scroll. */
+  @supports (animation-timeline: scroll()) {
+    html[data-js] .stopy[data-pod-hero] .stop:first-child {
+      animation: stop-pod-hero linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0px var(--pod-hero);
+    }
+  }
+}
+@keyframes stop-pod-hero {
+  from {
+    translate: 0 var(--pod-hero);
+  }
+  to {
+    translate: 0 0;
+  }
 }
