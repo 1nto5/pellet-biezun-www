@@ -6,6 +6,8 @@ import Formularz from "../components/Formularz.astro";
 import { firma } from "../data/firma";
 import { produkty, cenaLabel } from "../data/oferta";
 import { miejsca } from "../data/miejsca";
+
+// The `maxlength` of each field is the limit `functions/api/zamowienie.ts` checks again.
 ---
 
 <Base
@@ -32,7 +34,7 @@ import { miejsca } from "../data/miejsca";
             </div>
             <div class="field">
               <label for="ilosc">Ilość <span class="req">*</span></label>
-              <input id="ilosc" name="ilosc" type="text" class="input" required aria-describedby="ilosc-hint" />
+              <input id="ilosc" name="ilosc" type="text" class="input" maxlength="60" required aria-describedby="ilosc-hint" />
               <span id="ilosc-hint" class="hint">Np. „2 palety”.{produkty.filter((p) => p.cenaWorek).map((p) => ` ${p.nazwa} sprzedajemy też na worki.`)}</span>
             </div>
           </div>
@@ -42,7 +44,7 @@ import { miejsca } from "../data/miejsca";
           <legend class="mb-4 text-3xl">Adres dostawy</legend>
           <div class="field">
             <label for="ulica">Ulica i numer <span class="req">*</span></label>
-            <input id="ulica" name="ulica" type="text" class="input" autocomplete="address-line1" autocapitalize="words" required />
+            <input id="ulica" name="ulica" type="text" class="input" autocomplete="address-line1" autocapitalize="words" maxlength="100" required />
           </div>
           <div class="grid gap-5 sm:grid-cols-[10rem_1fr]">
             <div class="field">
@@ -73,6 +75,7 @@ import { miejsca } from "../data/miejsca";
                 autocomplete="address-level2"
                 autocapitalize="words"
                 list="miejscowosci"
+                maxlength="100"
                 required
               />
               <datalist id="miejscowosci">
@@ -86,22 +89,22 @@ import { miejsca } from "../data/miejsca";
           <legend class="mb-4 text-3xl">Dane kontaktowe</legend>
           <div class="field">
             <label for="imie">Imię i nazwisko <span class="req">*</span></label>
-            <input id="imie" name="imie" type="text" class="input" autocomplete="name" autocapitalize="words" required />
+            <input id="imie" name="imie" type="text" class="input" autocomplete="name" autocapitalize="words" maxlength="100" required />
           </div>
           <div class="grid gap-5 sm:grid-cols-2">
             <div class="field">
               <label for="telefon">Telefon <span class="req">*</span></label>
-              <input id="telefon" name="telefon" type="tel" class="input" autocomplete="tel" required />
+              <input id="telefon" name="telefon" type="tel" class="input" autocomplete="tel" maxlength="30" required />
             </div>
             <div class="field">
               <label for="email">E-mail <span class="req">*</span></label>
-              <input id="email" name="email" type="email" class="input" autocomplete="email" required aria-describedby="email-hint" />
+              <input id="email" name="email" type="email" class="input" autocomplete="email" maxlength="254" required aria-describedby="email-hint" />
               <span id="email-hint" class="hint">Wyślemy na ten adres potwierdzenie przyjęcia zamówienia.</span>
             </div>
           </div>
           <div class="field">
             <label for="uwagi">Uwagi</label>
-            <textarea id="uwagi" name="uwagi" class="input" rows="4" aria-describedby="uwagi-hint"></textarea>
+            <textarea id="uwagi" name="uwagi" class="input" rows="4" maxlength="2000" aria-describedby="uwagi-hint"></textarea>
             <span id="uwagi-hint" class="hint">Np. dojazd, godziny, w których ktoś jest w domu, faktura na firmę.</span>
           </div>
         </fieldset>

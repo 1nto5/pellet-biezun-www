@@ -4,19 +4,33 @@
  * every form needs around them.
  *
  * - The trap field (honeypot): hidden from people, filled in by bots. The
- *   Pages Function in stage 3 drops any submission that has it filled.
+ *   Pages Function drops any submission that has it filled.
  * - The privacy note: a consent checkbox where the data is used on consent
  *   (the contact form), otherwise a line that says what the data is for (the
  *   order, which needs it to be carried out). Both link the privacy policy,
  *   which names the same legal bases.
- * - The place for the Cloudflare Turnstile widget (stage 3).
+ * - The Cloudflare Turnstile widget, the anti-spam check: it puts its token
+ *   in a hidden field of the form, and the Pages Function checks it. Its
+ *   script loads only here, so only on the pages with a form.
  * - The submit button and a status line for the reply.
  *
- * `action` is the Pages Function that will receive the form. Until
- * `formularzeWlaczone` is on, the script below stops the submit once the
+ * `action` is the Pages Function that receives the form (`functions/api/`).
+ * Once the fields are checked, the script below sends the form itself and
+ * asks for a JSON reply: on success it goes to the thank-you page the reply
+ * names; on failure it says what went wrong in the status line, and
+ * everything the reader typed stays. Without scripts the browser posts the
+ * form and the function redirects: to the thank-you page, or back here with
+ * `?blad=<code>`, which the script, where it runs, turns into the same
+ * message.
+ *
+ * While `formularzeWlaczone` is off, the script stops the submit once the
  * fields are checked and gives the phone number instead, so a reader never
- * takes an unsent form for a sent one. Without scripts the button stays
- * disabled and the same note shows above the fields, before anyone types.
+ * takes an unsent form for a sent one, and without scripts the same note
+ * shows above the fields, before anyone types.
+ *
+ * Without scripts the button is always disabled: off, the form does not
+ * send; on, the anti-spam check cannot run, so a post would only come back
+ * with the fields emptied. A note above the fields says so.
  *
  * The script checks the fields itself, by the browser's own rules (required,
  * type, pattern, min), and writes what is wrong in Polish under each field,
@@ -25,7 +39,7 @@
  * `data-blad` gives its own message for a wrong format. Without scripts the
  * browser's checks stay as they are.
  */
-import { formularzeWlaczone } from "../data/strona";
+import { formularzeWlaczone, turnstileSiteKey } from "../data/strona";
 import { firma } from "../data/firma";
 import { strony } from "../data/nav";
 import { href } from "../lib/url";
@@ -50,6 +64,17 @@ const { action, submitLabel, purpose, consent = false } = Astro.props;
       <noscript>
         <p class="form-status mb-6 font-semibold">
           Formularz chwilowo nie działa. Zadzwoń:
+          <a href={firma.phone.href}>{firma.phone.label}</a>.
+        </p>
+      </noscript>
+    )
+  }
+  {
+    // The anti-spam check cannot run without scripts, so the form cannot be sent without them.
+    formularzeWlaczone && (
+      <noscript>
+        <p class="form-status mb-6 font-semibold">
+          Formularz wymaga włączonej obsługi JavaScript. Możesz też zadzwonić:
           <a href={firma.phone.href}>{firma.phone.label}</a>.
         </p>
       </noscript>
@@ -80,11 +105,17 @@ const { action, submitLabel, purpose, consent = false } = Astro.props;
     )
   }
 
-  {/* Stage 3: the Turnstile widget renders here. */}
-  <div data-turnstile></div>
+  {/* Turnstile's script draws the widget in the box with the `cf-turnstile` class. */}
+  {
+    formularzeWlaczone ? (
+      <div data-turnstile class="cf-turnstile" data-sitekey={turnstileSiteKey} data-language="pl" />
+    ) : (
+      <div data-turnstile />
+    )
+  }
 
   <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
-    <button type="submit" class="btn btn-primary" disabled={!formularzeWlaczone}>{submitLabel}</button>
+    <button type="submit" class="btn btn-primary" disabled>{submitLabel}</button>
     <p class="text-sm text-ink-soft"><span class="req">*</span> pole wymagane</p>
   </div>
 
@@ -99,10 +130,31 @@ const { action, submitLabel, purpose, consent = false } = Astro.props;
       </template>
     )
   }
+  {
+    // What the status line says for each error code of the Pages Function.
+    formularzeWlaczone && (
+      <>
+        <template data-blad="pola">Sprawdź pola formularza i spróbuj ponownie.</template>
+        <template data-blad="turnstile">
+          Nie udało się potwierdzić, że nie jesteś robotem. Spróbuj ponownie albo zadzwoń:
+          <a href={firma.phone.href}>{firma.phone.label}</a>.
+        </template>
+        <template data-blad="wysylka">
+          Nie udało się wysłać formularza. Zadzwoń:
+          <a href={firma.phone.href}>{firma.phone.label}</a>.
+        </template>
+      </>
+    )
+  }
 </form>
+
+{formularzeWlaczone && <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer />}
 
 <script>
   type Pole = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+
+  // Turnstile's own script (api.js) sets this; it may still be loading, or blocked.
+  declare const turnstile: { reset(widget: HTMLElement): void } | undefined;
 
   function komunikat(pole: Pole): string {
     const v = pole.validity;
@@ -138,11 +190,55 @@ const { action, submitLabel, purpose, consent = false } = Astro.props;
     pole.setAttribute("aria-invalid", "true");
   }
 
+  /** Writes the message for a Pages Function's error code into the status line; an unknown code reads as a failed send. */
+  function pokazBlad(form: HTMLFormElement, kod: string | null) {
+    const szablony = [...form.querySelectorAll<HTMLTemplateElement>("template[data-blad]")];
+    const szablon = szablony.find((s) => s.dataset.blad === kod) ?? szablony.find((s) => s.dataset.blad === "wysylka");
+    const status = form.querySelector("[data-form-status]");
+    if (status && szablon) status.replaceChildren(szablon.content.cloneNode(true));
+  }
+
+  /** Sends the form to its Pages Function and acts on the JSON reply. */
+  async function wyslij(form: HTMLFormElement) {
+    const przycisk = form.querySelector<HTMLButtonElement>("button[type=submit]");
+    // One click, one e-mail: the button waits for the reply.
+    if (przycisk) przycisk.disabled = true;
+    form.querySelector("[data-form-status]")?.replaceChildren();
+    // Anything but a clear reply, e.g. no network, counts as a failed send.
+    let blad = "wysylka";
+    try {
+      const odpowiedz = await fetch(form.action, { method: "POST", body: new FormData(form), headers: { Accept: "application/json" } });
+      const wynik = (await odpowiedz.json()) as { ok?: boolean; redirect?: string; blad?: string };
+      // Only ever to a page of this site.
+      const cel = wynik.ok && wynik.redirect ? new URL(wynik.redirect, location.href) : null;
+      if (cel?.origin === location.origin) {
+        location.assign(cel);
+        return;
+      }
+      if (wynik.blad) blad = wynik.blad;
+    } catch {
+      // Stays "wysylka".
+    }
+    pokazBlad(form, blad);
+    // A Turnstile token is good for one check only; the next try needs a new one.
+    const widget = form.querySelector<HTMLElement>("[data-turnstile]");
+    if (widget && typeof turnstile !== "undefined") turnstile.reset(widget);
+    if (przycisk) przycisk.disabled = false;
+  }
+
   for (const form of document.querySelectorAll<HTMLFormElement>("[data-form]")) {
     form.noValidate = true;
-    // Disabled in the HTML only for a reader without scripts; this one checks
-    // the fields and gives the phone number on submit.
+    // Disabled in the HTML for a reader without scripts; with them the form
+    // checks the fields and sends, or gives the phone number while it is off.
     form.querySelector("button[type=submit]")?.removeAttribute("disabled");
+    // Sent back by the Pages Function after a post without scripts.
+    const kod = new URLSearchParams(location.search).get("blad");
+    if (kod && form.dataset.live === "true") pokazBlad(form, kod);
+    // Back from the thank-you page, the browser may show this page as it was
+    // left, with the button still waiting for the reply.
+    addEventListener("pageshow", (e) => {
+      if (e.persisted) form.querySelector("button[type=submit]")?.removeAttribute("disabled");
+    });
     const pola = [...form.querySelectorAll<Pole>("input, select, textarea")].filter((p) => p.name !== "strona_www" && p.willValidate);
 
     // A field already marked wrong is checked again as the reader fixes it.
@@ -160,8 +256,11 @@ const { action, submitLabel, purpose, consent = false } = Astro.props;
         zle[0]!.focus();
         return;
       }
-      if (form.dataset.live === "true") return;
       event.preventDefault();
+      if (form.dataset.live === "true") {
+        void wyslij(form);
+        return;
+      }
       const status = form.querySelector("[data-form-status]");
       const message = form.querySelector<HTMLTemplateElement>("template[data-form-nie-wysyla]");
       if (status && message) status.replaceChildren(message.content.cloneNode(true));

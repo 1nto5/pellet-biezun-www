@@ -17,6 +17,7 @@
 import type { ImageMetadata } from "astro";
 import hitonZdjecie from "../assets/produkty/hiton.jpg";
 import wielbarkZdjecie from "../assets/produkty/wielbark.jpg";
+import { nazwyProduktow, type ProduktId } from "./produkty";
 
 /** The date of the ads the prices come from. */
 // TODO(produkcja): confirm the prices with the client, and whether they include VAT.
@@ -35,8 +36,8 @@ export interface Zdjecie {
 }
 
 export interface Produkt {
-  /** Sent with the order form; keep it stable once orders come in. */
-  id: string;
+  /** Sent with the order form; keep it stable once orders come in. The ids and names live in produkty.ts. */
+  id: ProduktId;
   /**
    * Goes into headings: the name printed on the bag or the origin. The
    * Wielbark pellet's says "IKEA" (the owner's decision of 2026-10-12, at the
@@ -65,7 +66,7 @@ export interface Produkt {
 export const produkty: Produkt[] = [
   {
     id: "hiton",
-    nazwa: "Pellet HITON",
+    nazwa: nazwyProduktow.hiton,
     podtytul: "Pellet drzewny certyfikowany, 100% sosna, 6\u00a0mm",
     opis: "Pellet z czystych trocin sosnowych, bez dodatków chemicznych, klejów i innych zanieczyszczeń. Ma stałe, powtarzalne parametry i nie tworzy spieków. Siarki jest bardzo mało, co chroni kocioł przed korozją. Popiół można wykorzystać jako nawóz w ogrodzie.",
     workiKg: 15,
@@ -85,7 +86,7 @@ export const produkty: Produkt[] = [
   },
   {
     id: "wielbark",
-    nazwa: "Wood Pellets z IKEA Wielbark",
+    nazwa: nazwyProduktow.wielbark,
     podtytul: "Pellet drzewny certyfikowany, 100% sosna, 6\u00a0mm",
     opis: "Pellet z zakładu IKEA Industry w Wielbarku, z mocno sprasowanych czystych trocin sosnowych, bez kory i innych dodatków. Daje mało popiołu i nie tworzy spieków.",
     workiKg: 15,
