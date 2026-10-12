@@ -42,8 +42,12 @@ const OKOLICA_KM = 25;
 const { miejsce } = Astro.props;
 const { slug, wMiejscowosci: w, doMiejscowosci: doM, wPowiecie, opis } = miejsce.podstrona;
 const km = odlegloscKm(miejsce);
-/** "Mławę, Nidzicę" would need another case, so the towns stay in the nominative after "są". */
-const mijane = new Intl.ListFormat("pl", { type: "conjunction" }).format(poDrodze(miejsce).map(pelnaNazwa));
+// "Mławę, Nidzicę" would need another case, so the towns stay in the
+// nominative: "Po drodze jest Drobin", "Po drodze są Mława i Nidzica".
+const mijane = poDrodze(miejsce).map(nazwaWlasna);
+const poDrodzeZdanie =
+  mijane.length > 0 &&
+  ` Po drodze ${mijane.length === 1 ? "jest" : "są"} ${new Intl.ListFormat("pl", { type: "conjunction" }).format(mijane)}, tam też dowozimy.`;
 
 // Nearest to the warehouse first.
 const okolica = miejsca
@@ -90,7 +94,7 @@ const usluga = {
         <h2>Dostawa {doM}</h2>
         <p>
           {miejsce.nazwa} leży {km} km od naszego magazynu we Władysławowie pod Bieżuniem. Dowozimy {doM} i do miejscowości {wPowiecie}.
-          {mijane && ` Po drodze są ${mijane}, tam też dowozimy.`}
+          {poDrodzeZdanie}
         </p>
         {opis && <p>{opis}</p>}
         <p>
