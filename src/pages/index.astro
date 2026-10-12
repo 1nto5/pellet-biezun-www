@@ -8,7 +8,7 @@ import { firma, firmaId, addressLine, hoursRange } from "../data/firma";
 import { orderLink, strony } from "../data/nav";
 import { absoluteUrl } from "../lib/url";
 import { produkty, cenyLabel, cenaLabel, cenaWorkaLabel, paletaLabel } from "../data/oferta";
-import { flota, najdluzszy, szczegolyLabel } from "../data/flota";
+import { flota, najdluzszy, dlugoscNaPasie, szczegolyLabel } from "../data/flota";
 import { faq } from "../data/faq";
 import { podstronyPoOdleglosci, miejsceHref } from "../data/miejsca";
 
@@ -33,8 +33,11 @@ const kafelki: { tytul: string; tekst?: string }[] = [
   { tytul: "Iveco Daily na dojazd w trudno dostępne miejsca" },
 ];
 
-/** Each vehicle's width on its strip, as a share of the longest's. */
-const auta = flota.map((f) => ({ ...f, procent: Math.round((f.m / najdluzszy) * 1000) / 10 }));
+/**
+ * Each entry's width on its strip, as a share of the longest's (`dl`), and
+ * how many times its photo is drawn there (`sztuk`).
+ */
+const auta = flota.map((f) => ({ ...f, sztuk: f.sztuk ?? 1, dl: Math.round((dlugoscNaPasie(f) / najdluzszy) * 1000) / 1000 }));
 
 /** The site itself, so search results show the company's name as the site's. */
 const webSite = {
@@ -124,14 +127,16 @@ const webSite = {
                 <p class="miekki">{szczegolyLabel(f)}</p>
               </div>
               <span class="flota-pas">
-                <span class="flota-foto" style={`width:${f.procent}%`}>
-                  <Image
-                    src={f.zdjecie}
-                    alt={f.alt}
-                    width={800}
-                    widths={[200, 400, 600, 800]}
-                    sizes={`(min-width: 64rem) calc(${f.procent / 100} * 18rem), calc(${f.procent / 100} * 92vw)`}
-                  />
+                <span class="flota-foto" style={`--dl:${f.dl}`}>
+                  {Array.from({ length: f.sztuk }, (_, k) => (
+                    <Image
+                      src={f.zdjecie}
+                      alt={k === 0 ? f.alt : ""}
+                      width={800}
+                      widths={[200, 400, 600, 800]}
+                      sizes={`(min-width: 64rem) calc(${f.dl / f.sztuk} * 18rem), calc(${f.dl / f.sztuk} * 92vw)`}
+                    />
+                  ))}
                 </span>
               </span>
             </li>
@@ -534,31 +539,19 @@ const webSite = {
   }
   @media (min-width: 64rem) and (orientation: landscape) {
     .produkty-lista {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 1.5rem;
     }
-    /* Three cards a row leave each about 11rem for the text from 64rem:
-       a smaller bag and a narrower tag keep the price on one line. */
+    /* Two cards a row leave each at least 13rem for the text from 64rem,
+       with the sticker beside them: the price keeps its one line. */
     .produkt {
-      grid-template-columns: 3.5rem minmax(0, 1fr);
+      grid-template-columns: 4rem minmax(0, 1fr);
       align-items: start;
-      gap: 0.75rem;
+      gap: 1rem;
     }
     .produkt + .produkt {
       padding-top: 0;
       border-top: 0;
-    }
-    .produkt-foto {
-      width: 3.5rem;
-    }
-    .produkt-cena {
-      font-size: 1rem;
-    }
-  }
-  @media (min-width: 80rem) and (orientation: landscape) {
-    .produkt {
-      grid-template-columns: 4rem minmax(0, 1fr);
-      gap: 1rem;
     }
     .produkt-foto {
       width: 4rem;
@@ -566,9 +559,9 @@ const webSite = {
     .produkt-cena {
       font-size: 1.1rem;
     }
-    /* Where the three cards still fit beside it, the sticker is a disc in
-       its own column at the frame's right end, so it covers no card; it
-       pokes out over the frame's corner, as if stuck on it. Narrower, it
+    /* The two cards fit beside the sticker at every width here, so it is a
+       disc in its own column at the frame's right end and covers no card;
+       it pokes out over the frame's corner, as if stuck on it. Narrower, it
        stays the tag under the cards. */
     .produkty {
       display: flex;
@@ -605,9 +598,10 @@ const webSite = {
   }
 
   /* The fleet: each vehicle on its own strip of road, all to one scale (the
-     longest the strip's full width) and nose to the left, as on the offer
-     page. On a wide screen the strip is narrower, its text beside it, two
-     a row, so the four fit above the scene. */
+     longest strip, the two Iveco one behind the other, takes the full
+     width) and nose to the left, as on the offer page. On a wide screen the
+     strip is narrower, its text beside it, two a row, so the three fit
+     above the scene. */
   .flota-lista {
     display: grid;
     gap: 0.75rem;
@@ -637,15 +631,22 @@ const webSite = {
       linear-gradient(90deg, var(--color-white) 0 50%, transparent 50%) 0 calc(100% - 0.17rem) / 1.4rem 0.1rem repeat-x,
       linear-gradient(var(--color-asphalt), var(--color-asphalt)) 0 100% / 100% 0.45rem no-repeat;
   }
+  /* `--dl` is the entry's share of the longest strip. Two of the same
+     vehicle share the width, a small gap between them; they shrink with the
+     strip, so nothing leaves it. */
   .flota-foto {
-    display: block;
+    display: flex;
+    align-items: flex-end;
+    gap: 0.3rem;
+    width: calc(var(--dl) * (100% - 0.3rem));
     margin-left: 0.3rem;
     /* Tyres touch the asphalt. */
     margin-bottom: -0.2rem;
   }
   .flota-foto :global(img) {
     display: block;
-    width: 100%;
+    flex: 1 1 0;
+    min-width: 0;
     height: auto;
   }
   @media (min-width: 64rem) and (orientation: landscape) {

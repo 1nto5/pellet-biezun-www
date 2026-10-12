@@ -1,6 +1,6 @@
 /**
  * Towns the company delivers pellet to: one list for the map on
- * /mapa-dystrybucji/, the 15 local pages under /dostawa/<slug>/, the delivery
+ * /mapa-dystrybucji/, the 16 local pages under /dostawa/<slug>/, the delivery
  * area in the JSON-LD (areaServed) and llms.txt.
  *
  * Whether a town is in the free delivery zone is not stored: it follows from
@@ -34,7 +34,7 @@ export interface Podstrona {
    * estates and villages around it, the car that usually goes there.
    */
   // TODO(produkcja): ask the client for a few sentences per town; without
-  // them the 15 pages differ only in the town's name and its neighbours.
+  // them the 16 pages differ only in the town's name and its neighbours.
   opis?: string;
 }
 
@@ -49,7 +49,7 @@ export interface Miejsce {
 
 export type MiejsceZPodstrona = Miejsce & { podstrona: Podstrona };
 
-/** Free delivery distance in km, by road from the warehouse, and the rule's sentences (`dostawa.ts`). */
+/** The drive's own distance in km, by road from the warehouse, and the stated delivery rule (`dostawa.ts`). */
 export { DARMOWA_DOSTAWA_KM, ZASADA_DOSTAWY };
 
 export const miejsca: Miejsce[] = [
@@ -131,7 +131,7 @@ export const miejsca: Miejsce[] = [
   { nazwa: "Rozogi", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.4824, lng: 21.3597 } },
   { nazwa: "Wielbark", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.3984, lng: 20.9463 } },
   { nazwa: "Stare Kiełbonki", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.662, lng: 21.3446 } },
-  { nazwa: "Biskupiec", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.8638, lng: 20.955 } },
+  { nazwa: "Biskupiec", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.8638, lng: 20.955 }, podstrona: { slug: "biskupiec", wMiejscowosci: "w Biskupcu", doMiejscowosci: "do Biskupca" } },
   { nazwa: "Mrągowo", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.8661, lng: 21.3046 } },
   { nazwa: "Mikołajki", dopisek: "czasem", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.7982, lng: 21.5772 } },
   { nazwa: "Reszel", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 54.0483, lng: 21.1422 } },

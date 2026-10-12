@@ -22,6 +22,7 @@ export const strony = {
   galeria: { href: href("/galeria/"), label: "Galeria" },
   mapa: { href: href("/mapa-dystrybucji/"), label: "Mapa dystrybucji" },
   faq: { href: href("/faq/"), label: "FAQ" },
+  oNas: { href: href("/o-nas/"), label: "O nas" },
   kontakt: { href: href("/kontakt/"), label: "Kontakt" },
   zamowienie: { href: href("/zamowienie/"), label: "Zamówienie" },
   polityka: { href: href("/polityka-prywatnosci/"), label: "Polityka prywatności" },
@@ -33,6 +34,7 @@ export const mainNav: readonly NavItem[] = [
   strony.galeria,
   { ...strony.mapa, children: podstrony.map((m) => ({ href: miejsceHref(m), label: m.nazwa })) },
   strony.faq,
+  strony.oNas,
   strony.kontakt,
 ];
 

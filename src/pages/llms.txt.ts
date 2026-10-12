@@ -41,7 +41,7 @@ export const GET: APIRoute = ({ site }) => {
     "## Dostawa",
     "",
     `${ZASADA_DOSTAWY} ` +
-      `Własne samochody, każdy z elektrycznym wózkiem paletowym: ${flota.map((f) => `${f.model} (${f.szczegoly.join(", ")})`).join(", ")}. ` +
+      `Własne samochody, każdy z windą i elektrycznym wózkiem paletowym: ${flota.map((f) => `${f.model} (${f.szczegoly.join(", ")})`).join(", ")}. ` +
       "Odbiór osobisty w magazynie po wcześniejszym telefonie. Przy większych zamówieniach cena do negocjacji.",
     "",
     ...podstronyPoOdleglosci.map((m) => `- [Pellet ${m.podstrona.wMiejscowosci}](${url(miejsceHref(m))})`),
@@ -59,6 +59,7 @@ export const GET: APIRoute = ({ site }) => {
     `- [Mapa dystrybucji](${url(strony.mapa.href)})`,
     `- [Galeria](${url(strony.galeria.href)})`,
     `- [Zamówienie](${url(strony.zamowienie.href)})`,
+    `- [O nas](${url(strony.oNas.href)})`,
     `- [Kontakt](${url(strony.kontakt.href)})`,
     `- [Częste pytania](${url(strony.faq.href)}): ${faq.length} pytań i odpowiedzi`,
     "",

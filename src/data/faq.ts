@@ -32,7 +32,7 @@ export const faq: { q: string; a: string }[] = [
   },
   {
     q: "Jak wygląda rozładunek?",
-    a: "Iveco i solówki Volvo mają windę, a każdy nasz samochód elektryczny wózek paletowy, więc paletę zdejmujemy z auta i podwozimy na miejsce. Na dojazd w trudno dostępne miejsca mamy mniejsze auta Iveco Daily.",
+    a: "Każdy nasz samochód ma windę i elektryczny wózek paletowy, więc paletę zdejmujemy z auta i podwozimy na miejsce. Na dojazd w trudno dostępne miejsca mamy mniejsze auta Iveco Daily.",
   },
   {
     q: "Czy pellet można trzymać na zewnątrz?",
@@ -44,7 +44,7 @@ export const faq: { q: string; a: string }[] = [
   },
   {
     q: "Do jakich kotłów nadaje się ten pellet?",
-    a: "Pellet HITON i pellet sosnowy z Wielbarka to certyfikowany pellet drzewny wysokiej jakości, doskonały do kotłów 5. generacji. Mają bardzo mało siarki, co chroni kocioł przed korozją. Parametry pelletu LAVA, podane przez producenta na worku, znajdziesz w ofercie.",
+    a: "Pellet HITON i Wood Pellets z IKEA Wielbark to certyfikowany pellet drzewny wysokiej jakości, doskonały do kotłów 5. generacji. Mają bardzo mało siarki, co chroni kocioł przed korozją.",
   },
   {
     q: "Czy mogę odebrać pellet osobiście?",
