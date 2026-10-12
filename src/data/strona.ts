@@ -7,11 +7,11 @@
  */
 
 /**
- * While true every page carries `noindex`. Off since 2026-10-12: the site is
- * open to search engines, with the details still marked TODO(produkcja) in
- * firma.ts as they are.
+ * While true every page carries `noindex`: some of the company's details are
+ * not confirmed yet (firma.ts), and search engines must not keep them.
  */
-export const przedStartem = false;
+// TODO(produkcja): false once every TODO(produkcja) in firma.ts is done.
+export const przedStartem = true;
 
 /**
  * The order and contact forms post to Pages Functions in `functions/api/`,
