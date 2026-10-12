@@ -6,6 +6,8 @@ import Formularz from "../components/Formularz.astro";
 import Mapa from "../components/Mapa.astro";
 import TablicaWjazdowa from "../components/TablicaWjazdowa.astro";
 import { firma, hoursRange } from "../data/firma";
+
+// The `maxlength` of each field is the limit `functions/api/kontakt.ts` checks again.
 ---
 
 <Base
@@ -65,21 +67,21 @@ import { firma, hoursRange } from "../data/firma";
         <Formularz action="/api/kontakt" submitLabel="Wyślij wiadomość" purpose="odpowiedzi na wiadomość" consent>
           <div class="field">
             <label for="imie">Imię <span class="req">*</span></label>
-            <input id="imie" name="imie" type="text" class="input" autocomplete="given-name" autocapitalize="words" required />
+            <input id="imie" name="imie" type="text" class="input" autocomplete="given-name" autocapitalize="words" maxlength="100" required />
           </div>
           <div class="grid gap-5 sm:grid-cols-2">
             <div class="field">
               <label for="email">E-mail <span class="req">*</span></label>
-              <input id="email" name="email" type="email" class="input" autocomplete="email" required />
+              <input id="email" name="email" type="email" class="input" autocomplete="email" maxlength="254" required />
             </div>
             <div class="field">
               <label for="telefon">Telefon</label>
-              <input id="telefon" name="telefon" type="tel" class="input" autocomplete="tel" />
+              <input id="telefon" name="telefon" type="tel" class="input" autocomplete="tel" maxlength="30" />
             </div>
           </div>
           <div class="field">
             <label for="wiadomosc">Wiadomość <span class="req">*</span></label>
-            <textarea id="wiadomosc" name="wiadomosc" class="input" rows="6" required></textarea>
+            <textarea id="wiadomosc" name="wiadomosc" class="input" rows="6" maxlength="2000" required></textarea>
           </div>
         </Formularz>
       </section>

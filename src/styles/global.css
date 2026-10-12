@@ -1,4 +1,7 @@
 @import "tailwindcss";
+/* Tailwind reads every project file for class names; the sitemap's `filter`
+   option in the config is not one, and would add unused rules to every page. */
+@source not "../../astro.config.mjs";
 
 /* The fallback, sized to the real face so a swap does not reflow the text. */
 @font-face {

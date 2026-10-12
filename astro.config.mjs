@@ -39,5 +39,6 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
   },
-  integrations: [sitemap()],
+  // The thank-you pages after a sent form are not for search engines.
+  integrations: [sitemap({ filter: (page) => !page.endsWith("/dziekujemy/") })],
 });

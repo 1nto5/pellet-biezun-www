@@ -62,9 +62,8 @@ export const firma = {
   /** The warehouse's pin on the map and the point delivery distances are measured from. */
   geo: { lat: 52.9281292, lng: 19.8770384 } satisfies Geo,
   phone: phone("792 360 360"),
-  /** Shown with the phone, in the JSON-LD and llms.txt; only once there is one. */
-  // TODO(produkcja): an address that works, e.g. kontakt@pelletbiezun.pl.
-  email: undefined as string | undefined,
+  /** Shown in the footer, the privacy policy, the JSON-LD and llms.txt. Forwarded to the client's mailbox. */
+  email: "kontakt@pelletbiezun.pl" as string | undefined,
   // From the company's Google Business Profile (2026-10-01).
   // TODO(produkcja): confirm the hours with the client.
   hours: [
