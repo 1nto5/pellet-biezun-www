@@ -519,9 +519,12 @@
      (Droga.astro marks the list and gives `--pod-hero`, how far under its
      own place that is). It goes up with the hero, a pixel for each pixel of
      scroll, and stays at its place once there: the animation runs over that
-     many pixels of the page's scroll. */
+     many pixels of the page's scroll. Its own style puts it under the hero
+     too, for as long as the scroll's timeline is not running yet (a page
+     opened in a background tab). */
   @supports (animation-timeline: scroll()) {
     html[data-js] .stopy[data-pod-hero] .stop:first-child {
+      translate: 0 var(--pod-hero);
       animation: stop-pod-hero linear both;
       animation-timeline: scroll(root block);
       animation-range: 0px var(--pod-hero);
