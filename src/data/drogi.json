@@ -1,6 +1,5 @@
 {
- "zrodlo": "Valhalla (https://valhalla1.openstreetmap.de), trasa samochodem, 2026-10-05",
- "darmowaKm": 80,
+ "zrodlo": "Valhalla (https://valhalla1.openstreetmap.de), trasa samochodem, 2026-10-12",
  "km": {
   "Bieżuń": 5,
   "Żuromin": 18,
@@ -72,7 +71,7 @@
   "Lidzbark": 42,
   "Kozłowo": 60,
   "Nidzica": 89,
-  "Olsztynek": 123,
+  "Olsztynek": 121,
   "Jedwabno": 118,
   "Pasym": 172,
   "Dźwierzuty": 186,
@@ -94,5 +93,430 @@
   "Gietrzwałd": 158,
   "Łukta": 166,
   "Ostróda": 149
+ },
+ "poDrodze": {
+  "Żuromin": [
+   "Bieżuń"
+  ],
+  "Glinojeck": [
+   "Raciąż"
+  ],
+  "Mława": [
+   "Bieżuń"
+  ],
+  "Ciechanów": [
+   "Raciąż",
+   "Glinojeck"
+  ],
+  "Płońsk": [
+   "Drobin"
+  ],
+  "Nowe Miasto": [
+   "Drobin",
+   "Płońsk"
+  ],
+  "Bulkowo": [
+   "Drobin"
+  ],
+  "Staroźreby": [
+   "Drobin"
+  ],
+  "Płock": [
+   "Bielsk"
+  ],
+  "Gostynin": [
+   "Bielsk",
+   "Płock"
+  ],
+  "Gąbin": [
+   "Bielsk",
+   "Płock"
+  ],
+  "Iłów": [
+   "Drobin",
+   "Bulkowo",
+   "Wyszogród"
+  ],
+  "Sanniki": [
+   "Bielsk",
+   "Płock",
+   "Gąbin"
+  ],
+  "Wyszogród": [
+   "Drobin",
+   "Bulkowo"
+  ],
+  "Sochaczew": [
+   "Drobin",
+   "Bulkowo",
+   "Wyszogród"
+  ],
+  "Cieksyn": [
+   "Drobin",
+   "Płońsk"
+  ],
+  "Nasielsk": [
+   "Drobin",
+   "Płońsk",
+   "Cieksyn"
+  ],
+  "Nowy Dwór Mazowiecki": [
+   "Drobin",
+   "Płońsk"
+  ],
+  "Serock": [
+   "Drobin",
+   "Płońsk",
+   "Nowy Dwór Mazowiecki"
+  ],
+  "Pułtusk": [
+   "Raciąż",
+   "Glinojeck",
+   "Ciechanów"
+  ],
+  "Karniewo": [
+   "Raciąż",
+   "Glinojeck",
+   "Ciechanów"
+  ],
+  "Maków Mazowiecki": [
+   "Raciąż",
+   "Glinojeck",
+   "Ciechanów",
+   "Karniewo"
+  ],
+  "Różan": [
+   "Raciąż",
+   "Glinojeck",
+   "Ciechanów",
+   "Karniewo",
+   "Maków Mazowiecki"
+  ],
+  "Długosiodło": [
+   "Drobin",
+   "Płońsk",
+   "Nowy Dwór Mazowiecki"
+  ],
+  "Zaręby Kościelne": [
+   "Drobin",
+   "Płońsk",
+   "Nowy Dwór Mazowiecki",
+   "Ostrów Mazowiecka"
+  ],
+  "Brok": [
+   "Drobin",
+   "Płońsk",
+   "Nowy Dwór Mazowiecki"
+  ],
+  "Małkinia Górna": [
+   "Drobin",
+   "Płońsk",
+   "Nowy Dwór Mazowiecki",
+   "Brok"
+  ],
+  "Ostrów Mazowiecka": [
+   "Drobin",
+   "Płońsk",
+   "Nowy Dwór Mazowiecki"
+  ],
+  "Ostrołęka": [
+   "Bieżuń",
+   "Mława",
+   "Przasnysz",
+   "Krasnosielc"
+  ],
+  "Baranowo": [
+   "Bieżuń",
+   "Mława",
+   "Przasnysz"
+  ],
+  "Kadzidło": [
+   "Bieżuń",
+   "Mława",
+   "Przasnysz",
+   "Baranowo"
+  ],
+  "Krasnosielc": [
+   "Bieżuń",
+   "Mława",
+   "Przasnysz"
+  ],
+  "Jednorożec": [
+   "Bieżuń",
+   "Mława",
+   "Przasnysz"
+  ],
+  "Przasnysz": [
+   "Bieżuń",
+   "Mława"
+  ],
+  "Chorzele": [
+   "Mława"
+  ],
+  "Myszyniec": [
+   "Mława",
+   "Chorzele"
+  ],
+  "Łowicz": [
+   "Drobin",
+   "Bulkowo",
+   "Wyszogród",
+   "Sochaczew"
+  ],
+  "Kiernozia": [
+   "Bielsk",
+   "Płock",
+   "Gąbin"
+  ],
+  "Żychlin": [
+   "Bielsk",
+   "Płock",
+   "Gąbin"
+  ],
+  "Łomża": [
+   "Drobin",
+   "Płońsk",
+   "Nowy Dwór Mazowiecki",
+   "Ostrów Mazowiecka"
+  ],
+  "Włocławek": [
+   "Sierpc",
+   "Skępe",
+   "Lipno"
+  ],
+  "Dobrzyń nad Wisłą": [
+   "Sierpc",
+   "Tłuchowo"
+  ],
+  "Tłuchowo": [
+   "Sierpc"
+  ],
+  "Wielgie": [
+   "Sierpc",
+   "Tłuchowo"
+  ],
+  "Lipno": [
+   "Sierpc",
+   "Skępe"
+  ],
+  "Skępe": [
+   "Sierpc"
+  ],
+  "Kikół": [
+   "Sierpc",
+   "Skępe",
+   "Lipno"
+  ],
+  "Czernikowo": [
+   "Sierpc",
+   "Skępe",
+   "Lipno",
+   "Kikół"
+  ],
+  "Obrowo": [
+   "Sierpc",
+   "Skępe",
+   "Lipno",
+   "Kikół",
+   "Czernikowo"
+  ],
+  "Ciechocin": [
+   "Bieżuń",
+   "Rypin",
+   "Golub-Dobrzyń"
+  ],
+  "Kowalewo Pomorskie": [
+   "Bieżuń",
+   "Rypin",
+   "Golub-Dobrzyń"
+  ],
+  "Golub-Dobrzyń": [
+   "Bieżuń",
+   "Rypin"
+  ],
+  "Jabłonowo Pomorskie": [
+   "Bieżuń",
+   "Rypin",
+   "Brodnica"
+  ],
+  "Wąbrzeźno": [
+   "Bieżuń",
+   "Rypin",
+   "Golub-Dobrzyń"
+  ],
+  "Brodnica": [
+   "Bieżuń",
+   "Rypin"
+  ],
+  "Rypin": [
+   "Bieżuń"
+  ],
+  "Nowe Miasto Lubawskie": [
+   "Bieżuń",
+   "Żuromin",
+   "Lidzbark"
+  ],
+  "Lubawa": [
+   "Bieżuń",
+   "Żuromin",
+   "Lidzbark"
+  ],
+  "Iława": [
+   "Bieżuń",
+   "Żuromin",
+   "Lidzbark",
+   "Lubawa"
+  ],
+  "Grunwald": [
+   "Bieżuń",
+   "Żuromin",
+   "Lidzbark",
+   "Dąbrówno"
+  ],
+  "Dąbrówno": [
+   "Bieżuń",
+   "Żuromin",
+   "Lidzbark"
+  ],
+  "Działdowo": [
+   "Bieżuń"
+  ],
+  "Lidzbark": [
+   "Bieżuń",
+   "Żuromin"
+  ],
+  "Kozłowo": [
+   "Bieżuń",
+   "Działdowo"
+  ],
+  "Nidzica": [
+   "Mława"
+  ],
+  "Olsztynek": [
+   "Mława",
+   "Nidzica"
+  ],
+  "Jedwabno": [
+   "Mława",
+   "Nidzica"
+  ],
+  "Pasym": [
+   "Mława",
+   "Nidzica",
+   "Olsztynek"
+  ],
+  "Dźwierzuty": [
+   "Mława",
+   "Nidzica",
+   "Olsztynek",
+   "Pasym"
+  ],
+  "Szczytno": [
+   "Mława",
+   "Nidzica",
+   "Jedwabno"
+  ],
+  "Rozogi": [
+   "Mława",
+   "Chorzele",
+   "Myszyniec"
+  ],
+  "Wielbark": [
+   "Mława",
+   "Nidzica"
+  ],
+  "Stare Kiełbonki": [
+   "Mława",
+   "Nidzica",
+   "Jedwabno",
+   "Szczytno"
+  ],
+  "Biskupiec": [
+   "Mława",
+   "Nidzica",
+   "Olsztynek",
+   "Barczewo"
+  ],
+  "Mrągowo": [
+   "Mława",
+   "Nidzica",
+   "Olsztynek",
+   "Barczewo",
+   "Biskupiec"
+  ],
+  "Mikołajki": [
+   "Mława",
+   "Nidzica",
+   "Olsztynek",
+   "Barczewo",
+   "Biskupiec",
+   "Mrągowo"
+  ],
+  "Reszel": [
+   "Mława",
+   "Nidzica",
+   "Olsztynek",
+   "Barczewo",
+   "Jeziorany"
+  ],
+  "Barczewo": [
+   "Mława",
+   "Nidzica",
+   "Olsztynek"
+  ],
+  "Jeziorany": [
+   "Mława",
+   "Nidzica",
+   "Olsztynek",
+   "Barczewo"
+  ],
+  "Lidzbark Warmiński": [
+   "Mława",
+   "Nidzica",
+   "Olsztynek",
+   "Barczewo",
+   "Jeziorany"
+  ],
+  "Bartoszyce": [
+   "Mława",
+   "Nidzica",
+   "Olsztynek",
+   "Barczewo",
+   "Jeziorany"
+  ],
+  "Dobre Miasto": [
+   "Mława",
+   "Nidzica",
+   "Olsztynek",
+   "Olsztyn",
+   "Dywity"
+  ],
+  "Dywity": [
+   "Mława",
+   "Nidzica",
+   "Olsztynek",
+   "Olsztyn"
+  ],
+  "Olsztyn": [
+   "Mława",
+   "Nidzica",
+   "Olsztynek"
+  ],
+  "Gietrzwałd": [
+   "Mława",
+   "Nidzica",
+   "Olsztynek"
+  ],
+  "Łukta": [
+   "Mława",
+   "Nidzica",
+   "Olsztynek",
+   "Ostróda"
+  ],
+  "Ostróda": [
+   "Mława",
+   "Nidzica",
+   "Olsztynek"
+  ]
  }
 }
