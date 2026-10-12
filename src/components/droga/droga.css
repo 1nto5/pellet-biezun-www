@@ -294,8 +294,8 @@
 .droga-dystans {
   display: none;
 }
-/* A moving scene shows once its photos are in (Droga.astro), not piece by
-   piece; should the script never say so, after 3 s anyway. */
+/* A moving scene shows once the truck's photo is in (Droga.astro); should
+   the script never say so, after 3 s anyway. */
 @keyframes droga-pokaz {
   to {
     opacity: 1;
@@ -514,5 +514,32 @@
     opacity: 1;
     pointer-events: auto;
     transition-delay: 0.12s;
+  }
+  /* On a tall window the first stop shows from the start, under the hero
+     (Droga.astro marks the list and gives `--pod-hero`, how far under its
+     own place that is). It goes up with the hero, a pixel for each pixel of
+     scroll, and stays at its place once there: the animation runs over that
+     many pixels of the page's scroll. Its own style puts it under the hero
+     too, for as long as the scroll's timeline is not running yet (a page
+     opened in a background tab). The animation is written property by
+     property: from the short `animation` form the build makes one line with
+     the timeline in it, which browsers throw away. */
+  @supports (animation-timeline: scroll()) {
+    html[data-js] .stopy[data-pod-hero] .stop:first-child {
+      translate: 0 var(--pod-hero);
+      animation-name: stop-pod-hero;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: scroll(root block);
+      animation-range: 0px var(--pod-hero);
+    }
+  }
+}
+@keyframes stop-pod-hero {
+  from {
+    translate: 0 var(--pod-hero);
+  }
+  to {
+    translate: 0 0;
   }
 }
