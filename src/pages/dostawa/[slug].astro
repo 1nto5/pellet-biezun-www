@@ -2,8 +2,9 @@
 /**
  * One page per town in `podstrony`: what a buyer from that town needs to
  * know, in sentences a search engine or an AI answer can quote. What makes
- * each page its own is the town's name, the towns around it and the client's
- * own words about the town (`podstrona.opis`).
+ * each page its own is the town's name and county, its distance by road, the
+ * towns on the way and around it, and the client's own words about the town
+ * (`podstrona.opis`).
  */
 import type { GetStaticPaths } from "astro";
 import Base from "../../layouts/Base.astro";
@@ -12,7 +13,7 @@ import PageHeader from "../../components/PageHeader.astro";
 import Button from "../../components/Button.astro";
 import Mapa from "../../components/Mapa.astro";
 import NazwaMiejsca from "../../components/NazwaMiejsca.astro";
-import { firma, addressLine } from "../../data/firma";
+import { firma, firmaId, addressLine } from "../../data/firma";
 import { strony } from "../../data/nav";
 import {
   ZASADA_DOSTAWY,
@@ -20,11 +21,13 @@ import {
   podstrony,
   miejsceHref,
   odlegloscKm,
+  poDrodze,
   type MiejsceZPodstrona,
 } from "../../data/miejsca";
 import { produkty, cenyLabel, cenaWorkaLabel, paletaLabel, cenyZDnia } from "../../data/oferta";
 import { distanceKm } from "../../lib/geo";
-import { maPodstrone, pelnaNazwa } from "../../lib/miejsce";
+import { maPodstrone, nazwaWlasna, pelnaNazwa } from "../../lib/miejsce";
+import { absoluteUrl } from "../../lib/url";
 
 export const getStaticPaths = (() =>
   podstrony.map((miejsce) => ({ params: { slug: miejsce.podstrona.slug }, props: { miejsce } }))) satisfies GetStaticPaths;
@@ -37,7 +40,10 @@ interface Props {
 const OKOLICA_KM = 25;
 
 const { miejsce } = Astro.props;
-const { wMiejscowosci: w, doMiejscowosci: doM, opis } = miejsce.podstrona;
+const { slug, wMiejscowosci: w, doMiejscowosci: doM, wPowiecie, opis } = miejsce.podstrona;
+const km = odlegloscKm(miejsce);
+/** "Mławę, Nidzicę" would need another case, so the towns stay in the nominative after "są". */
+const mijane = new Intl.ListFormat("pl", { type: "conjunction" }).format(poDrodze(miejsce).map(pelnaNazwa));
 
 // Nearest to the warehouse first.
 const okolica = miejsca
@@ -45,11 +51,28 @@ const okolica = miejsca
   .sort((a, b) => odlegloscKm(a) - odlegloscKm(b));
 
 const lead = `Dowozimy pellet ${doM} i okolic.`;
+
+// The delivery to this town as a service of the company (Base.astro), so the
+// town is named in the structured data too, as on the page.
+const usluga = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  name: `Dostawa pelletu ${doM}`,
+  serviceType: "Dostawa pelletu drzewnego",
+  url: absoluteUrl(`/dostawa/${slug}/`),
+  provider: { "@id": firmaId },
+  areaServed: {
+    "@type": "City",
+    name: nazwaWlasna(miejsce),
+    containedInPlace: { "@type": "AdministrativeArea", name: `województwo ${miejsce.wojewodztwo}` },
+  },
+};
 ---
 
 <Base
   title={`Pellet ${w} z dostawą`}
-  description={`Pellet drzewny w workach 15 kg ${doM}, dostawa własnymi autami z magazynu pod Bieżuniem. Ceny, rozładunek windą, odbiór w magazynie.`}
+  description={`Pellet drzewny w workach 15 kg ${doM}, ${km} km od magazynu pod Bieżuniem. Dostawa gratis własnymi autami, rozładunek windą. Ceny i odbiór w magazynie.`}
+  jsonLd={[usluga]}
 >
   <PageShell>
     <PageHeader slot="header" title={`Pellet ${w}`} lead={lead}>
@@ -64,7 +87,11 @@ const lead = `Dowozimy pellet ${doM} i okolic.`;
 
     <div class="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <div class="prose">
-        <h2>Dostawa</h2>
+        <h2>Dostawa {doM}</h2>
+        <p>
+          {miejsce.nazwa} leży {km} km drogą od naszego magazynu we Władysławowie pod Bieżuniem. Dowozimy {doM} i do miejscowości {wPowiecie}.
+          {mijane && ` Po drodze są ${mijane}, tam też dowozimy.`}
+        </p>
         {opis && <p>{opis}</p>}
         <p>
           {ZASADA_DOSTAWY} Dowozimy własnymi samochodami. Każde auto ma windę i elektryczny wózek paletowy, więc paletę zdejmujemy z auta i podwozimy na miejsce. Na dojazd w trudno dostępne miejsca mamy mniejsze auta Iveco Daily.
