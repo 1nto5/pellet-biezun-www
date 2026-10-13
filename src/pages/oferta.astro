@@ -7,7 +7,7 @@ import Button from "../components/Button.astro";
 import Pasy from "../components/Pasy.astro";
 import { firma, firmaId, addressLine } from "../data/firma";
 import { orderLink, strony } from "../data/nav";
-import { produkty, cenyLabel, cenaWorkaLabel, paletaLabel, cenyZDnia } from "../data/oferta";
+import { produkty, cenyLabel, cenaLabel, paletaLabel, cenyZDnia } from "../data/oferta";
 import { ZASADA_DOSTAWY } from "../data/miejsca";
 import { flota, najdluzszy, dlugoscNaPasie, szczegolyLabel } from "../data/flota";
 
@@ -58,7 +58,7 @@ const produktyLd = await Promise.all(
     <PageHeader
       slot="header"
       title="Oferta i ceny"
-      lead="Dwa rodzaje pelletu drzewnego w workach 15 kg. Palety są zapakowane fabrycznie i przykryte foliowym kapturem, więc mogą stać na zewnątrz."
+      lead="Dwa rodzaje certyfikowanego pelletu drzewnego polskiej produkcji, w workach 15 kg. Palety są zapakowane fabrycznie i przykryte foliowym kapturem, więc mogą stać na zewnątrz."
     />
 
     {
@@ -88,13 +88,14 @@ const produktyLd = await Promise.all(
             </h2>
             <p class="mt-2 text-lg font-medium">{p.podtytul}</p>
 
-            <div class="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
-              {cenyLabel(p).map((c, j) => (
-                <p class:list={["cena-tag", j === 0 ? "text-2xl sm:text-3xl" : "text-xl"]}>{c}</p>
+            {/* The pallet price on the yellow tag; under it the bag, then the tonne. */}
+            <div class="mt-6">
+              <p class="cena-tag text-2xl sm:text-3xl">{cenaLabel(p)}</p>
+              {cenyLabel(p).slice(1).map((c, j) => (
+                <p class:list={["text-xl font-bold", j === 0 ? "mt-3" : "mt-1"]}>{c}</p>
               ))}
             </div>
             <p class="mt-4 font-semibold">Paleta: {paletaLabel(p)}</p>
-            {p.cenaWorek && <p class="mt-1 font-semibold">Pojedynczy worek: {cenaWorkaLabel(p)}</p>}
             <div class="mt-6">
               <Button href={`${orderLink.href}?produkt=${p.id}`} variant="secondary">
                 Zamów ten pellet<span class="sr-only">: {p.nazwa}</span>

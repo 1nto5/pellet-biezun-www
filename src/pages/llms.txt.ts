@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 import { firma, addressLine, hoursRange } from "../data/firma";
-import { produkty, cenyLabel, cenaWorkaLabel, paletaLabel, cenyZDnia } from "../data/oferta";
+import { produkty, cenyLabel, paletaLabel, cenyZDnia } from "../data/oferta";
 import { ZASADA_DOSTAWY, miejsca, podstronyPoOdleglosci, wojewodztwa, miejsceHref } from "../data/miejsca";
 import { flota } from "../data/flota";
 import { faq } from "../data/faq";
@@ -33,7 +33,7 @@ export const GET: APIRoute = ({ site }) => {
       `### ${p.nazwa}`,
       "",
       `${p.podtytul}. ${p.opis}`,
-      `Paleta: ${paletaLabel(p)}. Cena: ${cenyLabel(p).join(", ")}${p.cenaWorek ? `, pojedynczy worek ${cenaWorkaLabel(p)}` : ""}.`,
+      `Paleta: ${paletaLabel(p)}. Cena: ${cenyLabel(p).join(", ")}.`,
       ...(p.certyfikat ? [p.certyfikat] : []),
       `Parametry: ${p.parametry.map((x) => `${x.nazwa.toLowerCase()} ${x.wartosc}`).join("; ")}. Źródło: ${p.zrodloParametrow}`,
       "",

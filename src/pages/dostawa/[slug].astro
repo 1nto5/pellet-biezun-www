@@ -24,7 +24,7 @@ import {
   poDrodze,
   type MiejsceZPodstrona,
 } from "../../data/miejsca";
-import { produkty, cenyLabel, cenaWorkaLabel, paletaLabel, cenyZDnia } from "../../data/oferta";
+import { produkty, cenyLabel, paletaLabel, cenyZDnia } from "../../data/oferta";
 import { distanceKm } from "../../lib/geo";
 import { maPodstrone, nazwaWlasna, pelnaNazwa } from "../../lib/miejsce";
 import { absoluteUrl } from "../../lib/url";
@@ -111,7 +111,7 @@ const usluga = {
           {
             produkty.map((p) => (
               <li>
-                {p.nazwa}: <strong>{[...cenyLabel(p), ...(p.cenaWorek ? [`worek ${cenaWorkaLabel(p)}`] : [])].join(", ")}</strong> ({paletaLabel(p)})
+                {p.nazwa}: <strong>{cenyLabel(p).join(", ")}</strong> ({paletaLabel(p)})
               </li>
             ))
           }

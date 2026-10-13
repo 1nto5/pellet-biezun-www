@@ -3,9 +3,10 @@
  * the local pages, the choices in the order form and llms.txt all read this
  * list. Prices live here and nowhere else; a page only prints them.
  *
- * Prices are from the client's OLX ads of `cenyZDnia`; the single-bag price
- * from the ad of 2026-10-01. Whether they include
- * VAT is not known, so no page says "brutto" or "z VAT".
+ * Prices are the client's own, from the corrections document of 2026-10-13,
+ * as of `cenyZDnia`: per pallet, per 15 kg bag and per tonne for each
+ * product. Whether they include VAT is not known, so no page says "brutto"
+ * or "z VAT".
  *
  * Certificates belong to the producers, not to the company: without a trader's
  * certificate the pages may show the original bags, but never the ENplus mark
@@ -19,9 +20,9 @@ import hitonZdjecie from "../assets/produkty/hiton.jpg";
 import wielbarkZdjecie from "../assets/produkty/wielbark.jpg";
 import { nazwyProduktow, type ProduktId } from "./produkty";
 
-/** The date of the ads the prices come from. */
-// TODO(produkcja): confirm the prices with the client, and whether they include VAT.
-export const cenyZDnia = "30.09.2026";
+/** The date the client gave the prices for. */
+// TODO(produkcja): ask the client whether the prices include VAT.
+export const cenyZDnia = "01.10.2026";
 
 export interface Parametr {
   nazwa: string;
@@ -51,9 +52,9 @@ export interface Produkt {
   kgNaPalecie: number;
   /** Złoty per pallet. */
   cenaPaleta: number;
-  /** Złoty per tonne, where the ad gives one. */
+  /** Złoty per tonne, where the client gives one. */
   cenaTona?: number;
-  /** Złoty per single bag, where an ad sells the product by the bag. */
+  /** Złoty per single bag, where the product is also sold by the bag. */
   cenaWorek?: number;
   /** Left out where neither the bag nor the ad names one; the pages then say nothing about a certificate. */
   certyfikat?: string;
@@ -67,12 +68,14 @@ export const produkty: Produkt[] = [
   {
     id: "hiton",
     nazwa: nazwyProduktow.hiton,
-    podtytul: "Pellet drzewny certyfikowany, 100% sosna, 6\u00a0mm",
+    podtytul: "Pellet drzewny certyfikowany, 100% sosna, średnica 6\u00a0mm",
     opis: "Pellet z czystych trocin sosnowych, bez dodatków chemicznych, klejów i innych zanieczyszczeń. Ma stałe, powtarzalne parametry i nie tworzy spieków. Siarki jest bardzo mało, co chroni kocioł przed korozją. Popiół można wykorzystać jako nawóz w ogrodzie.",
     workiKg: 15,
     workowNaPalecie: 65,
     kgNaPalecie: 975,
     cenaPaleta: 2200,
+    cenaTona: 2257,
+    cenaWorek: 34,
     certyfikat: "Certyfikat DINplus 7A433 i certyfikat ENplus A1 producenta, ID PL 078.",
     parametry: [
       { nazwa: "Wartość opałowa", wartosc: "≥ 18,0 MJ/kg (≥ 5,0 kWh/kg)" },
@@ -87,8 +90,8 @@ export const produkty: Produkt[] = [
   {
     id: "wielbark",
     nazwa: nazwyProduktow.wielbark,
-    podtytul: "Pellet drzewny certyfikowany, 100% sosna, 6\u00a0mm",
-    opis: "Pellet z zakładu IKEA Industry w Wielbarku, z mocno sprasowanych czystych trocin sosnowych, bez kory i innych dodatków. Daje mało popiołu i nie tworzy spieków.",
+    podtytul: "Pellet drzewny certyfikowany, 100% sosna, średnica 6\u00a0mm",
+    opis: "Pellet z zakładu IKEA Industry w Wielbarku, z mocno sprasowanych czystych trocin sosnowych, bez kory i innych dodatków. Daje mało popiołu i nie tworzy spieków. Jego jakość jest zawsze taka sama, bardzo wysoka.",
     workiKg: 15,
     workowNaPalecie: 72,
     kgNaPalecie: 1080,
@@ -114,25 +117,45 @@ export const produkty: Produkt[] = [
 ];
 
 /**
- * "2200 zł / paleta" and, where set, "2260 zł / t" (Polish leaves four-digit
- * numbers ungrouped). The unit stays with its slash, so a narrow column breaks
- * the price as "2200 zł" over "/ paleta", never after the slash.
+ * The prices in the order the pages show them: "2200 zł / paleta", then,
+ * where set, "34 zł / worek 15 kg" and "2257 zł / t" (Polish leaves
+ * four-digit numbers ungrouped). The unit stays with its slash, so a narrow
+ * column breaks the price as "2200 zł" over "/ paleta", never after the slash.
  */
 export function cenyLabel(p: Produkt): string[] {
   // The number stays with its "zł"; a line may break only before the "/".
   const zl = (n: number) => `${n.toLocaleString("pl-PL")}\u00a0zł`;
   const za = (unit: string) => `/\u00a0${unit}`;
-  return [`${zl(p.cenaPaleta)} ${za("paleta")}`, ...(p.cenaTona ? [`${zl(p.cenaTona)} ${za("t")}`] : [])];
+  return [
+    `${zl(p.cenaPaleta)} ${za("paleta")}`,
+    ...(p.cenaWorek ? [`${zl(p.cenaWorek)} ${za(`worek\u00a0${p.workiKg}\u00a0kg`)}`] : []),
+    ...(p.cenaTona ? [`${zl(p.cenaTona)} ${za("t")}`] : []),
+  ];
 }
 
-/** "34 zł" for a product also sold by the bag; kept out of `cenyLabel`, which every product page and the order form show. */
-export function cenaWorkaLabel(p: Produkt): string | undefined {
-  return p.cenaWorek ? `${p.cenaWorek.toLocaleString("pl-PL")}\u00a0zł` : undefined;
-}
-
-/** "2200 zł / paleta": the one price every product has. */
+/** "2200 zł / paleta": the one price every product has, and the one the pages set on the yellow tag. */
 export function cenaLabel(p: Produkt): string {
   return cenyLabel(p)[0]!;
+}
+
+/**
+ * The products also sold by the bag, in sentences: one for each bag price,
+ * naming every product sold at it. "Pellet HITON i Wood Pellets z IKEA
+ * Wielbark" with "34 zł za worek 15 kg" while both cost the same.
+ */
+export function naWorki(): { nazwy: string; cena: string }[] {
+  const grupy = new Map<string, string[]>();
+  for (const p of produkty) {
+    if (!p.cenaWorek) continue;
+    const cena = `${p.cenaWorek.toLocaleString("pl-PL")}\u00a0zł za worek ${p.workiKg} kg`;
+    grupy.set(cena, [...(grupy.get(cena) ?? []), p.nazwa]);
+  }
+  return [...grupy].map(([cena, nazwy]) => ({ nazwy: wylicz(nazwy), cena }));
+}
+
+/** "A", "A i B", "A, B i C". */
+function wylicz(nazwy: string[]): string {
+  return nazwy.length < 2 ? nazwy.join("") : `${nazwy.slice(0, -1).join(", ")} i ${nazwy.at(-1)}`;
 }
 
 /** "65 worków × 15 kg = 975 kg", "72 worki × 15 kg = 1080 kg" */

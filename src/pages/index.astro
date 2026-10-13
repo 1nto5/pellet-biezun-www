@@ -7,7 +7,7 @@ import { Image } from "astro:assets";
 import { firma, firmaId, addressLine, hoursRange } from "../data/firma";
 import { orderLink, strony } from "../data/nav";
 import { absoluteUrl } from "../lib/url";
-import { produkty, cenyLabel, cenaLabel, cenaWorkaLabel, paletaLabel } from "../data/oferta";
+import { produkty, cenyLabel, cenaLabel, paletaLabel } from "../data/oferta";
 import { flota, najdluzszy, dlugoscNaPasie, szczegolyLabel } from "../data/flota";
 import { faq } from "../data/faq";
 import { podstronyPoOdleglosci, miejsceHref } from "../data/miejsca";
@@ -83,8 +83,8 @@ const webSite = {
       <ul role="list" class="produkty-lista">
         {
           produkty.map((p, i) => {
-            const tona = cenyLabel(p)[1];
-            const worek = cenaWorkaLabel(p);
+            // After the pallet price on its tag: the bag, then the tonne.
+            const inne = cenyLabel(p).slice(1);
             return (
               <li class="produkt">
                 <Image
@@ -100,7 +100,7 @@ const webSite = {
                   <h3>{p.nazwa}</h3>
                   <p class="miekki">{paletaLabel(p)}</p>
                   <p class="cena-tag produkt-cena">{cenaLabel(p)}</p>
-                  {(tona || worek) && <p class="miekki">{[tona, worek && `worek ${worek}`].filter(Boolean).join(" · ")}</p>}
+                  {inne.map((c) => <p class="miekki">{c}</p>)}
                   <a href={`${strony.oferta.href}#produkt-${p.id}`} class="link-strong">
                     Parametry<span class="sr-only">: {p.nazwa}</span>
                     <span aria-hidden="true">→</span>
