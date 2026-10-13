@@ -38,7 +38,7 @@ const grupy = wojewodztwa
 
     {/* Beside the map, never in it: Leaflet draws into an empty box. Only the
         page script makes it work, so without scripts it is not shown. */}
-    <div class="szukaj mb-5" data-szukaj data-tel={firma.phone.label} data-tel-href={firma.phone.href}>
+    <div class="szukaj mb-5" data-szukaj data-tel={firma.phone.label} data-tel-href={firma.phone.href} data-zasada={ZASADA_DOSTAWY}>
       <form role="search" class="szukaj-form">
         <div class="field">
           <label for="szukaj-miejsce">Sprawdź swoją miejscowość</label>
@@ -126,7 +126,8 @@ const grupy = wojewodztwa
     // The towns as the map has them: `klucz` is the bare name, `nazwa` the
     // name with its note ("Nowe Miasto k. Płońska").
     type Miejsce = DaneMapy["miejsca"][number];
-    const miejsca = (JSON.parse(mapa.dataset.mapa ?? "{}") as DaneMapy).miejsca;
+    const dane = JSON.parse(mapa.dataset.mapa ?? "{}") as DaneMapy;
+    const miejsca = dane.miejsca;
     // The line under the field starts as a hint, small and muted
     // (`data-podpowiedz`), gives way to an answer and comes back when the
     // answer no longer holds.
@@ -180,8 +181,8 @@ const grupy = wojewodztwa
 
     // The map is drawn only when it comes near the screen; a town picked
     // before that waits for it. Only the last pick counts.
-    // `null` chooses no town: a search that found none takes the last one's
-    // road off the map.
+    // `null` chooses no town: a search for a place that has no dot takes the
+    // last one's road off the map.
     let czeka: string | null | undefined;
     function wybierz(klucz: string | null): void {
       if ("gotowa" in mapa!.dataset) mapa!.dispatchEvent(new CustomEvent("mapa:wybierz", { detail: { klucz } }));
@@ -240,12 +241,21 @@ const grupy = wojewodztwa
         odpowiedz("Która miejscowość? ", ...przyciski);
         wybierz(null);
       } else {
-        // What the reader typed goes in as text, never as markup.
+        // The dots are only some of the places we drive to, so a name without
+        // a dot is a yes as well, under the delivery rule. What the reader
+        // typed goes in as text, never as markup, and on to the order form.
+        const zamow = Object.assign(document.createElement("a"), {
+          href: `${dane.zamow}?miejscowosc=${encodeURIComponent(wpisane)}`,
+          textContent: "Zamów dostawę",
+          className: "link-strong",
+        });
         const tel = Object.assign(document.createElement("a"), { href: szukaj.dataset.telHref ?? "", textContent: szukaj.dataset.tel ?? "", className: "link-strong" });
         odpowiedz(
-          `Nie mamy na liście miejscowości „${wpisane}”. Dowozimy też do okolicznych wsi, a\u00a0na Mazurach niemal wszędzie. Zadzwoń pod `,
+          `Tak, dowozimy też do miejscowości „${wpisane}”. Na mapie zaznaczyliśmy tylko część miejscowości. ${szukaj.dataset.zasada ?? ""} `,
+          zamow,
+          " lub zadzwoń pod ",
           tel,
-          ", ustalimy szczegóły.",
+          ".",
         );
         wybierz(null);
       }
@@ -282,7 +292,7 @@ const grupy = wojewodztwa
       if (m) pole.value = wPolu = wlasna(m);
       else if (pole.value === wPolu) pole.value = "";
       // The line under the field goes back to its hint when it speaks of a
-      // town that is no longer the chosen one, or says "not on the list"
+      // town that is no longer the chosen one, or of a place without a dot
       // while the reader has picked a town on the map.
       const nieaktualna = potwierdzona !== undefined ? klucz !== potwierdzona : klucz !== null;
       if (nieaktualna) {
