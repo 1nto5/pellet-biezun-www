@@ -1,5 +1,5 @@
 {
- "zrodlo": "Valhalla (https://valhalla1.openstreetmap.de), trasa samochodem, 2026-10-12",
+ "zrodlo": "Valhalla (https://valhalla1.openstreetmap.de), trasa samochodem, 2026-10-12; Górzno 2026-10-13",
  "km": {
   "Bieżuń": 5,
   "Żuromin": 18,
@@ -62,6 +62,7 @@
   "Wąbrzeźno": 96,
   "Brodnica": 71,
   "Rypin": 47,
+  "Górzno": 59,
   "Nowe Miasto Lubawskie": 75,
   "Lubawa": 72,
   "Iława": 91,
@@ -349,6 +350,9 @@
    "Rypin"
   ],
   "Rypin": [
+   "Bieżuń"
+  ],
+  "Górzno": [
    "Bieżuń"
   ],
   "Nowe Miasto Lubawskie": [
