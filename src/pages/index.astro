@@ -8,7 +8,7 @@ import { firma, firmaId, addressLine, hoursRange } from "../data/firma";
 import { orderLink, strony } from "../data/nav";
 import { absoluteUrl } from "../lib/url";
 import { produkty, cenyLabel, cenaLabel, paletaLabel } from "../data/oferta";
-import { flota, najdluzszy, dlugoscNaPasie, szczegolyLabel } from "../data/flota";
+import { flota, udzial, szczegolyLabel } from "../data/flota";
 import { faq } from "../data/faq";
 import { podstronyPoOdleglosci, miejsceHref } from "../data/miejsca";
 
@@ -33,11 +33,8 @@ const kafelki: { tytul: string; tekst?: string }[] = [
   { tytul: "Iveco Daily na dojazd w trudno dostępne miejsca" },
 ];
 
-/**
- * Each entry's width on its strip, as a share of the longest's (`dl`), and
- * how many times its photo is drawn there (`sztuk`).
- */
-const auta = flota.map((f) => ({ ...f, sztuk: f.sztuk ?? 1, dl: Math.round((dlugoscNaPasie(f) / najdluzszy) * 1000) / 1000 }));
+/** Each vehicle with its width as a share of a full row (`dl`). */
+const auta = flota.map((f) => ({ ...f, dl: udzial(f) }));
 
 /** The site itself, so search results show the company's name as the site's. */
 const webSite = {
@@ -121,22 +118,20 @@ const webSite = {
       <ul role="list" class="flota-lista">
         {
           auta.map((f) => (
-            <li class="flota-auto">
+            <li class:list={["flota-auto", f.wParze && "flota-w-parze"]}>
               <div class="flota-opis">
                 <h3 class="flota-model">{f.model}</h3>
                 <p class="miekki">{szczegolyLabel(f)}</p>
               </div>
               <span class="flota-pas">
                 <span class="flota-foto" style={`--dl:${f.dl}`}>
-                  {Array.from({ length: f.sztuk }, (_, k) => (
-                    <Image
-                      src={f.zdjecie}
-                      alt={k === 0 ? f.alt : ""}
-                      width={800}
-                      widths={[200, 400, 600, 800]}
-                      sizes={`(min-width: 64rem) calc(${f.dl / f.sztuk} * 18rem), calc(${f.dl / f.sztuk} * 92vw)`}
-                    />
-                  ))}
+                  <Image
+                    src={f.zdjecie}
+                    alt={f.alt}
+                    width={800}
+                    widths={[200, 400, 600, 800]}
+                    sizes={`(min-width: 64rem) calc(${f.dl} * 18rem), calc(${f.dl} * 92vw)`}
+                  />
                 </span>
               </span>
             </li>
@@ -624,18 +619,28 @@ const webSite = {
     }
   }
 
-  /* The fleet: each vehicle on its own strip of road, all to one scale (the
-     longest strip, the two Iveco one behind the other, takes the full
-     width) and nose to the left, as on the offer page. On a wide screen the
-     strip is narrower, its text beside it, two a row, so the three fit
-     above the scene. */
+  /* The fleet: each vehicle on its own strip of road, all to one scale and
+     nose to the left, as on the offer page. A Volvo has a row to itself; the
+     two Iveco stand side by side, each on half a row, with its own label.
+     On a wide screen the strip is narrower, its text beside it, two a row,
+     so the four fit above the scene. */
   .flota-lista {
     display: grid;
-    gap: 0.75rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem 0.5rem;
   }
   .flota-auto {
     display: grid;
+    grid-column: 1 / -1;
+    /* The label on top, the road at the bottom: two labels of unequal
+       height beside each other keep their roads level. */
+    align-content: space-between;
     gap: 0.3rem;
+  }
+  .flota-w-parze {
+    grid-column: auto;
+    /* Half a row is the whole of this cell. */
+    --w-rzedzie: 2;
   }
   /* Make and model as the label, the details smaller and softer. */
   .flota-opis {
@@ -658,14 +663,12 @@ const webSite = {
       linear-gradient(90deg, var(--color-white) 0 50%, transparent 50%) 0 calc(100% - 0.17rem) / 1.4rem 0.1rem repeat-x,
       linear-gradient(var(--color-asphalt), var(--color-asphalt)) 0 100% / 100% 0.45rem no-repeat;
   }
-  /* `--dl` is the entry's share of the longest strip. Two of the same
-     vehicle share the width, a small gap between them; they shrink with the
-     strip, so nothing leaves it. */
+  /* `--dl` is the vehicle's share of a full row; in a cell that is half a
+     row (`--w-rzedzie`) it takes twice that share of the cell. */
   .flota-foto {
     display: flex;
     align-items: flex-end;
-    gap: 0.3rem;
-    width: calc(var(--dl) * (100% - 0.3rem));
+    width: calc(var(--dl) * var(--w-rzedzie, 1) * (100% - 0.3rem));
     margin-left: 0.3rem;
     /* Tyres touch the asphalt. */
     margin-bottom: -0.2rem;
@@ -682,6 +685,9 @@ const webSite = {
       gap: 1rem 2.5rem;
     }
     .flota-auto {
+      /* Every vehicle has a cell of its own here, the Iveco too. */
+      grid-column: auto;
+      --w-rzedzie: 1;
       /* The strip gives way before the text drops under 8rem. */
       grid-template-columns: minmax(0, 18rem) minmax(8rem, 1fr);
       align-items: end;

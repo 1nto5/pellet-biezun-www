@@ -3,9 +3,10 @@
  * offer page, the drive on the home page and llms.txt read this list.
  * `min`–`max` is how many pallets it takes; the row of blocks draws it, the
  * details say it. The label is the make and model, set as the main text,
- * with the details in a smaller line under it (`szczegolyLabel`). The two
- * Iveco Daily are the same, so one entry stands for both and its photo is
- * drawn twice, side by side (`sztuk`).
+ * with the details in a smaller line under it (`szczegolyLabel`). No weights:
+ * the client wants only the lift and the pallets named (2026-10-13). The two
+ * Iveco Daily are two entries, each with its own label and the same photo;
+ * they stand side by side in one row (`wParze`).
  *
  * The photos are the client's side views, cut out and levelled. `m` is the
  * vehicle's approximate length, so the trucks are drawn to one scale.
@@ -18,22 +19,34 @@ import fotoVolvoFh from "../assets/flota/volvo-fh.png";
 export interface Auto {
   /** Make and model: the label's main text. */
   model: string;
-  /** Short parts of the smaller line: count, weight, lift, pallets. */
+  /** Short parts of the smaller line: lift, pallets. */
   szczegoly: string[];
   min: number;
   max: number;
-  /** Approximate length of one vehicle in metres. */
+  /** Approximate length of the vehicle in metres. */
   m: number;
-  /** How many identical vehicles the entry stands for; the photo is drawn that many times. One when left out. */
-  sztuk?: number;
+  /** Shares its row with the entry beside it, each on half of the row. A longer vehicle has a row to itself. */
+  wParze?: true;
   zdjecie: ImageMetadata;
   alt: string;
 }
 
+/** One Iveco Daily; the company has two of them, alike. */
+const iveco: Auto = {
+  model: "Iveco Daily",
+  szczegoly: ["winda", "do 4 palet, także na dojazd w trudno dostępne miejsca"],
+  min: 4,
+  max: 4,
+  m: 7,
+  wParze: true,
+  zdjecie: fotoIveco,
+  alt: "Iveco Daily z czarną zabudową PELLET, z boku",
+};
+
 export const flota: Auto[] = [
   {
     model: "Volvo FM",
-    szczegoly: ["26 t", "winda", "12–14 palet"],
+    szczegoly: ["winda", "12–14 palet"],
     min: 12,
     max: 14,
     m: 10,
@@ -49,27 +62,19 @@ export const flota: Auto[] = [
     zdjecie: fotoVolvoFh,
     alt: "Czerwone Volvo FH z białą zabudową PELLET, z boku",
   },
-  {
-    model: "Iveco Daily",
-    szczegoly: ["2 auta", "7,2 t", "winda", "do 4 palet, także na dojazd w trudno dostępne miejsca"],
-    min: 4,
-    max: 4,
-    m: 7,
-    sztuk: 2,
-    zdjecie: fotoIveco,
-    alt: "Iveco Daily z czarną zabudową PELLET, z boku",
-  },
+  iveco,
+  iveco,
 ];
 
-/** The length an entry's photos take on its strip: 7 m twice for the two Iveco. */
-export function dlugoscNaPasie(a: Auto): number {
-  return a.m * (a.sztuk ?? 1);
+/** A row's length in metres: the longest vehicle, or two that stand in a pair (7 m twice for the Iveco). */
+const dlugoscRzedu = Math.max(...flota.map((a) => a.m * (a.wParze ? 2 : 1)));
+
+/** The vehicle's share of a row's length, so all are drawn to one scale: 0.5 for an Iveco, 0.714 for a Volvo. */
+export function udzial(a: Auto): number {
+  return Math.round((a.m / dlugoscRzedu) * 1000) / 1000;
 }
 
-/** The longest strip's length: drawn full width, the others in proportion. */
-export const najdluzszy = Math.max(...flota.map(dlugoscNaPasie));
-
-/** "26 t · winda · 12–14 palet": the label's smaller line. */
+/** "winda · 12–14 palet": the label's smaller line. */
 export function szczegolyLabel(a: Auto): string {
   return a.szczegoly.join(" · ");
 }

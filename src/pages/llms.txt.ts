@@ -13,6 +13,16 @@ import { pelnaNazwa } from "../lib/miejsce";
  * then sections of links). Built from the same data files as the pages, so
  * it cannot drift from them.
  */
+/** "Volvo FM (winda, 12–14 palet)"; two vehicles that read alike are named once, as "2 × Iveco Daily (…)". */
+function flotaTekst(): string {
+  const ile = new Map<string, number>();
+  for (const f of flota) {
+    const opis = `${f.model} (${f.szczegoly.join(", ")})`;
+    ile.set(opis, (ile.get(opis) ?? 0) + 1);
+  }
+  return [...ile].map(([opis, n]) => (n > 1 ? `${n} × ${opis}` : opis)).join(", ");
+}
+
 export const GET: APIRoute = ({ site }) => {
   // Every link below already carries the site's base (src/lib/url.ts).
   const url = (path: string) => new URL(path, site).toString();
@@ -41,7 +51,7 @@ export const GET: APIRoute = ({ site }) => {
     "## Dostawa",
     "",
     `${ZASADA_DOSTAWY} ` +
-      `Własne samochody, każdy z windą i elektrycznym wózkiem paletowym: ${flota.map((f) => `${f.model} (${f.szczegoly.join(", ")})`).join(", ")}. ` +
+      `Własne samochody, każdy z windą i elektrycznym wózkiem paletowym: ${flotaTekst()}. ` +
       "Odbiór osobisty w magazynie po wcześniejszym telefonie. Przy większym zamówieniu cena do negocjacji.",
     "",
     ...podstronyPoOdleglosci.map((m) => `- [Pellet ${m.podstrona.wMiejscowosci}](${url(miejsceHref(m))})`),

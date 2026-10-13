@@ -9,13 +9,10 @@ import { firma, firmaId, addressLine } from "../data/firma";
 import { orderLink, strony } from "../data/nav";
 import { produkty, cenyLabel, cenaLabel, paletaLabel, cenyZDnia } from "../data/oferta";
 import { ZASADA_DOSTAWY } from "../data/miejsca";
-import { flota, najdluzszy, dlugoscNaPasie, szczegolyLabel } from "../data/flota";
+import { flota, udzial, szczegolyLabel } from "../data/flota";
 
-/**
- * Each fleet entry's share of the longest strip (`dl`), and how many times
- * its photo is drawn on its own (`sztuk`).
- */
-const auta = flota.map((f) => ({ ...f, sztuk: f.sztuk ?? 1, dl: Math.round((dlugoscNaPasie(f) / najdluzszy) * 1000) / 1000 }));
+/** Each vehicle with its width as a share of a full row (`dl`). */
+const auta = flota.map((f) => ({ ...f, dl: udzial(f) }));
 
 /**
  * Each product with its pallet price, for search results. No `brand`
@@ -154,18 +151,16 @@ const produktyLd = await Promise.all(
       <ul role="list" id="flota" class="flota mt-6" data-ruch-grupa="auto">
         {
           auta.map((f) => (
-            <li class="flota-auto">
+            <li class:list={["flota-auto", f.wParze && "flota-w-parze"]}>
               <span class="flota-pas">
                 <span class="flota-foto" style={`--dl:${f.dl}`} data-ruch-auto>
-                  {Array.from({ length: f.sztuk }, (_, k) => (
-                    <Image
-                      src={f.zdjecie}
-                      alt={k === 0 ? f.alt : ""}
-                      width={1200}
-                      widths={[300, 400, 600, 800, 1200]}
-                      sizes={`(min-width: 64rem) calc(${f.dl / f.sztuk} * 34rem), calc(${f.dl / f.sztuk} * 92vw)`}
-                    />
-                  ))}
+                  <Image
+                    src={f.zdjecie}
+                    alt={f.alt}
+                    width={1200}
+                    widths={[300, 400, 600, 800, 1200]}
+                    sizes={`(min-width: 64rem) calc(${f.dl} * 34rem), calc(${f.dl} * 92vw)`}
+                  />
                 </span>
               </span>
               <div>
@@ -237,19 +232,31 @@ const produktyLd = await Promise.all(
 
   /* The fleet: each truck standing on its own strip of road, all to one
      scale and nose to the left like in the drive on the home page, with its
-     row of pallet blocks. The two Iveco stand one behind the other on
-     theirs, the longest strip. */
+     row of pallet blocks. A Volvo has a row to itself; the two Iveco stand
+     side by side, each on half a row, with its own label under it. */
   .flota {
     display: grid;
-    gap: 2rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2rem 0.5rem;
     max-width: 64rem;
   }
   .flota-auto {
     display: grid;
+    grid-column: 1 / -1;
+    align-content: start;
     gap: 0.75rem;
   }
+  .flota-w-parze {
+    grid-column: auto;
+    /* Half a row is the whole of this cell. */
+    --w-rzedzie: 2;
+  }
   @media (min-width: 64rem) {
-    .flota-auto {
+    /* The two halves together are as wide as a Volvo's strip. */
+    .flota {
+      grid-template-columns: repeat(2, 16.75rem) minmax(0, 1fr);
+    }
+    .flota-auto:not(.flota-w-parze) {
       grid-template-columns: 34rem minmax(0, 1fr);
       align-items: end;
       gap: 2.5rem;
@@ -265,14 +272,13 @@ const produktyLd = await Promise.all(
       linear-gradient(90deg, var(--color-white) 0 50%, transparent 50%) 0 calc(100% - 0.2rem) / 1.6rem 0.12rem repeat-x,
       linear-gradient(var(--color-asphalt), var(--color-asphalt)) 0 100% / 100% 0.55rem no-repeat;
   }
-  /* Two of the same vehicle share the width, a small gap between them; they
-     shrink with the strip, so nothing leaves it. */
+  /* `--dl` is the vehicle's share of a full row; in a cell that is half a
+     row (`--w-rzedzie`) it takes twice that share of the cell. */
   .flota-foto {
     position: relative;
     display: flex;
     align-items: flex-end;
-    gap: 0.4rem;
-    width: calc(var(--dl) * (100% - 0.4rem));
+    width: calc(var(--dl) * var(--w-rzedzie, 1) * (100% - 0.4rem));
     margin-left: 0.4rem;
     /* Tyres touch the asphalt. */
     margin-bottom: -0.25rem;
