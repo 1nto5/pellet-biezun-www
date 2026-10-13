@@ -1003,6 +1003,55 @@ input[type="date"].input::-webkit-date-and-time-value {
 .mapa.mapa-kwadrat {
   aspect-ratio: 1;
 }
+/* The distribution map is never taller than the window under the pinned
+   header, less the line of the answer above it: the road from the warehouse
+   to a town is seen whole, and scrolling to the map keeps that line in
+   sight. On a phone the towns' area is taller than wide, so the box is too,
+   as far as the screen lets it. */
+.mapa.mapa-dystrybucja {
+  max-height: min(36rem, 100svh - var(--header-height) - 5rem);
+  scroll-margin-block: calc(var(--header-height) + 3.5rem) 1rem;
+}
+@media (width < 48rem) {
+  .mapa.mapa-dystrybucja {
+    aspect-ratio: 4 / 5;
+    max-height: 70svh;
+  }
+}
+/* "Pokaż cały obszar", in the map's corner (mapa.ts), in the look of
+   Leaflet's own +/- buttons. */
+.mapa .mapa-calosc {
+  padding: 0.45rem 0.7rem 0.3rem;
+  border: 2px solid rgb(0 0 0 / 0.2);
+  border-radius: 4px;
+  background: var(--color-white) padding-box;
+  color: var(--color-black);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+}
+.mapa .mapa-calosc:hover {
+  background-color: var(--color-sand);
+}
+.mapa .mapa-calosc[hidden] {
+  display: none;
+}
+@media (pointer: coarse) {
+  .mapa .mapa-calosc {
+    min-height: 44px;
+  }
+}
+/* On a phone's narrow map the button would reach the map's credit in the
+   other bottom corner, so it stands above that line. Leaflet's stylesheet,
+   which comes later, sets this margin for every control in a bottom corner;
+   the longer selector wins over it. */
+@media (width < 48rem) {
+  .mapa .leaflet-bottom .mapa-calosc {
+    margin-bottom: 2.2rem;
+  }
+}
 /* The warehouse: a green pin with a white rim and a black edge, the sign's
    colours. mapa.ts places its tip from this size: change both together. */
 .pin {
@@ -1022,9 +1071,46 @@ input[type="date"].input::-webkit-date-and-time-value {
   font: inherit;
   background: var(--color-sand);
 }
+/* The base map a little paler, so the green dots stand out on its green
+   forests. Only the tiles: the dots, the pin and the road keep their colours. */
+.mapa .leaflet-tile-pane {
+  filter: saturate(0.6);
+}
 .mapa .leaflet-popup-content {
   font-size: 0.95rem;
   line-height: 1.45;
+}
+/* A town's popup (mapa.ts): its name, then "Zamów dostawę" as a small button
+   and, for a town with its own page, "Dostawa i ceny" as a link. Leaflet
+   colours every link on a map blue; these keep the site's colours. */
+.mapa .mapa-dymek strong {
+  font-size: 1.05rem;
+}
+.mapa .mapa-dymek p {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 1rem;
+  margin: 0.4rem 0 0;
+}
+.mapa .mapa-dymek a.btn {
+  color: var(--color-black);
+}
+.mapa .mapa-dymek a.link-strong {
+  color: var(--color-sign);
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+}
+.mapa .mapa-dymek a.link-strong:hover {
+  color: var(--color-sign-deep);
+  text-decoration-thickness: 2px;
+}
+@media (pointer: coarse) {
+  .mapa .mapa-dymek a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
 }
 .mapa .leaflet-popup-content-wrapper,
 .mapa .leaflet-popup-tip {
@@ -1053,10 +1139,58 @@ input[type="date"].input::-webkit-date-and-time-value {
   fill: var(--color-sign);
   fill-opacity: 1;
 }
-.mapa-miejsce-wyroznione {
+.mapa-miejsce-wyroznione,
+.mapa-miejsce.is-wskazana,
+.mapa-miejsce.is-wybrana {
   stroke: var(--color-black);
   stroke-width: 3;
   fill: var(--color-yellow);
+}
+/* The dots do not take the pointer themselves (mapa.ts finds the nearest
+   one), so the map shows the hand when a town is within reach. */
+.mapa.mapa-nad-miejscem {
+  cursor: pointer;
+}
+/* The name of the town under the pointer: a small direction board, like
+   `.sign`. Leaflet's white box and its arrow go. */
+.mapa .mapa-nazwa {
+  padding: 0.5rem 0.75rem 0.35rem;
+  border: 0;
+  border-radius: var(--radius-sign);
+  background: var(--color-sign);
+  color: var(--color-white);
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.2;
+  box-shadow:
+    inset 0 0 0 0.12rem var(--color-sign),
+    inset 0 0 0 0.2rem var(--color-white),
+    0 1px 4px rgb(0 0 0 / 0.35);
+}
+.mapa .mapa-nazwa::before {
+  display: none;
+}
+/* The road from the warehouse to the chosen town, three lines one on
+   another (mapa.ts): a white edge, the asphalt and a dashed centre line. */
+.mapa-trasa {
+  fill: none;
+  stroke-opacity: 1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.mapa-trasa-obrys {
+  stroke: var(--color-white);
+  stroke-width: 9;
+}
+.mapa-trasa-jezdnia {
+  stroke: var(--color-asphalt);
+  stroke-width: 6;
+}
+.mapa-trasa-os {
+  stroke: var(--color-white);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  stroke-dasharray: 6 6;
 }
 .legend-dot {
   display: inline-block;
@@ -1066,6 +1200,17 @@ input[type="date"].input::-webkit-date-and-time-value {
   border-radius: 50%;
   background: var(--color-sign);
   vertical-align: -0.05rem;
+}
+/* A short piece of the road drawn to a chosen town. */
+.legend-trasa {
+  display: inline-block;
+  width: 1.8rem;
+  height: 0.45rem;
+  border-radius: 0.225rem;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 0.2rem, var(--color-white) 0.2rem 0.5rem, transparent 0.5rem 0.6rem) center / 100% 1px no-repeat,
+    var(--color-asphalt);
+  vertical-align: 0.1rem;
 }
 /* ---------------------------------------------------------------------------
    Photographs: the gallery grid and the lightbox it opens. The first photo

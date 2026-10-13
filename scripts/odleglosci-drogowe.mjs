@@ -10,8 +10,12 @@
  * community (valhalla1.openstreetmap.de): the fastest route by car, as a
  * satnav picks it. The towns and the warehouse are read from the data files
  * as text: those files need Astro to import.
+ *
+ * The same run writes src/data/trasy.json: the shape of each road, for the
+ * line the distribution map draws to a chosen town.
  */
 import { readFileSync, writeFileSync } from "node:fs";
+import { gzipSync } from "node:zlib";
 
 const SERWER = "https://valhalla1.openstreetmap.de";
 const plik = (p) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
@@ -59,6 +63,73 @@ function kmMiedzy(a, b) {
   return Math.hypot(x, y);
 }
 
+/**
+ * How far a point of a route may be from the drawn line, in metres. The map
+ * shows a route at a zoom where 60 m is under a pixel; raise it (up to 150)
+ * if trasy.json grows too heavy.
+ */
+const TOLERANCJA_M = 60;
+
+/** Metres from point `p` to the segment a-b, flat as in `kmMiedzy`. */
+function odcinekM(p, a, b) {
+  const skala = 111200 * Math.cos(p.lat * (Math.PI / 180));
+  const [ax, ay] = [(a.lon - p.lon) * skala, (a.lat - p.lat) * 111200];
+  const [bx, by] = [(b.lon - p.lon) * skala, (b.lat - p.lat) * 111200];
+  const [dx, dy] = [bx - ax, by - ay];
+  const dlugosc = dx * dx + dy * dy;
+  const t = dlugosc === 0 ? 0 : Math.max(0, Math.min(1, -(ax * dx + ay * dy) / dlugosc));
+  return Math.hypot(ax + t * dx, ay + t * dy);
+}
+
+/**
+ * Douglas-Peucker: keeps the ends of a line and, between them, only the
+ * points that stand further than the tolerance from the line drawn without
+ * them. A stack instead of recursion, as a route has thousands of points.
+ */
+function uprosc(punkty, tolerancjaM) {
+  const zostaje = new Uint8Array(punkty.length);
+  zostaje[0] = zostaje[punkty.length - 1] = 1;
+  const stos = [[0, punkty.length - 1]];
+  while (stos.length > 0) {
+    const [od, po] = stos.pop();
+    let najdalej = 0;
+    let gdzie = -1;
+    for (let i = od + 1; i < po; i++) {
+      const d = odcinekM(punkty[i], punkty[od], punkty[po]);
+      if (d > najdalej) [najdalej, gdzie] = [d, i];
+    }
+    if (najdalej > tolerancjaM) {
+      zostaje[gdzie] = 1;
+      stos.push([od, gdzie], [gdzie, po]);
+    }
+  }
+  return punkty.filter((_, i) => zostaje[i]);
+}
+
+/**
+ * The reverse of `linia`, with five decimal places (about a metre), which is
+ * what the map needs and a third shorter than six.
+ */
+function zakoduj(punkty) {
+  let tekst = "";
+  let [lat, lon] = [0, 0];
+  const liczba = (roznica) => {
+    let v = roznica < 0 ? ~(roznica << 1) : roznica << 1;
+    while (v >= 0x20) {
+      tekst += String.fromCharCode((0x20 | (v & 0x1f)) + 63);
+      v >>= 5;
+    }
+    tekst += String.fromCharCode(v + 63);
+  };
+  for (const p of punkty) {
+    const [nLat, nLon] = [Math.round(p.lat * 1e5), Math.round(p.lon * 1e5)];
+    liczba(nLat - lat);
+    liczba(nLon - lon);
+    [lat, lon] = [nLat, nLon];
+  }
+  return tekst;
+}
+
 const zapytaj = async (sciezka, cialo) => {
   const odp = await fetch(`${SERWER}/${sciezka}?json=${encodeURIComponent(JSON.stringify(cialo))}`);
   if (!odp.ok) throw new Error(`${sciezka}: ${odp.status} ${await odp.text()}`);
@@ -102,5 +173,15 @@ const dane = {
   poDrodze,
 };
 writeFileSync(new URL("../src/data/drogi.json", import.meta.url), `${JSON.stringify(dane, null, 1)}\n`);
+
+// The roads themselves, for the map: warehouse first, town last.
+const trasyDane = {
+  zrodlo: dane.zrodlo,
+  trasy: Object.fromEntries(miejsca.map(({ nazwa }) => [nazwa, zakoduj(uprosc(trasy[nazwa], TOLERANCJA_M))])),
+};
+const trasyTekst = `${JSON.stringify(trasyDane)}\n`;
+writeFileSync(new URL("../src/data/trasy.json", import.meta.url), trasyTekst);
+console.log(`Routes at ${TOLERANCJA_M} m: ${trasyTekst.length} bytes, ${gzipSync(trasyTekst).length} compressed.`);
+
 const wStrefie = Object.values(km).filter((k) => k <= darmowaKm).length;
 console.log(`${Object.keys(km).length} towns, ${wStrefie} within ${darmowaKm} km by road.`);

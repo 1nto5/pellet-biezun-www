@@ -9,7 +9,13 @@
  * The warehouse is always on the map, as a pin drawn in CSS (`divIcon`).
  * Leaflet's default pin is a PNG whose path breaks once the build moves it,
  * so it is never used. Towns are small dots (`circleMarker`), the page's own
- * town larger; their colours come from the tokens in `global.css`.
+ * town larger; their colours come from the tokens in `global.css`. A dot
+ * shows its town's name under the pointer and, clicked, a popup with a link
+ * to the order form.
+ *
+ * With `trasy` the map also draws the road from the warehouse to the chosen
+ * town and can be steered from outside, through events on its element:
+ * `mapa:wybierz` in, `mapa:wybrano` and `mapa:gotowa` out (see `mapa.ts`).
  *
  * The map is decoration on top of the facts: every page that shows one also
  * lists the same places as text, which is what works without JavaScript.
@@ -19,6 +25,7 @@
 import { firma, addressLine } from "../data/firma";
 import type { Miejsce } from "../data/miejsca";
 import { miejsceHref } from "../data/miejsca";
+import { strony } from "../data/nav";
 import { maPodstrone, pelnaNazwa } from "../lib/miejsce";
 import type { DaneMapy } from "./mapa";
 
@@ -29,12 +36,14 @@ interface Props {
   wyroznione?: Miejsce;
   /** Zoom when the map shows the warehouse alone; otherwise it fits everything drawn. */
   zoom?: number;
+  /** Draw the road to the chosen town and listen to the page (the distribution map only). */
+  trasy?: boolean;
   /** What the map shows, for screen readers. */
   label: string;
   class?: string;
 }
 
-const { miejsca = [], wyroznione, zoom = 13, label, class: className } = Astro.props;
+const { miejsca = [], wyroznione, zoom = 13, trasy = false, label, class: className } = Astro.props;
 
 const dane: DaneMapy = {
   magazyn: {
@@ -45,17 +54,23 @@ const dane: DaneMapy = {
     lat: firma.geo.lat,
     lng: firma.geo.lng,
   },
-  miejsca: miejsca.map((m) => ({
-    nazwa: pelnaNazwa(m),
-    lat: m.geo.lat,
-    lng: m.geo.lng,
-    href: maPodstrone(m) ? miejsceHref(m) : null,
-    wyroznione: wyroznione !== undefined && m.nazwa === wyroznione.nazwa && m.geo.lat === wyroznione.geo.lat,
-  })),
+  miejsca: miejsca.map((m) => {
+    const wlasne = wyroznione !== undefined && m.nazwa === wyroznione.nazwa && m.geo.lat === wyroznione.geo.lat;
+    return {
+      klucz: m.nazwa,
+      nazwa: pelnaNazwa(m),
+      lat: m.geo.lat,
+      lng: m.geo.lng,
+      // A town's own page does not link to itself from its dot.
+      href: maPodstrone(m) && !wlasne ? miejsceHref(m) : null,
+      wyroznione: wlasne,
+    };
+  }),
+  zamow: strony.zamowienie.href,
 };
 ---
 
-<section class:list={["mapa", className]} data-mapa={JSON.stringify(dane)} data-zoom={zoom} aria-label={label}></section>
+<section class:list={["mapa", className]} data-mapa={JSON.stringify(dane)} data-zoom={zoom} data-trasy={trasy || undefined} aria-label={label}></section>
 
 <script>
   // Leaflet (about 150 KB) and its stylesheet load only when a map comes
