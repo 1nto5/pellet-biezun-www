@@ -10,6 +10,7 @@ import { orderLink, strony } from "../data/nav";
 import { produkty, cenyLabel, cenaLabel, paletaLabel, cenyZDnia } from "../data/oferta";
 import { ZASADA_DOSTAWY } from "../data/miejsca";
 import { flota, udzial, szczegolyLabel } from "../data/flota";
+import { href } from "../lib/url";
 
 /** Each vehicle with its width as a share of a full row (`dl`). */
 const auta = flota.map((f) => ({ ...f, dl: udzial(f) }));
@@ -128,6 +129,11 @@ const produktyLd = await Promise.all(
               </table>
             </div>
             <p class="mt-3 max-w-prose text-sm text-ink-soft">Źródło: {p.zrodloParametrow}</p>
+            {p.dokument && (
+              <p class="mt-3">
+                <a href={href(p.dokument.plik)} class="link-strong">{p.dokument.etykieta}</a>
+              </p>
+            )}
           </div>
         </section>
       ))

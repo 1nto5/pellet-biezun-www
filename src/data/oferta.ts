@@ -31,6 +31,13 @@ export interface Parametr {
   wymaganie?: string;
 }
 
+export interface Dokument {
+  /** The link's text, with the file's kind and size: "Sprawozdanie z badań (PDF, 0,4 MB)". */
+  etykieta: string;
+  /** The file's address in `public/`, without the site's base: the pages put it through `href()`. */
+  plik: `/${string}`;
+}
+
 export interface Zdjecie {
   src: ImageMetadata;
   alt: string;
@@ -61,6 +68,8 @@ export interface Produkt {
   parametry: Parametr[];
   /** Where the parameter values come from, shown under the table. */
   zrodloParametrow: string;
+  /** A file to read under the parameters: the test report, later a certificate. Only what the client has sent. */
+  dokument?: Dokument;
   zdjecie: Zdjecie;
 }
 
@@ -112,6 +121,11 @@ export const produkty: Produkt[] = [
     ],
     zrodloParametrow:
       "sprawozdanie z badań nr DBL-2026-5826-01-BLS z 09.09.2026, Sieć Badawcza Łukasiewicz – Poznański Instytut Technologiczny (laboratorium akredytowane, PCA AB 053).",
+    // The laboratory's report as the client sent it on 2026-10-13, 409 938 bytes.
+    dokument: {
+      etykieta: "Sprawozdanie z badań (PDF, 0,4\u00a0MB)",
+      plik: "/dokumenty/sprawozdanie-z-badan-wood-pellets-ikea-wielbark.pdf",
+    },
     zdjecie: { src: wielbarkZdjecie, alt: "Worek pelletu z napisem „Wood Pellets”" },
   },
 ];
