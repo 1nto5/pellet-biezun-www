@@ -13,7 +13,7 @@ import { ZASADA_DOSTAWY } from "./miejsca";
 export const faq: { q: string; a: string }[] = [
   {
     q: "Ile worków jest na palecie?",
-    a: `${produkty.map((p) => `${p.nazwa}: ${paletaLabel(p)}`).join(". ")}. Palety są zapakowane fabrycznie.`,
+    a: `${produkty.map((p) => `${p.nazwa}: ${paletaLabel(p)}`).join(". ")}.`,
   },
   ...(produkty.some((p) => p.cenaWorek)
     ? [
@@ -32,7 +32,7 @@ export const faq: { q: string; a: string }[] = [
   },
   {
     q: "Jak wygląda rozładunek?",
-    a: "Każdy nasz samochód ma windę i elektryczny wózek paletowy, więc paletę zdejmujemy z auta i podwozimy na miejsce. Na dojazd w trudno dostępne miejsca mamy mniejsze auta Iveco Daily.",
+    a: "Każdy nasz samochód ma windę i elektryczny wózek paletowy, paletę zdejmujemy z auta i podwozimy na miejsce. Na dojazd w trudno dostępne miejsca mamy mniejsze auta Iveco Daily.",
   },
   {
     q: "Czy pellet można trzymać na zewnątrz?",
@@ -52,7 +52,7 @@ export const faq: { q: string; a: string }[] = [
   },
   {
     q: "Czy przy większym zamówieniu cena jest niższa?",
-    a: "Przy większych zamówieniach cena jest do negocjacji. Zadzwoń, a ustalimy warunki.",
+    a: "Przy większym zamówieniu cena do negocjacji.",
   },
   {
     q: "Co zrobić z popiołem?",

@@ -42,7 +42,7 @@ export const GET: APIRoute = ({ site }) => {
     "",
     `${ZASADA_DOSTAWY} ` +
       `Własne samochody, każdy z windą i elektrycznym wózkiem paletowym: ${flota.map((f) => `${f.model} (${f.szczegoly.join(", ")})`).join(", ")}. ` +
-      "Odbiór osobisty w magazynie po wcześniejszym telefonie. Przy większych zamówieniach cena do negocjacji.",
+      "Odbiór osobisty w magazynie po wcześniejszym telefonie. Przy większym zamówieniu cena do negocjacji.",
     "",
     ...podstronyPoOdleglosci.map((m) => `- [Pellet ${m.podstrona.wMiejscowosci}](${url(miejsceHref(m))})`),
     "",
