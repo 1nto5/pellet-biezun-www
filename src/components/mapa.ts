@@ -5,6 +5,7 @@
  */
 import L from "leaflet";
 import leafletCss from "leaflet/dist/leaflet.css?url";
+import { zloz } from "../lib/zloz";
 
 /**
  * Leaflet's stylesheet, added to the page once, with the first map: imported
@@ -43,6 +44,32 @@ type MiejsceMapy = DaneMapy["miejsca"][number];
 interface Kropka {
   m: MiejsceMapy;
   kropka: L.CircleMarker;
+  /**
+   * Set for a place found by the page's search that has no dot of its own:
+   * its bare name, for the order link, and its gmina, for the road. Such a
+   * dot is on the map only while it is the chosen one.
+   */
+  wlasna?: string;
+  gmina?: string;
+}
+
+/**
+ * A place without a dot, sent by the page with `mapa:wybierz`: `klucz` is a
+ * key the page makes up, `nazwa` what the popup says, `wlasna` the bare name.
+ */
+export interface PunktMapy {
+  klucz: string;
+  nazwa: string;
+  wlasna: string;
+  /** The place's gmina, as the index has it: it says which file of roads to search. */
+  gmina: string;
+  lat: number;
+  lng: number;
+}
+/** What the page sends with `mapa:wybierz`: a town's key, a place without a dot, or neither. */
+export interface WyborMapy {
+  klucz: string | null;
+  punkt?: PunktMapy | undefined;
 }
 
 /** How near a dot the pointer must be to mean its town, in px: a mouse, a finger. */
@@ -53,6 +80,13 @@ const PROMIEN = 6;
 const PROMIEN_DUZY = 9;
 /** How long the road takes to draw itself, in ms. */
 const RYSOWANIE_MS = 800;
+/** A straight line from the road to a searched place is drawn from this length up, in m. */
+const DOJAZD_OD_M = 200;
+/**
+ * And up to this length, in km: past it no stored road goes near the place,
+ * and the map shows the place without a road. Only compared, never shown.
+ */
+const DOJAZD_MAKS_KM = 25;
 
 // Popups are built from DOM nodes, not an HTML string, so a name with an
 // odd character cannot break the markup.
@@ -112,6 +146,77 @@ function dekoduj(tekst: string): L.LatLngTuple[] {
     punkty.push([lat / 1e5, lng / 1e5]);
   }
   return punkty;
+}
+
+/** The roads to the 92 towns as points, decoded once, for places without a dot. */
+let drogi: Promise<L.LatLngTuple[][]> | undefined;
+/**
+ * One more road for each gmina that has none among the towns'
+ * (src/data/trasy-gmin), in a file for each first letter of the gmina's
+ * folded name, fetched when a place of such a gmina is chosen. The whole
+ * file is searched, so the road taken may be another gmina's. A file that is
+ * missing or fails to load counts as empty: the roads to the towns are
+ * searched alone.
+ */
+const plikiGmin = import.meta.glob<Record<string, string>>("../data/trasy-gmin/*.json", { import: "default" });
+const drogiGmin = new Map<string, Promise<L.LatLngTuple[][]>>();
+function wczytajDrogiGmin(gmina: string): Promise<L.LatLngTuple[][]> {
+  const znak = zloz(gmina)[0] ?? "";
+  let wczytane = drogiGmin.get(znak);
+  if (!wczytane) {
+    const plik = plikiGmin[`../data/trasy-gmin/${znak}.json`];
+    wczytane = plik ? plik().then((kody) => Object.values(kody).map(dekoduj)).catch(() => []) : Promise.resolve([]);
+    drogiGmin.set(znak, wczytane);
+  }
+  return wczytane;
+}
+
+/** What is drawn for a chosen place: the road, and the straight line on from its end. */
+interface Droga {
+  punkty?: L.LatLngTuple[] | undefined;
+  dojazd?: L.LatLngTuple[] | undefined;
+}
+/**
+ * The way to a place that has no road of its own: of the roads to the towns
+ * and those of its gmina's file, the one that passes nearest the place, from
+ * the warehouse up to the point of the road nearest the place (anywhere on
+ * its line, not only at a vertex), and the straight line from there to the
+ * place. The line is left out under `DOJAZD_OD_M`; when it would be longer
+ * than `DOJAZD_MAKS_KM`, nothing is drawn.
+ */
+async function drogaDoPunktu(gmina: string, cel: L.LatLng): Promise<Droga> {
+  drogi ??= wczytajTrasy().then((kody) => Object.values(kody).map(dekoduj));
+  const [doMiast, doGmin] = await Promise.all([drogi, wczytajDrogiGmin(gmina)]);
+  // Near enough to flat at this scale: degrees of longitude are shortened
+  // by the latitude, and the squares compare without a root.
+  const skala = Math.cos((cel.lat * Math.PI) / 180);
+  const [cy, cx] = [cel.lat, cel.lng * skala];
+  let najblizej = Infinity;
+  let droga: L.LatLngTuple[] | undefined;
+  // The segment that starts at vertex `odcinek`, and how far along it (0 to 1).
+  let odcinek = 0;
+  let ulamek = 0;
+  for (const punkty of [...doMiast, ...doGmin]) {
+    for (let i = 0; i + 1 < punkty.length; i++) {
+      const [ay, ax] = [punkty[i]![0], punkty[i]![1] * skala];
+      const [dy, dx] = [punkty[i + 1]![0] - ay, punkty[i + 1]![1] * skala - ax];
+      const dlugosc = dy * dy + dx * dx;
+      // The place dropped onto the segment, kept between its two ends.
+      const t = dlugosc > 0 ? Math.min(1, Math.max(0, ((cy - ay) * dy + (cx - ax) * dx) / dlugosc)) : 0;
+      const d = (ay + t * dy - cy) ** 2 + (ax + t * dx - cx) ** 2;
+      if (d < najblizej) [najblizej, droga, odcinek, ulamek] = [d, punkty, i, t];
+    }
+  }
+  const [od, ku] = [droga?.[odcinek], droga?.[odcinek + 1]];
+  if (!droga || !od || !ku) return {};
+  const zjazd: L.LatLngTuple = [od[0] + ulamek * (ku[0] - od[0]), od[1] + ulamek * (ku[1] - od[1])];
+  const prosto = cel.distanceTo(zjazd);
+  if (prosto > DOJAZD_MAKS_KM * 1000) return {};
+  return {
+    // The nearest point may be the warehouse itself: no road then, only the line.
+    punkty: odcinek > 0 || ulamek > 0 ? [...droga.slice(0, odcinek + 1), zjazd] : undefined,
+    dojazd: prosto >= DOJAZD_OD_M ? [zjazd, [cel.lat, cel.lng]] : undefined,
+  };
 }
 
 /** Draws the map into `el`, from its `data-mapa`, `data-zoom` and `data-trasy`. */
@@ -222,7 +327,9 @@ export async function narysujMape(el: HTMLElement): Promise<void> {
   function najblizsza(punkt: L.Point, dotyk: boolean): Kropka | undefined {
     let najblizej = dotyk ? ZASIEG_PALEC : ZASIEG_MYSZ;
     let znaleziona: Kropka | undefined;
-    for (const k of kropki) {
+    // A searched place's dot is the chosen one, on top of the others: last,
+    // so it wins a tie.
+    for (const k of wybrana?.wlasna === undefined ? kropki : [...kropki, wybrana]) {
       const d = map.latLngToContainerPoint(k.kropka.getLatLng()).distanceTo(punkt);
       if (d <= najblizej) [najblizej, znaleziona] = [d, k];
     }
@@ -253,11 +360,11 @@ export async function narysujMape(el: HTMLElement): Promise<void> {
   }
 
   /** What a town's popup says: its name, the way to order, its own page if it has one. */
-  function trescDymka(m: MiejsceMapy): HTMLElement {
+  function trescDymka({ m, wlasna = m.klucz }: Kropka): HTMLElement {
     const box = document.createElement("div");
     box.className = "mapa-dymek";
     const linki = document.createElement("p");
-    linki.append(link(`${dane.zamow}?miejscowosc=${encodeURIComponent(m.klucz)}`, "Zamów dostawę", "btn btn-primary btn-sm"));
+    linki.append(link(`${dane.zamow}?miejscowosc=${encodeURIComponent(wlasna)}`, "Zamów dostawę", "btn btn-primary btn-sm"));
     if (m.href) linki.append(link(m.href, "Dostawa i ceny", "link-strong"));
     box.append(strong(m.nazwa), linki);
     return box;
@@ -279,14 +386,26 @@ export async function narysujMape(el: HTMLElement): Promise<void> {
     trasa = undefined;
   }
 
-  function rysujTrase(punkty: L.LatLngTuple[]): void {
-    const [obrys, jezdnia, os] = ["mapa-trasa-obrys", "mapa-trasa-jezdnia", "mapa-trasa-os"].map((className) =>
-      L.polyline(punkty, { pane: "trasa", interactive: false, className: `mapa-trasa ${className}` }),
-    ) as [L.Polyline, L.Polyline, L.Polyline];
-    trasa = L.layerGroup([obrys, jezdnia, os]).addTo(map);
+  /**
+   * `dojazd`: the straight line from the road's end to a place that has no
+   * road of its own, dashed. It comes when the road has drawn itself.
+   */
+  function rysujTrase(punkty: L.LatLngTuple[] = [], dojazd?: L.LatLngTuple[]): void {
+    const linia = (wierzcholki: L.LatLngTuple[], className: string) =>
+      L.polyline(wierzcholki, { pane: "trasa", interactive: false, className: `mapa-trasa ${className}` });
+    const [obrys, jezdnia, os] = ["mapa-trasa-obrys", "mapa-trasa-jezdnia", "mapa-trasa-os"].map((className) => linia(punkty, className)) as [
+      L.Polyline,
+      L.Polyline,
+      L.Polyline,
+    ];
+    const prosta = dojazd && linia(dojazd, "mapa-trasa-dojazd");
+    trasa = L.layerGroup(prosta ? [obrys, jezdnia, os, prosta] : [obrys, jezdnia, os]).addTo(map);
     // This pane has an SVG of its own; see the dots' SVG above.
     map.getPane("trasa")?.querySelector("svg")?.setAttribute("aria-hidden", "true");
     if (bezRuchu.matches) return;
+    // Hidden while the road draws itself, then it fades in; at once when
+    // there is no road before it.
+    if (punkty.length > 0) prosta?.getElement()?.animate?.([{ opacity: 0 }, { opacity: 0, offset: 0.8 }, { opacity: 1 }], { duration: RYSOWANIE_MS / 0.8 });
     // The road draws itself from the warehouse: with the path's length
     // counted as 1, one dash of 1 slides in from its start. The centre line
     // is dashed already, so it fades in once the asphalt is laid.
@@ -311,17 +430,21 @@ export async function narysujMape(el: HTMLElement): Promise<void> {
    */
   async function pokazTrase(k: Kropka, lec: boolean): Promise<void> {
     // Without the road (a failed fetch) the town is still chosen and shown.
-    const kod = await wczytajTrasy().then(
-      (kody) => kody[k.m.klucz],
-      () => undefined,
-    );
-    const punkty = kod ? dekoduj(kod) : undefined;
+    // A town has its own road; a searched place borrows the nearest one.
+    const szukana: Promise<Droga> =
+      k.wlasna !== undefined
+        ? drogaDoPunktu(k.gmina ?? "", k.kropka.getLatLng())
+        : wczytajTrasy().then((kody) => {
+            const kod = kody[k.m.klucz];
+            return { punkty: kod ? dekoduj(kod) : undefined };
+          });
+    const { punkty, dojazd } = await szukana.catch((): Droga => ({}));
     // The reader may have picked another town, or none, while this one loaded.
     const aktualna = () => wybrana === k;
     if (!aktualna()) return;
     const rysuj = () => {
       if (!aktualna()) return;
-      if (punkty && !trasa) rysujTrase(punkty);
+      if ((punkty || dojazd) && !trasa) rysujTrase(punkty, dojazd);
       // Should the popup still stand across the map's edge, Leaflet moves
       // the map by what is missing, as it does when a popup opens.
       if (lec && dymek) {
@@ -333,7 +456,9 @@ export async function narysujMape(el: HTMLElement): Promise<void> {
     // Room for the popup, which stands above the town's dot and is wider
     // than it: a town at the edge of the road's frame would have its popup
     // cut by the map's edge. Less on a phone's narrow map.
+    // A searched place lies off the road it borrows, so it is counted in.
     const zasieg = L.latLngBounds(punkty ?? [k.kropka.getLatLng()]).extend(naMagazynie);
+    if (k.wlasna !== undefined) zasieg.extend(k.kropka.getLatLng());
     const bok = Math.min(120, map.getSize().x * 0.3);
     const ramka = { paddingTopLeft: [bok, 170], paddingBottomRight: [bok, 40], maxZoom: 11 } satisfies L.FitBoundsOptions;
     if (bezRuchu.matches) {
@@ -358,6 +483,12 @@ export async function narysujMape(el: HTMLElement): Promise<void> {
       stara.kropka.getElement()?.classList.remove("is-wybrana");
       stara.kropka.setRadius(promien(stara.m));
     }
+    // A searched place's dot goes with the choice, even when the same place
+    // is searched again: it gets a new one.
+    if (stara?.wlasna !== undefined) {
+      if (stara === wskazana) wskaz(undefined);
+      stara.kropka.remove();
+    }
     // Forgotten before it is closed, so that closing it here does not count
     // as the reader closing it (`popupclose`, below).
     const stary = dymek;
@@ -370,7 +501,11 @@ export async function narysujMape(el: HTMLElement): Promise<void> {
       if (nowa === wskazana) map.closeTooltip(tabliczka);
       // A click leaves the view alone, but for the popup moving into the
       // frame; a town picked outside the map gets the view set for it.
-      dymek = L.popup({ offset: [0, -2], autoPan: !lec }).setLatLng(nowa.kropka.getLatLng()).setContent(trescDymka(nowa.m));
+      // A searched place's long name ("Nowa Wieś (gm. Chorzele)") breaks
+      // its line on a phone's narrow map instead of making the popup wider
+      // than the map. The towns' names are short enough.
+      const waski = nowa.wlasna !== undefined ? { maxWidth: Math.min(300, map.getSize().x - 60) } : {};
+      dymek = L.popup({ offset: [0, -2], autoPan: !lec, ...waski }).setLatLng(nowa.kropka.getLatLng()).setContent(trescDymka(nowa));
       map.openPopup(dymek);
       if (zTrasami) void pokazTrase(nowa, lec);
     }
@@ -412,7 +547,14 @@ export async function narysujMape(el: HTMLElement): Promise<void> {
     // The page steers the map through its element: the search field and the
     // town list on /mapa-dystrybucji/ choose a town.
     el.addEventListener("mapa:wybierz", (e) => {
-      const klucz: unknown = (e as CustomEvent).detail?.klucz;
+      const { klucz, punkt }: Partial<WyborMapy> = (e as CustomEvent).detail ?? {};
+      // A place without a dot gets one for as long as it is chosen, drawn
+      // like a chosen town's. It does not widen the opening view (`bounds`).
+      if (punkt) {
+        const { wlasna, gmina, lat, lng } = punkt;
+        const kropka = L.circleMarker([lat, lng], { radius: PROMIEN_DUZY, interactive: false, className: "mapa-miejsce" }).addTo(map);
+        return wybierz({ m: { klucz: punkt.klucz, nazwa: punkt.nazwa, lat, lng, href: null, wyroznione: false }, kropka, wlasna, gmina }, true);
+      }
       // No such town, or none asked for: nothing is chosen, the view stays.
       wybierz(
         kropki.find((kropka) => kropka.m.klucz === klucz),
