@@ -6,7 +6,8 @@ import Mapa from "../components/Mapa.astro";
 import NazwaMiejsca from "../components/NazwaMiejsca.astro";
 import Tablica from "../components/Tablica.astro";
 import { firma } from "../data/firma";
-import { nazwaWlasna } from "../lib/miejsce";
+import { nazwaWlasna, pelnaNazwa } from "../lib/miejsce";
+import { zloz } from "../lib/zloz";
 import {
   ZASADA_DOSTAWY,
   miejsca,
@@ -23,6 +24,15 @@ const grupy = wojewodztwa
     miejsca: miejsca.filter((m) => m.wojewodztwo === w).sort((a, b) => odlegloscKm(a) - odlegloscKm(b)),
   }))
   .filter((g) => g.miejsca.length > 0);
+
+// Some villages of the place index (src/data/indeks) are named exactly like
+// one of the towns above: ten are "Kozłowo". The search confirms a town
+// named whole without fetching the index, so it is told here which names
+// need the index after all. The files are read only now, while the page is
+// built; the page gets the short list of folded names.
+const indeks = import.meta.glob<{ miejsca: [string, ...unknown[]][] }>("../data/indeks/*.json", { eager: true, import: "default" });
+const wIndeksie = new Set(Object.values(indeks).flatMap((plik) => plik.miejsca.map(([nazwa]) => zloz(nazwa))));
+const dublety = [...new Set(miejsca.flatMap((m) => [nazwaWlasna(m), pelnaNazwa(m)].map(zloz)))].filter((nazwa) => wIndeksie.has(nazwa));
 ---
 
 <Base
@@ -38,7 +48,7 @@ const grupy = wojewodztwa
 
     {/* Beside the map, never in it: Leaflet draws into an empty box. Only the
         page script makes it work, so without scripts it is not shown. */}
-    <div class="szukaj mb-5" data-szukaj data-tel={firma.phone.label} data-tel-href={firma.phone.href} data-zasada={ZASADA_DOSTAWY}>
+    <div class="szukaj mb-5" data-szukaj data-tel={firma.phone.label} data-tel-href={firma.phone.href} data-zasada={ZASADA_DOSTAWY} data-dublety={dublety.join("|")}>
       <form role="search" class="szukaj-form">
         <div class="field">
           <label for="szukaj-miejsce">Sprawdź swoją miejscowość</label>
@@ -63,11 +73,6 @@ const grupy = wojewodztwa
     </div>
 
     <Mapa miejsca={miejsca} trasy class="mapa-dystrybucja" label="Mapa: magazyn i miejscowości, do których dowozimy" />
-    <p class="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm font-medium">
-      <span><span class="legend-pin legend-pin-magazyn"></span> magazyn</span>
-      <span><span class="legend-dot"></span> miejscowość, do której dowozimy</span>
-      <span><span class="legend-trasa"></span> trasa z&nbsp;magazynu do wybranej miejscowości</span>
-    </p>
 
     <section class="mt-12" aria-labelledby="podstrony">
       <h2 id="podstrony" class="text-3xl">Dostawa w Twojej okolicy</h2>
@@ -104,15 +109,16 @@ const grupy = wojewodztwa
     </section>
 
     <p class="mt-12 max-w-prose text-ink-soft">
-      Dowozimy też do okolicznych wsi, a na Mazurach niemal wszędzie. Nie ma Twojej miejscowości?
-      Zadzwoń pod <a href={firma.phone.href} class="link-strong">{firma.phone.label}</a>, ustalimy
+      Lista i kropki na mapie to tylko część miejscowości: dowozimy też do okolicznych wsi. Masz
+      pytanie o dostawę do siebie? Zadzwoń pod <a href={firma.phone.href} class="link-strong">{firma.phone.label}</a>, ustalimy
       szczegóły.
     </p>
   </PageShell>
 </Base>
 
 <script>
-  import type { DaneMapy } from "../components/mapa";
+  import type { DaneMapy, PunktMapy, WyborMapy } from "../components/mapa";
+  import { zloz } from "../lib/zloz";
 
   // The search field and the town list steer the map through an event on
   // its element (see mapa.ts): `mapa:wybierz` chooses a town, and the map
@@ -142,17 +148,6 @@ const grupy = wojewodztwa
     }
     const bezRuchu = window.matchMedia("(prefers-reduced-motion: reduce)");
 
-    // "mlawa" finds Mława and "golub dobrzyn" Golub-Dobrzyń: letters compared
-    // without case, Polish marks or punctuation. ł is a letter of its own,
-    // not l with a mark, so it is replaced by hand.
-    const zloz = (tekst: string) =>
-      tekst
-        .toLowerCase()
-        .replace(/ł/g, "l")
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z0-9]+/g, " ")
-        .trim();
     // A town's name without how often we go there: "Mikołajki (czasem)" is
     // "Mikołajki" in the field, "Lidzbark Welski" stays whole.
     const wlasna = (m: Miejsce) => m.nazwa.replace(/ \([^)]*\)$/, "");
@@ -160,90 +155,234 @@ const grupy = wojewodztwa
 
     /**
      * The whole name first, then names that start with the text, then names
-     * that hold it. Two towns are "Lidzbark" and two "Nowe Miasto", so only a
-     * whole name with its second part counts as the whole name: "Lidzbark"
-     * alone finds both, and the reader picks. A name typed as the page
-     * prints it, "Mikołajki (czasem)", is a whole name too.
+     * that hold it; `poziom` says which of the three it was. Two towns are
+     * "Lidzbark" and two "Nowe Miasto", so only a whole name with its second
+     * part counts as the whole name: "Lidzbark" alone finds both, and the
+     * reader picks. A name typed as the page prints it, "Mikołajki (czasem)",
+     * is a whole name too.
      */
-    function pasujace(tekst: string): Miejsce[] {
-      const szukane = zloz(tekst);
+    function pasujace(szukane: string): { poziom: number; znalezione: Miejsce[] } {
       const proby: ((z: (typeof zlozone)[number]) => boolean)[] = [
         (z) => z.cale.includes(szukane),
         (z) => z.nazwy.some((n) => n.startsWith(szukane)),
         (z) => z.nazwy.some((n) => n.includes(szukane)),
       ];
-      for (const pasuje of proby) {
+      for (const [poziom, pasuje] of proby.entries()) {
         const znalezione = zlozone.filter(pasuje);
-        if (znalezione.length > 0) return znalezione.map((z) => z.m);
+        if (znalezione.length > 0) return { poziom, znalezione: znalezione.map((z) => z.m) };
       }
-      return [];
+      return { poziom: 0, znalezione: [] };
+    }
+
+    // The places we drive to that have no dot on the map: one file for each
+    // first letter of the folded name (src/data/indeks), fetched when a
+    // search needs it. `gminy` are [gmina, powiat], `miejsca` are
+    // [name, index into gminy, lat, lng]. A browser does not fetch a failed
+    // module again: after a failure that letter finds no such places until
+    // the page is reloaded, and the search answers as it did without them.
+    interface Indeks {
+      gminy: [string, string][];
+      miejsca: [string, number, number, number][];
+    }
+    interface Wpis {
+      nazwa: string;
+      gmina: string;
+      powiat: string;
+      lat: number;
+      lng: number;
+    }
+    const pliki = import.meta.glob<Indeks>("../data/indeks/*.json", { import: "default" });
+    async function zIndeksu(szukane: string, poczatki: boolean): Promise<Wpis[]> {
+      const plik = pliki[`../data/indeks/${szukane[0]}.json`];
+      const indeks = await plik?.().catch(() => undefined);
+      if (!indeks) return [];
+      const wpisy = (pasuje: (nazwa: string) => boolean): Wpis[] =>
+        indeks.miejsca
+          .filter(([nazwa]) => pasuje(zloz(nazwa)))
+          .map(([nazwa, g, lat, lng]) => ({ nazwa, gmina: indeks.gminy[g]?.[0] ?? "", powiat: indeks.gminy[g]?.[1] ?? "", lat, lng }));
+      // The name itself. Names that only start with the text count when
+      // `poczatki` allows it and from four letters up: fewer would match half
+      // of the file.
+      const cale = wpisy((nazwa) => nazwa === szukane);
+      if (cale.length > 0 || !poczatki || szukane.replace(/ /g, "").length < 4) return cale;
+      return wpisy((nazwa) => nazwa.startsWith(szukane));
     }
 
     // The map is drawn only when it comes near the screen; a town picked
     // before that waits for it. Only the last pick counts.
     // `null` chooses no town: a search for a place that has no dot takes the
-    // last one's road off the map.
-    let czeka: string | null | undefined;
-    function wybierz(klucz: string | null): void {
-      if ("gotowa" in mapa!.dataset) mapa!.dispatchEvent(new CustomEvent("mapa:wybierz", { detail: { klucz } }));
-      else czeka = klucz;
+    // last one's road off the map. `punkt` is a place from the index: the map
+    // gives it a dot for as long as it is chosen.
+    let czeka: WyborMapy | undefined;
+    function wybierz(klucz: string | null, punkt?: PunktMapy): void {
+      const wybor: WyborMapy = { klucz, punkt };
+      if ("gotowa" in mapa!.dataset) mapa!.dispatchEvent(new CustomEvent("mapa:wybierz", { detail: wybor }));
+      else czeka = wybor;
     }
     mapa.addEventListener(
       "mapa:gotowa",
       () => {
-        if (czeka !== undefined) wybierz(czeka);
+        if (czeka) wybierz(czeka.klucz, czeka.punkt);
         czeka = undefined;
       },
       { once: true },
     );
 
-    // The town the line under the field speaks of. When the map says another
-    // town is chosen, or none, the line no longer holds and goes.
+    // The town the line under the field speaks of, by its key on the map.
+    // When the map says another town is chosen, or none, the line no longer
+    // holds and goes.
     let potwierdzona: string | undefined;
     // The town's name as this script last wrote it into the field.
     let wPolu = "";
-    function potwierdz(m: Miejsce): void {
-      potwierdzona = m.klucz;
-      pole!.value = wPolu = wlasna(m);
-      odpowiedz(`Tak, dowozimy do miejscowości ${m.nazwa}.`);
-      wybierz(m.klucz);
+    /**
+     * What a search can end at: a town with a dot (`m`) or a place from the
+     * index (`punkt`), under the name the reader picks it by.
+     */
+    interface Kandydat {
+      etykieta: string;
+      m?: Miejsce;
+      punkt?: PunktMapy | undefined;
+    }
+    // Both are set before the map is told: it answers with `mapa:wybrano`
+    // at once, and the handler below compares against them.
+    function potwierdz({ etykieta, m, punkt }: Kandydat): void {
+      potwierdzona = m?.klucz ?? punkt?.klucz;
+      pole!.value = wPolu = m ? wlasna(m) : (punkt?.wlasna ?? "");
+      odpowiedz(`Tak, dowozimy do miejscowości ${etykieta}.`);
+      wybierz(potwierdzona ?? null, punkt);
       // The whole map, with the answer above it, comes into the window if a
       // part of it was below the edge.
       mapa!.scrollIntoView({ behavior: bezRuchu.matches ? "instant" : "smooth", block: "nearest" });
     }
 
-    szukaj.querySelector("form")?.addEventListener("submit", (e) => {
+    /**
+     * The places of the index as candidates: "Szymany (gm. Szczytno)", with
+     * the powiat added where two of them would read the same. The key is
+     * made up for the map; no town's name starts with "@".
+     */
+    function kandydaciZIndeksu(wpisy: Wpis[]): Kandydat[] {
+      const krotka = (w: Wpis) => `${w.nazwa} (gm. ${w.gmina})`;
+      const ile = new Map<string, number>();
+      for (const w of wpisy) ile.set(krotka(w), (ile.get(krotka(w)) ?? 0) + 1);
+      return wpisy.map((w) => {
+        const etykieta = ile.get(krotka(w))! > 1 ? `${w.nazwa} (gm. ${w.gmina}, pow. ${w.powiat})` : krotka(w);
+        return { etykieta, punkt: { klucz: `@${w.lat},${w.lng},${w.nazwa}`, nazwa: etykieta, wlasna: w.nazwa, gmina: w.gmina, lat: w.lat, lng: w.lng } };
+      });
+    }
+
+    // The towns' names, folded, that some place of the index bears too
+    // (worked out when the page is built).
+    const dublety = new Set((szukaj.dataset.dublety ?? "").split("|"));
+    // A candidate picked from the answer line, by its button or the list's.
+    // The button is gone at once and the page scrolls to the map, so a
+    // second quick tap would fall on whatever comes under the finger, the
+    // popup's link included: clicks are dropped for half a second.
+    const polknij = (e: Event) => {
+      e.stopPropagation();
+      e.preventDefault();
+    };
+    function potwierdzZLinii(k: Kandydat): void {
+      potwierdz(k);
+      // The field takes the keyboard without pulling the page back to
+      // itself: the page is on its way to the map.
+      pole!.focus({ preventScroll: true });
+      document.addEventListener("click", polknij, true);
+      window.setTimeout(() => document.removeEventListener("click", polknij, true), 500);
+    }
+
+    // Only the last search counts: an answer that waited for its index file
+    // must not overwrite a newer one, nor a town picked meanwhile on the map
+    // or from the list (the counter also goes up there).
+    let szukanie = 0;
+    szukaj.querySelector("form")?.addEventListener("submit", async (e) => {
       e.preventDefault();
       const wpisane = pole.value.trim();
+      // The field still holds the confirmed place as this script wrote it:
+      // the place stays chosen, the reader only gets the map into view.
+      if (potwierdzona !== undefined && wpisane === wPolu) {
+        mapa.scrollIntoView({ behavior: bezRuchu.matches ? "instant" : "smooth", block: "nearest" });
+        return;
+      }
+      const to = ++szukanie;
       potwierdzona = undefined;
       if (!wpisane) {
         podpowiedz();
         pole.focus();
         return;
       }
-      const znalezione = pasujace(wpisane);
-      const [jedyna] = znalezione;
-      if (jedyna && znalezione.length === 1) {
-        potwierdz(jedyna);
-      } else if (znalezione.length > 6) {
-        odpowiedz(`Pasujących miejscowości: ${znalezione.length}. Wpisz więcej liter.`);
+      const szukane = zloz(wpisane);
+      const { poziom, znalezione } = pasujace(szukane);
+      let kandydaci: Kandydat[] = znalezione.map((m) => ({ etykieta: m.nazwa, m }));
+      let zIndeksem = false;
+      // One town with a dot, named whole, needs no index, unless places of
+      // the index share its name: those are offered after it. Otherwise the
+      // places of the index come after the towns with dots, and beside them
+      // a town counts only if its name is, or starts with, the text.
+      if (!(poziom === 0 && znalezione.length === 1 && !dublety.has(szukane))) {
+        // "Lidzbark" already asks which of the two towns: names from the
+        // index that merely start so ("Lidzbark-Nadleśnictwo") stay out.
+        const wpisy = await zIndeksu(szukane, poziom === 2 || znalezione.length === 0);
+        if (to !== szukanie) return;
+        if (wpisy.length > 0) {
+          zIndeksem = true;
+          kandydaci = [...(poziom < 2 ? kandydaci : []), ...kandydaciZIndeksu(wpisy)];
+        }
+      }
+      const [jedyny] = kandydaci;
+      if (jedyny && kandydaci.length === 1) {
+        potwierdz(jedyny);
+      } else if (kandydaci.length > 6 && zIndeksem) {
+        // Too many for buttons: a list to choose from, in the order of the
+        // alphabet. The sentence speaks of one name only when every name on
+        // the list is the same, and asks for the gmina only when every
+        // place has one in its label (a town with a dot has none).
+        const jednaNazwa = kandydaci.every((k) => zloz(k.m ? wlasna(k.m) : (k.punkt?.wlasna ?? "")) === szukane);
+        const sameGminy = kandydaci.every((k) => k.punkt !== undefined);
+        const lista = Object.assign(document.createElement("select"), { className: "input" });
+        lista.setAttribute("aria-label", jednaNazwa && sameGminy ? "Gmina" : "Miejscowość");
+        lista.append(Object.assign(document.createElement("option"), { value: "", textContent: "wybierz z listy", disabled: true, selected: true }));
+        const poAlfabecie = [...kandydaci].sort((a, b) => a.etykieta.localeCompare(b.etykieta, "pl"));
+        // Names from the index go in as text, like the towns' below.
+        lista.append(...poAlfabecie.map((k, i) => Object.assign(document.createElement("option"), { value: String(i), textContent: k.etykieta })));
+        // Choosing an option confirms nothing by itself: with a keyboard
+        // every letter or arrow key chooses one. The button beside the list
+        // confirms, and so does Enter in the list; neither while the prompt
+        // is still the chosen option.
+        const pokaz = Object.assign(document.createElement("button"), { type: "button", className: "btn btn-secondary btn-sm", textContent: "Pokaż" });
+        const potwierdzWybrana = () => {
+          const wybrany = lista.value === "" ? undefined : poAlfabecie[Number(lista.value)];
+          if (wybrany) potwierdzZLinii(wybrany);
+        };
+        pokaz.addEventListener("click", potwierdzWybrana);
+        lista.addEventListener("keydown", (klawisz) => {
+          if (klawisz.key !== "Enter") return;
+          klawisz.preventDefault();
+          potwierdzWybrana();
+        });
+        const wybor = Object.assign(document.createElement("span"), { className: "szukaj-wybor" });
+        wybor.append(lista, pokaz);
+        odpowiedz(
+          `Miejscowości o ${jednaNazwa ? "tej nazwie" : "nazwie zaczynającej się tak"} jest w zasięgu kilka. ${jednaNazwa && sameGminy ? "Wybierz gminę" : "Wybierz swoją"}: `,
+          wybor,
+        );
         wybierz(null);
-      } else if (znalezione.length > 1) {
+      } else if (kandydaci.length > 6) {
+        odpowiedz(`Pasujących miejscowości: ${kandydaci.length}. Wpisz więcej liter.`);
+        wybierz(null);
+      } else if (kandydaci.length > 1) {
         // The names come from our own list, but they too go in as text.
-        const przyciski = znalezione.map((m) => {
-          const przycisk = Object.assign(document.createElement("button"), { type: "button", className: "btn btn-secondary btn-sm", textContent: m.nazwa });
-          przycisk.addEventListener("click", () => {
-            potwierdz(m);
-            pole.focus();
-          });
+        const przyciski = kandydaci.map((k) => {
+          const przycisk = Object.assign(document.createElement("button"), { type: "button", className: "btn btn-secondary btn-sm", textContent: k.etykieta });
+          przycisk.addEventListener("click", () => potwierdzZLinii(k));
           return przycisk;
         });
         odpowiedz("Która miejscowość? ", ...przyciski);
         wybierz(null);
       } else {
-        // The dots are only some of the places we drive to, so a name without
-        // a dot is a yes as well, under the delivery rule. What the reader
-        // typed goes in as text, never as markup, and on to the order form.
+        // The dots and the index are only some of the places we drive to, so
+        // a name found in neither is a yes as well, under the delivery rule.
+        // What the reader typed goes in as text, never as markup, and on to
+        // the order form.
         const zamow = Object.assign(document.createElement("a"), {
           href: `${dane.zamow}?miejscowosc=${encodeURIComponent(wpisane)}`,
           textContent: "Zamów dostawę",
@@ -268,6 +407,9 @@ const grupy = wojewodztwa
       const przycisk = Object.assign(document.createElement("button"), { type: "button" });
       przycisk.append(...pozycja.childNodes);
       przycisk.addEventListener("click", () => {
+        // A search still waiting for its file gives way to this pick, also
+        // when the town is the chosen one already and the map says nothing.
+        szukanie++;
         wybierz(pozycja.dataset.miejsce!);
         mapa.scrollIntoView({ behavior: bezRuchu.matches ? "instant" : "smooth", block: "center" });
         // The keyboard goes with the reader to the map: the next Tab is in
@@ -283,6 +425,10 @@ const grupy = wojewodztwa
     // reader has typed since stays.
     mapa.addEventListener("mapa:wybrano", (e) => {
       const klucz: string | null = (e as CustomEvent).detail.klucz;
+      // A search still waiting for its index file is dropped: the reader has
+      // chosen another way meanwhile. The search's own choices come after
+      // its check of the counter, so they are not touched.
+      szukanie++;
       for (const pozycja of pozycje) {
         const przycisk = pozycja.querySelector("button");
         if (pozycja.dataset.miejsce === klucz) przycisk?.setAttribute("aria-current", "true");
@@ -290,7 +436,9 @@ const grupy = wojewodztwa
       }
       const m = miejsca.find((miejsce) => miejsce.klucz === klucz);
       if (m) pole.value = wPolu = wlasna(m);
-      else if (pole.value === wPolu) pole.value = "";
+      // A place from the index is not among the towns; the search has just
+      // written its name into the field, and it stays.
+      else if (klucz !== potwierdzona && pole.value === wPolu) pole.value = "";
       // The line under the field goes back to its hint when it speaks of a
       // town that is no longer the chosen one, or of a place without a dot
       // while the reader has picked a town on the map.
@@ -322,9 +470,10 @@ const grupy = wojewodztwa
       justify-content: start;
     }
   }
-  /* The line under the field: a hint, then the answer in its place, so the
-     map below does not jump when the answer comes. Its buttons are made by
-     the script, hence `:global`. */
+  /* The line under the field: a hint, then the answer in its place. An
+     answer may be taller than the hint and push the map down, and the map
+     comes back up when the reader picks from the answer's own buttons.
+     The buttons are made by the script, hence `:global`. */
   .szukaj-wynik {
     max-width: 65ch;
     margin-top: 0.75rem;
@@ -336,6 +485,33 @@ const grupy = wojewodztwa
   }
   .szukaj-wynik :global(.btn) {
     margin-block: 0.25rem;
+  }
+  /* A place of the index is named with its gmina, sometimes its powiat too:
+     on a narrow phone such a button breaks its line rather than the page. */
+  .szukaj-wynik :global(.btn-sm) {
+    max-width: 100%;
+    white-space: normal;
+  }
+  /* The list of places with one name and its "Pokaż" button, on a line of
+     their own under the sentence. The list is as wide as its longest name
+     and never wider than the page; on a narrow phone the button goes under. */
+  .szukaj-wynik :global(.szukaj-wybor) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem 0.5rem;
+    margin-top: 0.5rem;
+  }
+  .szukaj-wynik :global(select) {
+    width: auto;
+    min-width: 0;
+    max-width: 100%;
+    font-weight: 400;
+  }
+  @media (pointer: coarse) {
+    .szukaj-wynik :global(:is(.btn, select)) {
+      min-height: 44px;
+    }
   }
 
   /* A town of the list is a button made by the page script (hence

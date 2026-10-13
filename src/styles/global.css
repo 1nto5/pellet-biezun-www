@@ -1117,22 +1117,9 @@ input[type="date"].input::-webkit-date-and-time-value {
   border-radius: var(--radius-sign);
   box-shadow: 0 0 0 2px var(--color-black);
 }
-.legend-pin {
-  display: inline-block;
-  width: 0.9rem;
-  height: 0.9rem;
-  border-radius: 50% 50% 50% 0;
-  transform: rotate(-45deg);
-  vertical-align: -0.05rem;
-}
-.legend-pin-magazyn {
-  background: var(--color-sign);
-  box-shadow: 0 0 0 2px var(--color-black);
-}
 
 /* The town dots. Leaflet draws them as SVG paths with its own colours as
-   attributes; these rules win over the attributes. The legend's swatches
-   share them. */
+   attributes; these rules win over the attributes. */
 .mapa-miejsce {
   stroke: var(--color-white);
   stroke-width: 2;
@@ -1192,25 +1179,13 @@ input[type="date"].input::-webkit-date-and-time-value {
   stroke-linecap: butt;
   stroke-dasharray: 6 6;
 }
-.legend-dot {
-  display: inline-block;
-  width: 0.8rem;
-  height: 0.8rem;
-  border: 2px solid var(--color-sign);
-  border-radius: 50%;
-  background: var(--color-sign);
-  vertical-align: -0.05rem;
-}
-/* A short piece of the road drawn to a chosen town. */
-.legend-trasa {
-  display: inline-block;
-  width: 1.8rem;
-  height: 0.45rem;
-  border-radius: 0.225rem;
-  background:
-    repeating-linear-gradient(90deg, transparent 0 0.2rem, var(--color-white) 0.2rem 0.5rem, transparent 0.5rem 0.6rem) center / 100% 1px no-repeat,
-    var(--color-asphalt);
-  vertical-align: 0.1rem;
+/* The straight line from the road to a place found by the search, which
+   has no road of its own (mapa.ts). */
+.mapa-trasa-dojazd {
+  stroke: var(--color-asphalt);
+  stroke-width: 3;
+  stroke-linecap: butt;
+  stroke-dasharray: 7 6;
 }
 /* ---------------------------------------------------------------------------
    Photographs: the gallery grid and the lightbox it opens. The first photo
