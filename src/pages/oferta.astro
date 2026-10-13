@@ -78,6 +78,19 @@ const produktyLd = await Promise.all(
                 class="w-full"
               />
             </span>
+            {p.paleta && (
+              <figure class="produkt-paleta">
+                <Image
+                  src={p.paleta.src}
+                  alt={p.paleta.alt}
+                  width={400}
+                  widths={[120, 200, 320, 400]}
+                  sizes="(min-width: 64rem) 9rem, 5.5rem"
+                  loading="lazy"
+                />
+                <figcaption>Zapakowana paleta</figcaption>
+              </figure>
+            )}
           </div>
 
           <div data-ruch-grupa>
@@ -228,6 +241,30 @@ const produktyLd = await Promise.all(
   }
   .produkt-foto :global(img) {
     mix-blend-mode: multiply;
+  }
+  /* The packed pallet: a small second photo under the bag, its caption
+     beside it. Cut out of its background, so the page shows through and it
+     needs no frame. */
+  .produkt-paleta {
+    display: flex;
+    align-items: flex-end;
+    gap: 1rem;
+    margin-top: 1rem;
+    color: var(--color-ink-soft);
+    font-size: 0.875rem;
+  }
+  .produkt-paleta :global(img) {
+    flex: none;
+    width: 5.5rem;
+    height: auto;
+  }
+  @media (min-width: 64rem) {
+    .produkt-paleta {
+      margin-top: 1.5rem;
+    }
+    .produkt-paleta :global(img) {
+      width: 9rem;
+    }
   }
   .produkt-nazwa {
     font-size: clamp(2.2rem, 5vw, 3.6rem);

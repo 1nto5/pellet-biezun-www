@@ -17,7 +17,9 @@
  */
 import type { ImageMetadata } from "astro";
 import hitonZdjecie from "../assets/produkty/hiton.jpg";
+import hitonPaleta from "../assets/produkty/hiton-paleta.png";
 import wielbarkZdjecie from "../assets/produkty/wielbark.jpg";
+import wielbarkPaleta from "../assets/produkty/wielbark-paleta.png";
 import { nazwyProduktow, type ProduktId } from "./produkty";
 
 /** The date the client gave the prices for. */
@@ -71,6 +73,8 @@ export interface Produkt {
   /** A file to read under the parameters: the test report, later a certificate. Only what the client has sent. */
   dokument?: Dokument;
   zdjecie: Zdjecie;
+  /** The whole pallet as it leaves the warehouse: the client's photo, cut out of its background. Only the offer page shows it, small, under the bag. */
+  paleta?: Zdjecie;
 }
 
 export const produkty: Produkt[] = [
@@ -95,6 +99,7 @@ export const produkty: Produkt[] = [
     ],
     zrodloParametrow: "dane producenta z worka.",
     zdjecie: { src: hitonZdjecie, alt: "Worek pelletu HITON 15 kg" },
+    paleta: { src: hitonPaleta, alt: "Paleta worków pelletu HITON 15 kg owinięta folią" },
   },
   {
     id: "wielbark",
@@ -127,6 +132,7 @@ export const produkty: Produkt[] = [
       plik: "/dokumenty/sprawozdanie-z-badan-wood-pellets-ikea-wielbark.pdf",
     },
     zdjecie: { src: wielbarkZdjecie, alt: "Worek pelletu z napisem „Wood Pellets”" },
+    paleta: { src: wielbarkPaleta, alt: "Paleta worków Wood Pellets 15 kg owinięta folią, z etykietą 1080 kg" },
   },
 ];
 
