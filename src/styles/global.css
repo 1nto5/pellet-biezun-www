@@ -1209,9 +1209,23 @@ input[type="date"].input::-webkit-date-and-time-value {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
-.gallery > li:first-child {
-  grid-column: span 2;
-  grid-row: span 2;
+/* Where each photo sits, at each column count, comes from Gallery.astro
+   (`miejsce`): the first large, the last filling its row, no holes. */
+.gallery > li {
+  grid-column: span var(--w2, 1);
+  grid-row: span var(--h2, 1);
+}
+@media (min-width: 40rem) {
+  .gallery > li {
+    grid-column: span var(--w3, 1);
+    grid-row: span var(--h3, 1);
+  }
+}
+@media (min-width: 64rem) {
+  .gallery > li {
+    grid-column: span var(--w4, 1);
+    grid-row: span var(--h4, 1);
+  }
 }
 .gallery button {
   display: block;
@@ -1227,9 +1241,19 @@ input[type="date"].input::-webkit-date-and-time-value {
   display: block;
   width: 100%;
   height: 100%;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: var(--p2, 4 / 3);
   object-fit: cover;
   border-radius: var(--radius-sign);
+}
+@media (min-width: 40rem) {
+  .gallery img {
+    aspect-ratio: var(--p3, 4 / 3);
+  }
+}
+@media (min-width: 64rem) {
+  .gallery img {
+    aspect-ratio: var(--p4, 4 / 3);
+  }
 }
 .gallery button:hover img {
   outline: 0.3rem solid var(--color-yellow);
@@ -1242,25 +1266,6 @@ input[type="date"].input::-webkit-date-and-time-value {
   border-radius: var(--radius-sign);
   /* What shows until the photo arrives. */
   background: var(--color-sand);
-}
-/* The first photo takes two by two, so with the rest the last row would
-   hold one photo alone at every width; it takes the whole row instead, two
-   rows high (Gallery.astro). */
-.gallery > li:last-child:not(:first-child) {
-  grid-column: 1 / -1;
-}
-.gallery > li:last-child:not(:first-child) img {
-  aspect-ratio: 4 / 3;
-}
-@media (min-width: 40rem) {
-  .gallery > li:last-child:not(:first-child) img {
-    aspect-ratio: 2 / 1;
-  }
-}
-@media (min-width: 64rem) {
-  .gallery > li:last-child:not(:first-child) img {
-    aspect-ratio: 8 / 3;
-  }
 }
 /* The white frame fits the photo; a sideways finger move is a swipe to the
    next photo, not a pan. */
