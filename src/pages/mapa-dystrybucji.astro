@@ -119,6 +119,7 @@ const dublety = [...new Set(miejsca.flatMap((m) => [nazwaWlasna(m), pelnaNazwa(m
 <script>
   import type { DaneMapy, PunktMapy, WyborMapy } from "../components/mapa";
   import { zloz } from "../lib/zloz";
+  import { etykietyZIndeksu } from "../lib/etykieta";
 
   // The search field and the town list steer the map through an event on
   // its element (see mapa.ts): `mapa:wybierz` chooses a town, and the map
@@ -257,15 +258,15 @@ const dublety = [...new Set(miejsca.flatMap((m) => [nazwaWlasna(m), pelnaNazwa(m
 
     /**
      * The places of the index as candidates: "Szymany (gm. Szczytno)", with
-     * the powiat added where two of them would read the same. The key is
-     * made up for the map; no town's name starts with "@".
+     * the powiat added where the label could be taken for another place
+     * (`etykietyZIndeksu`). The key is made up for the map; no town's name
+     * starts with "@".
      */
+    const nazwyZListy = new Set(miejsca.flatMap((m) => [zloz(m.klucz), zloz(wlasna(m))]));
     function kandydaciZIndeksu(wpisy: Wpis[]): Kandydat[] {
-      const krotka = (w: Wpis) => `${w.nazwa} (gm. ${w.gmina})`;
-      const ile = new Map<string, number>();
-      for (const w of wpisy) ile.set(krotka(w), (ile.get(krotka(w)) ?? 0) + 1);
-      return wpisy.map((w) => {
-        const etykieta = ile.get(krotka(w))! > 1 ? `${w.nazwa} (gm. ${w.gmina}, pow. ${w.powiat})` : krotka(w);
+      const etykiety = etykietyZIndeksu(wpisy, nazwyZListy);
+      return wpisy.map((w, i) => {
+        const etykieta = etykiety[i]!;
         return { etykieta, punkt: { klucz: `@${w.lat},${w.lng},${w.nazwa}`, nazwa: etykieta, wlasna: w.nazwa, gmina: w.gmina, lat: w.lat, lng: w.lng } };
       });
     }
