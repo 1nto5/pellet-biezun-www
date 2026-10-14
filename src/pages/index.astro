@@ -685,8 +685,10 @@ const webSite = {
       gap: 1rem 2.5rem;
     }
     .flota-auto {
-      /* Every vehicle has a cell of its own here, the Iveco too. */
+      /* Every vehicle has a cell of its own here, the Iveco too. The one
+         row fills the cell's height, so the roads of a row end level. */
       grid-column: auto;
+      align-content: normal;
       --w-rzedzie: 1;
       /* The strip gives way before the text drops under 8rem. */
       grid-template-columns: minmax(0, 18rem) minmax(8rem, 1fr);
