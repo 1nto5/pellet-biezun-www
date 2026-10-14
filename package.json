@@ -11,7 +11,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "check": "astro check && tsc -p functions --noEmit && bun test functions",
+    "check": "astro check && tsc -p functions --noEmit && bun test functions src",
     "astro": "astro"
   },
   "dependencies": {

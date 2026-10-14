@@ -4,10 +4,10 @@
  *
  * Only what the client has confirmed. Payment, minimum order and delivery
  * times are left out until they are known; single bags only for the products
- * an ad sells by the bag. Prices live in `oferta.ts` and are only printed here.
+ * that have a bag price. Prices live in `oferta.ts` and are only printed here.
  */
 import { firma, addressLine } from "./firma";
-import { produkty, paletaLabel, certyfikatZNazwa, cenaWorkaLabel } from "./oferta";
+import { produkty, paletaLabel, certyfikatZNazwa, naWorki } from "./oferta";
 import { ZASADA_DOSTAWY } from "./miejsca";
 
 export const faq: { q: string; a: string }[] = [
@@ -15,13 +15,12 @@ export const faq: { q: string; a: string }[] = [
     q: "Ile worków jest na palecie?",
     a: `${produkty.map((p) => `${p.nazwa}: ${paletaLabel(p)}`).join(". ")}.`,
   },
-  ...(produkty.some((p) => p.cenaWorek)
+  ...(naWorki().length > 0
     ? [
         {
           q: "Czy można kupić pojedyncze worki?",
-          a: `${produkty
-            .filter((p) => p.cenaWorek)
-            .map((p) => `${p.nazwa} sprzedajemy też na worki: ${cenaWorkaLabel(p)} za worek ${p.workiKg} kg`)
+          a: `${naWorki()
+            .map((g) => `${g.nazwy} sprzedajemy też na worki: ${g.cena}`)
             .join(". ")}. Zadzwoń pod ${firma.phone.label}, a ustalimy odbiór albo dostawę.`,
         },
       ]

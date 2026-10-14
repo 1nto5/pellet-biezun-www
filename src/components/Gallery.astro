@@ -21,14 +21,44 @@ const { photos } = Astro.props;
  * The grid is four columns from `lg`, three from `sm`, two below that, inside
  * the page's gutters (36px on phones, 72px from `sm`) with 9px gaps, and no
  * wider than 1224px (68rem), which it reaches at a 1296px window; the first
- * photo takes two by two, the last the whole row. The widths are in px, not
- * rem: in `sizes` a rem is the browser's 16px, not the page's 18px.
+ * photo takes two by two, the last up to the whole row (`miejsce`). The
+ * widths are in px, not rem: in `sizes` a rem is the browser's 16px, not the
+ * page's 18px.
  */
 const sizes =
   "(min-width: 1296px) 300px, (min-width: 64rem) calc(25vw - 25px), (min-width: 40rem) calc(33.4vw - 30px), calc(50vw - 22px)";
 const sizesPierwsze =
   "(min-width: 1296px) 608px, (min-width: 64rem) calc(50vw - 40px), (min-width: 40rem) calc(66.7vw - 51px), calc(100vw - 36px)";
 const sizesOstatnie = "(min-width: 1296px) 1224px, (min-width: 40rem) calc(100vw - 72px), calc(100vw - 36px)";
+/** The grid's columns on phones, from `sm` and from `lg` (global.css). */
+const KOLUMNY = [2, 3, 4] as const;
+
+/**
+ * Where photo `i` of `n` sits in a grid of `c` columns: cells across (`w`)
+ * and down (`h`), and the proportions of its image. The first takes two by
+ * two when the others fill the space beside it. The last takes what is left
+ * of its row, one row high; when it starts a row, it takes the whole row,
+ * two rows high. So the grid ends without holes for any number of photos at
+ * every width.
+ */
+function miejsce(i: number, n: number, c: number): { w: number; h: number; proporcja: string } {
+  const duze = n >= 2 && n - 1 >= 2 * (c - 2);
+  if (i === n - 1) {
+    const przed = duze ? n + 2 : n - 1;
+    const w = przed % c === 0 ? c : c - (przed % c);
+    return w === c ? { w, h: 2, proporcja: `${2 * w} / 3` } : { w, h: 1, proporcja: `${4 * w} / 3` };
+  }
+  return i === 0 && duze ? { w: 2, h: 2, proporcja: "4 / 3" } : { w: 1, h: 1, proporcja: "4 / 3" };
+}
+
+/** The place of photo `i` at each column count, as the custom properties global.css reads. */
+function styl(i: number, n: number): string {
+  return KOLUMNY.map((c) => {
+    const { w, h, proporcja } = miejsce(i, n, c);
+    return `--w${c}:${w};--h${c}:${h};--p${c}:${proporcja}`;
+  }).join(";");
+}
+
 /** About as many photos as the first screen shows; they load at once. */
 const OD_RAZU = 3;
 
@@ -50,7 +80,7 @@ const items = await Promise.all(
   <ul class="gallery" role="list" data-ruch-grupa>
     {
       items.map((photo, i) => (
-        <li>
+        <li style={styl(i, items.length)}>
           <button
             type="button"
             data-full={photo.full.src}
@@ -60,8 +90,8 @@ const items = await Promise.all(
           >
             <span class="gallery-media">
               {i === items.length - 1 && items.length > 1 ? (
-                // The last photo takes the whole last row, which would
-                // otherwise hold it alone: a wide view of the long trailer.
+                // The last photo takes what is left of the last row, up to
+                // the whole of it (`miejsce`).
                 <Image
                   src={photo.src}
                   alt={photo.alt}

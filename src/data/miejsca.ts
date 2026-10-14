@@ -12,7 +12,9 @@
  * Polish letters, written by hand so a page keeps its address.
  *
  * The list is the client's own, sent 2026-09-30, with spelling corrected.
- * Coordinates from OpenStreetMap (Nominatim).
+ * Coordinates from OpenStreetMap (Nominatim). Górzno (the one in powiat
+ * brodnicki) was added at the client's wish on 2026-10-13, with the
+ * coordinates the state register of names gives it (src/data/indeks).
  */
 import type { Geo } from "../lib/geo";
 import { maPodstrone } from "../lib/miejsce";
@@ -118,6 +120,7 @@ export const miejsca: Miejsce[] = [
   { nazwa: "Wąbrzeźno", wojewodztwo: "kujawsko-pomorskie", geo: { lat: 53.28, lng: 18.9473 } },
   { nazwa: "Brodnica", wojewodztwo: "kujawsko-pomorskie", geo: { lat: 53.2581, lng: 19.3994 }, podstrona: { slug: "brodnica", wMiejscowosci: "w Brodnicy", doMiejscowosci: "do Brodnicy", wPowiecie: "w powiecie brodnickim" } },
   { nazwa: "Rypin", wojewodztwo: "kujawsko-pomorskie", geo: { lat: 53.0673, lng: 19.406 }, podstrona: { slug: "rypin", wMiejscowosci: "w Rypinie", doMiejscowosci: "do Rypina", wPowiecie: "w powiecie rypińskim" } },
+  { nazwa: "Górzno", wojewodztwo: "kujawsko-pomorskie", geo: { lat: 53.1988, lng: 19.6412 } },
   { nazwa: "Nowe Miasto Lubawskie", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.4256, lng: 19.5936 } },
   { nazwa: "Lubawa", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.5051, lng: 19.7494 } },
   { nazwa: "Iława", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.5976, lng: 19.5612 }, podstrona: { slug: "ilawa", wMiejscowosci: "w Iławie", doMiejscowosci: "do Iławy", wPowiecie: "w powiecie iławskim" } },

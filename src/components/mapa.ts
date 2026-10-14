@@ -148,7 +148,7 @@ function dekoduj(tekst: string): L.LatLngTuple[] {
   return punkty;
 }
 
-/** The roads to the 92 towns as points, decoded once, for places without a dot. */
+/** The roads to the listed towns as points, decoded once, for places without a dot. */
 let drogi: Promise<L.LatLngTuple[][]> | undefined;
 /**
  * One more road for each gmina that has none among the towns'
