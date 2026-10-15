@@ -16,6 +16,9 @@
  *                              in; "auto" = the child's
  *                              [data-ruch-auto] truck drives in on its road;
  *                              empty = arrive from the right).
+ *   data-ruch-razem            on a group's child: it arrives together with
+ *                              the [data-ruch-razem] neighbour in its row
+ *                              (the two Iveco Daily side by side).
  *   data-ruch-start            the band starts after this element has scrolled
  *                              by (the end of the home page's drive, when a
  *                              moving drive shows it); the band's truck is
@@ -76,11 +79,24 @@ function initPrzyjazdy(): void {
         .filter((w) => w.isIntersecting)
         .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top || a.boundingClientRect.left - b.boundingClientRect.left)
         .map((w) => w.target as HTMLElement);
-      const krok = Math.min(KROK_MS, MAKS_OPOZNIENIE_MS / Math.max(1, przyjezdza.length - 1));
+      // A [data-ruch-razem] element in the same row as the one before it
+      // takes that one's turn instead of its own.
+      let kolejka = -1;
+      let poprzedni: HTMLElement | undefined;
+      const kolejki = przyjezdza.map((el) => {
+        const razem =
+          poprzedni?.hasAttribute("data-ruch-razem") &&
+          el.hasAttribute("data-ruch-razem") &&
+          Math.abs(el.getBoundingClientRect().top - poprzedni.getBoundingClientRect().top) < 1;
+        if (!razem) kolejka++;
+        poprzedni = el;
+        return kolejka;
+      });
+      const krok = Math.min(KROK_MS, MAKS_OPOZNIENIE_MS / Math.max(1, kolejka));
       przyjezdza.forEach((el, i) => {
         // A custom property, so a part that moves inside the element (a
         // truck on its strip of road) waits its turn too.
-        el.style.setProperty("--opoznienie", `${Math.round(i * krok)}ms`);
+        el.style.setProperty("--opoznienie", `${Math.round((kolejki[i] ?? 0) * krok)}ms`);
         pokaz(el);
       });
     },
