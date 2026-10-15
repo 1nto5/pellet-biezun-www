@@ -78,19 +78,6 @@ const produktyLd = await Promise.all(
                 class="w-full"
               />
             </span>
-            {p.paleta && (
-              <figure class="produkt-paleta">
-                <Image
-                  src={p.paleta.src}
-                  alt={p.paleta.alt}
-                  width={400}
-                  widths={[120, 200, 320, 400]}
-                  sizes="(min-width: 64rem) 9rem, 5.5rem"
-                  loading="lazy"
-                />
-                <figcaption>Zapakowana paleta</figcaption>
-              </figure>
-            )}
           </div>
 
           <div data-ruch-grupa>
@@ -99,14 +86,28 @@ const produktyLd = await Promise.all(
             </h2>
             <p class="mt-2 text-lg font-medium">{p.podtytul}</p>
 
-            {/* The pallet price on the yellow tag; under it the bag, then the tonne. */}
-            <div class="mt-6">
-              <p class="cena-tag text-2xl sm:text-3xl">{cenaLabel(p)}</p>
-              {cenyLabel(p).slice(1).map((c, j) => (
-                <p class:list={["text-xl font-bold", j === 0 ? "mt-3" : "mt-1"]}>{c}</p>
-              ))}
+            {/* The packed pallet beside its price on the yellow tag; under the
+                tag the bag, then the tonne, then what is on a pallet. */}
+            <div class="produkt-ceny mt-6">
+              {p.paleta && (
+                <Image
+                  src={p.paleta.src}
+                  alt={p.paleta.alt}
+                  width={400}
+                  widths={[150, 300, 400]}
+                  sizes="(min-width: 40rem) 9rem, 4.5rem"
+                  loading="lazy"
+                  class="produkt-paleta"
+                />
+              )}
+              <div>
+                <p class="cena-tag text-2xl sm:text-3xl">{cenaLabel(p)}</p>
+                {cenyLabel(p).slice(1).map((c, j) => (
+                  <p class:list={["text-xl font-bold", j === 0 ? "mt-3" : "mt-1"]}>{c}</p>
+                ))}
+                <p class="mt-4 font-semibold">Paleta: {paletaLabel(p)}</p>
+              </div>
             </div>
-            <p class="mt-4 font-semibold">Paleta: {paletaLabel(p)}</p>
             <div class="mt-6">
               <Button href={`${orderLink.href}?produkt=${p.id}`} variant="secondary">
                 Zamów ten pellet<span class="sr-only">: {p.nazwa}</span>
@@ -242,27 +243,35 @@ const produktyLd = await Promise.all(
   .produkt-foto :global(img) {
     mix-blend-mode: multiply;
   }
-  /* The packed pallet: a small second photo under the bag, its caption
-     beside it. Cut out of its background, so the page shows through and it
-     needs no frame. */
-  .produkt-paleta {
+  /* The packed pallet stands to the left of its prices, its foot level
+     with the last line. Shot on white like the bags, so multiply lets the
+     white vanish into the page. */
+  .produkt-ceny {
     display: flex;
     align-items: flex-end;
-    gap: 1rem;
-    margin-top: 1rem;
-    color: var(--color-ink-soft);
-    font-size: 0.875rem;
+    gap: 0.75rem;
   }
-  .produkt-paleta :global(img) {
+  .produkt-paleta {
     flex: none;
-    width: 5.5rem;
+    width: 4.5rem;
     height: auto;
+    mix-blend-mode: multiply;
   }
-  @media (min-width: 64rem) {
-    .produkt-paleta {
-      margin-top: 1.5rem;
+  /* The tag keeps "2440 zł / paleta" on one line beside the pallet; the
+     narrowest phones set it a size smaller to fit. */
+  .produkt-ceny .cena-tag {
+    white-space: nowrap;
+  }
+  @media (width < 24rem) {
+    .produkt-ceny .cena-tag {
+      font-size: 1.05rem;
     }
-    .produkt-paleta :global(img) {
+  }
+  @media (min-width: 40rem) {
+    .produkt-ceny {
+      gap: 1.25rem;
+    }
+    .produkt-paleta {
       width: 9rem;
     }
   }
