@@ -25,8 +25,9 @@ import {
   type MiejsceZPodstrona,
 } from "../../data/miejsca";
 import { produkty, cenyLabel, paletaLabel, cenyZDnia } from "../../data/oferta";
+import { gminyPowiatu } from "../../data/gminy";
 import { distanceKm } from "../../lib/geo";
-import { maPodstrone, nazwaWlasna, pelnaNazwa } from "../../lib/miejsce";
+import { maPodstrone, nazwaWlasna } from "../../lib/miejsce";
 import { absoluteUrl } from "../../lib/url";
 
 export const getStaticPaths = (() =>
@@ -40,7 +41,10 @@ interface Props {
 const OKOLICA_KM = 25;
 
 const { miejsce } = Astro.props;
-const { slug, wMiejscowosci: w, doMiejscowosci: doM, wPowiecie, opis } = miejsce.podstrona;
+/** How many of the county's gminas the page names, nearest to the town first. */
+const GMINY_ILE = 8;
+
+const { slug, wMiejscowosci: w, doMiejscowosci: doM, wPowiecie, powiat, opis } = miejsce.podstrona;
 const km = odlegloscKm(miejsce);
 // "Mławę, Nidzicę" would need another case, so the towns stay in the
 // nominative: "Po drodze jest Drobin", "Po drodze są Mława i Nidzica".
@@ -53,6 +57,17 @@ const poDrodzeZdanie =
 const okolica = miejsca
   .filter((m) => m.nazwa !== miejsce.nazwa && distanceKm(miejsce.geo, m.geo) <= OKOLICA_KM)
   .sort((a, b) => odlegloscKm(a) - odlegloscKm(b));
+
+// The county's gminas we deliver to, nearest to this town first, and only
+// the nearest few: Olsztyn and Biskupiec share a county, and the whole list
+// would be the same on both pages. Without the gmina named like the town:
+// the page is about that town already.
+const odMiejsca = (g: { nazwa: string; geo: { lat: number; lng: number } }) => distanceKm(miejsce.geo, g.geo);
+const gminyObok = gminyPowiatu(powiat)
+  .filter((g) => g.nazwa !== miejsce.nazwa)
+  .sort((a, b) => odMiejsca(a) - odMiejsca(b) || (a.nazwa < b.nazwa ? -1 : a.nazwa > b.nazwa ? 1 : 0))
+  .slice(0, GMINY_ILE)
+  .map((g) => g.nazwa);
 
 const lead = `Dowozimy pellet ${doM} i okolic.`;
 
@@ -101,8 +116,13 @@ const usluga = {
           {ZASADA_DOSTAWY} Dowozimy własnymi samochodami. Każde auto ma windę i elektryczny wózek paletowy, paletę zdejmujemy z auta i podwozimy na miejsce. Na dojazd w trudno dostępne miejsca mamy mniejsze auta Iveco Daily.
         </p>
         {
-          okolica.length > 0 && (
-            <p>Inne miejscowości w okolicy, do których dowozimy: {okolica.map(pelnaNazwa).join(", ")}.</p>
+          gminyObok.length > 0 && (
+            <>
+              <h2>Gminy {wPowiecie}</h2>
+              <p>
+                Najbliższe gminy {wPowiecie}, do których dowozimy: {new Intl.ListFormat("pl", { type: "conjunction" }).format(gminyObok)}.
+              </p>
+            </>
           )
         }
 
