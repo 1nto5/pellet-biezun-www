@@ -108,11 +108,21 @@ const { action, submitLabel, purpose, consent = false } = Astro.props;
   {/* Turnstile's script draws the widget in the box with the `cf-turnstile` class. */}
   {
     formularzeWlaczone ? (
-      <div data-turnstile class="cf-turnstile" data-sitekey={turnstileSiteKey} data-language="pl" />
+      <div data-turnstile class="cf-turnstile" data-sitekey={turnstileSiteKey} data-language="pl" data-theme="auto" />
     ) : (
       <div data-turnstile />
     )
   }
+  {/* The widget in the page's theme, not a white box on a dark page. `auto`
+      above follows the system; this follows the reader's own choice too
+      (Header.astro). It runs before Turnstile's script, which loads later. */}
+  <script is:inline>
+    (() => {
+      const widget = document.currentScript.parentElement.querySelector(".cf-turnstile");
+      const motyw = document.documentElement.getAttribute("data-theme");
+      if (widget && motyw) widget.setAttribute("data-theme", motyw);
+    })();
+  </script>
 
   <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
     <button type="submit" class="btn btn-primary" disabled>{submitLabel}</button>

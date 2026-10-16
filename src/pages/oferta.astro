@@ -62,7 +62,7 @@ const produktyLd = await Promise.all(
     {
       produkty.map((p, i) => (
         <section
-          class:list={["produkt-sekcja", i > 0 && "mt-16 border-t-2 border-black pt-16"]}
+          class:list={["produkt-sekcja", i > 0 && "mt-16 border-t-2 border-ink pt-16"]}
           aria-labelledby={`produkt-${p.id}`}
         >
           <div class="produkt-zdjecia" data-ruch-grupa>
@@ -235,9 +235,14 @@ const produktyLd = await Promise.all(
     }
   }
   /* Packshots are shot on white; multiply lets that white vanish into the
-     page, so only the bag and its shadow show. */
+     page, so only the bag and its shadow show. On a dark page it melts into
+     a light card instead (`--karta-foto`, global.css). */
   .produkt-foto {
     display: block;
+    padding: calc(var(--karta-foto-odstep) * 1rem);
+    border-radius: 1rem;
+    background: var(--karta-foto);
+    isolation: isolate;
   }
   .produkt-foto :global(img) {
     mix-blend-mode: multiply;
@@ -257,6 +262,9 @@ const produktyLd = await Promise.all(
     flex: none;
     width: 5.5rem;
     height: auto;
+    padding: calc(var(--karta-foto-odstep) * 0.4rem);
+    border-radius: 0.6rem;
+    background: var(--karta-wyciete);
   }
   @media (min-width: 64rem) {
     .produkt-paleta {
@@ -356,7 +364,7 @@ const produktyLd = await Promise.all(
     box-shadow: inset 0 -0.25rem 0 var(--color-black);
   }
   .flota-palety .flota-moze {
-    background: var(--color-white);
+    background: var(--color-page);
     box-shadow: inset 0 0 0 2px var(--color-asphalt);
   }
 </style>

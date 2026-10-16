@@ -47,15 +47,23 @@
    `--color-*: initial` clears Tailwind's default colours, so a stray
    `text-slate-600` does not compile.
 
-   Light only: everything the company prints sits on white, and the site
-   follows it. Contrast on white: black 21:1, ink-soft 9.5:1, sign green
-   5.5:1 (white on it the same). Black on brand green 11:1, on yellow 13.9:1.
-   White on asphalt 13:1, on truck red 5:1 (the home page's sticker; the red
-   is otherwise only in the drawings). Brand green is never behind white
-   text.
+   Light and dark. Everything the company prints sits on white, and the
+   site does by default; at night, or when the reader asks for it with the
+   header's button, the page goes dark. Only the surfaces and the text turn:
+   the signs (green boards, yellow tags, the asphalt, the red sticker, the
+   blue information signs) are real-world paint and look the same in both.
+   So `white` and `black` stay what they are, the colours on and of those
+   signs, and the page uses `page`, `ink` and the rest below, which the dark
+   theme redefines.
 
-   `ink`, `sand` and `line` are the text, panel and hairline colours the
-   pages use as classes.
+   Contrast on white: black 21:1, ink-soft 9.5:1, sign green 5.5:1 (white on
+   it the same). Black on brand green 11:1, on yellow 13.9:1. White on
+   asphalt 13:1, on truck red 5:1 (the home page's sticker; the red is
+   otherwise only in the drawings). Brand green is never behind white text.
+
+   `page`, `ink`, `sand` and `line` are the page, text, panel and hairline
+   colours; `link` is the sign green as text, apart from the boards' green,
+   so the dark theme can lighten one and keep the other.
    ------------------------------------------------------------------------ */
 @theme static {
   --color-*: initial;
@@ -78,10 +86,13 @@
      White text on it. */
   --color-info: #0e518d;
 
+  --color-page: #ffffff;
   --color-sand: #f2f2f0;
   --color-ink: #000000;
   --color-ink-soft: #45484b;
   --color-line: #cfd0cc;
+  --color-link: #1d6a05;
+  --color-link-hover: #134803;
   --color-danger: #b3140f;
   --color-scrim: color-mix(in srgb, #000 55%, transparent);
 
@@ -98,6 +109,70 @@
   --text-3xl--line-height: 1.1;
   --text-4xl--line-height: 1.02;
   --text-5xl--line-height: 0.98;
+}
+
+/* ---------------------------------------------------------------------------
+   The dark theme: the reader's choice from the header's button
+   (`data-theme` on <html>, set before the first paint by the script in
+   Base.astro), else the system's. The page is a near-black a shade under the
+   asphalt, so the footer's road still reads as a band of its own. Contrast
+   on the page (on sand): ink 15.9:1 (13.4:1), ink-soft 8.8:1 (7.5:1), link
+   9.9:1 (8.3:1), its hover 12.2:1, danger 7:1 (5.9:1), yellow 11.8:1.
+
+   The rest of the switches a part of the page needs are set here too, as
+   properties its own rule reads: the drive's night sky (droga.css), the
+   light card under the packshots (index.astro, oferta.astro) and the grey
+   one under the cut-out pallet (oferta.astro).
+   ------------------------------------------------------------------------ */
+html {
+  --niebo-dol: #dfe9ef;
+  --niebo-srodek: #f3f7f9;
+  --karta-foto: transparent;
+  --karta-foto-odstep: 0;
+  --karta-wyciete: transparent;
+}
+/* The same values twice: for the reader's choice, and for the system's
+   when there is none (also without scripts). Change both together. */
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --color-page: #16181a;
+  --color-sand: #24272a;
+  --color-ink: #f2f2ef;
+  --color-ink-soft: #b4b7b9;
+  --color-line: #4a4e52;
+  --color-link: #7fd65a;
+  --color-link-hover: #a6e78b;
+  --color-danger: #ff7b6e;
+  --color-scrim: color-mix(in srgb, #000 70%, transparent);
+  --niebo-dol: #1d2b3a;
+  --niebo-srodek: #18212b;
+  /* The packshots' white, a little dimmed, so the card is not the
+     brightest thing on a dark page; with room round the bag, so it reads
+     as a card rather than a white photo. */
+  --karta-foto: #e4e4e0;
+  --karta-foto-odstep: 1;
+  /* The cut-out packed pallet's dark film would melt into the page: it
+     stands on a lighter grey. */
+  --karta-wyciete: #3a3e42;
+}
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) {
+    color-scheme: dark;
+    --color-page: #16181a;
+    --color-sand: #24272a;
+    --color-ink: #f2f2ef;
+    --color-ink-soft: #b4b7b9;
+    --color-line: #4a4e52;
+    --color-link: #7fd65a;
+    --color-link-hover: #a6e78b;
+    --color-danger: #ff7b6e;
+    --color-scrim: color-mix(in srgb, #000 70%, transparent);
+    --niebo-dol: #1d2b3a;
+    --niebo-srodek: #18212b;
+    --karta-foto: #e4e4e0;
+    --karta-foto-odstep: 1;
+    --karta-wyciete: #3a3e42;
+  }
 }
 
 /* ---------------------------------------------------------------------------
@@ -132,7 +207,7 @@ html {
 
 body {
   font-family: var(--font-body);
-  background: var(--color-white);
+  background: var(--color-page);
   color: var(--color-ink);
   line-height: 1.55;
   overflow-wrap: break-word;
@@ -171,12 +246,12 @@ body {
 
   /* The line sits under the descenders and the ogonek of ą and ę. */
   a {
-    color: var(--color-sign);
+    color: var(--color-link);
     text-underline-offset: 0.25em;
     text-decoration-skip-ink: none;
   }
   a:hover {
-    color: var(--color-sign-deep);
+    color: var(--color-link-hover);
     text-decoration-line: underline;
     text-decoration-thickness: 2px;
   }
@@ -203,7 +278,7 @@ main :where(p, address, dd, td) > a:not(.btn),
 }
 
 :focus-visible {
-  outline: 3px solid var(--color-black);
+  outline: 3px solid var(--color-ink);
   outline-offset: 3px;
 }
 @media (forced-colors: active) {
@@ -219,8 +294,8 @@ main :where(p, address, dd, td) > a:not(.btn),
   z-index: 1100;
   transform: translateY(-130%);
   padding: 0.75rem 1.25rem;
-  background: var(--color-black);
-  color: var(--color-white);
+  background: var(--color-ink);
+  color: var(--color-page);
   text-decoration: none;
 }
 .skip-link:focus {
@@ -314,7 +389,7 @@ main :where(p, address, dd, td) > a:not(.btn),
   outline: none;
 }
 .btn:focus-visible::before {
-  outline: 3px solid var(--color-black);
+  outline: 3px solid var(--color-ink);
   outline-offset: 3px;
 }
 .btn-primary::before {
@@ -325,8 +400,14 @@ main :where(p, address, dd, td) > a:not(.btn),
   background: color-mix(in srgb, var(--color-yellow) 75%, var(--color-white));
   box-shadow: inset 0 -0.2rem 0 var(--color-black);
 }
+/* The outlined button stands on the page, so it takes the page's ink; the
+   yellow one keeps black, on its yellow. */
+.btn-secondary,
+.btn-secondary:hover {
+  color: var(--color-ink);
+}
 .btn-secondary::before {
-  border: 2px solid var(--color-black);
+  border: 2px solid var(--color-ink);
 }
 /* Forced colours drop the slanted background, the only edge a primary
    button has; a border brings the shape back. */
@@ -377,10 +458,10 @@ main :where(p, address, dd, td) > a:not(.btn),
   min-height: 2.3rem;
   min-width: 2.3rem;
   padding: 0.25rem 0.6rem;
-  border: 2px solid var(--color-black);
+  border: 2px solid var(--color-ink);
   border-radius: var(--radius-sign);
-  background: var(--color-white);
-  color: var(--color-black);
+  background: var(--color-page);
+  color: var(--color-ink);
   font-size: var(--text-sm);
   font-weight: 700;
   line-height: 1.2;
@@ -425,8 +506,45 @@ main :where(p, address, dd, td) > a:not(.btn),
 
 /* Only the header script opens the drawer; without it the footer lists
    every section, so the button goes. */
-html:not([data-js]) .menu-toggle {
+html:not([data-js]) :is(.menu-toggle, [data-motyw]) {
   display: none;
+}
+/* The theme button: a square, the icon alone. It shows the moon on a light
+   page and the sun on a dark one; `aria-pressed` says whether the night
+   mode is on. */
+.motyw-toggle {
+  padding-inline: 0.25rem;
+}
+[data-motyw][aria-pressed="true"] .motyw-ksiezyc,
+[data-motyw][aria-pressed="false"] .motyw-slonce {
+  display: none;
+}
+/* Its twin in the drawer, for the phones too narrow for it in the row. */
+.menu-motyw {
+  display: none;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1.5rem;
+  padding: 0.6rem 0.9rem 0.5rem;
+  border: 2px solid var(--color-white);
+  border-radius: var(--radius-sign);
+  background: none;
+  color: var(--color-white);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.menu-motyw svg {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+@media (width < 24rem) {
+  .akcje .motyw-toggle {
+    display: none;
+  }
+  html[data-js] .menu-motyw {
+    display: inline-flex;
+  }
 }
 /* The menu button shows a cross while the drawer is open. */
 .menu-toggle[aria-expanded="true"] .menu-ikona-otworz,
@@ -462,8 +580,8 @@ html:not([data-js]) .menu-toggle {
   top: 0;
 }
 .header-surface {
-  background: var(--color-white);
-  border-bottom: 2px solid var(--color-black);
+  background: var(--color-page);
+  border-bottom: 2px solid var(--color-ink);
   pointer-events: auto;
 }
 .pinned-row {
@@ -475,14 +593,14 @@ html:not([data-js]) .menu-toggle {
 .marka {
   display: inline-flex;
   flex-direction: column;
-  color: var(--color-black);
+  color: var(--color-ink);
   font-weight: 900;
   line-height: 0.82;
   text-transform: uppercase;
   text-decoration: none;
 }
 .marka:hover {
-  color: var(--color-black);
+  color: var(--color-ink);
   text-decoration: none;
 }
 .marka-pellet {
@@ -499,6 +617,18 @@ html:not([data-js]) .menu-toggle {
    phone, and nothing in it lines up with its slanted edge. */
 .pinned-row .btn-sm {
   margin-inline: 0;
+}
+/* Phones: the logo, the order button, the theme button and the menu button
+   fit on one line with narrower gaps. Under 24rem they do not, and the
+   theme button moves into the drawer. */
+@media (width < 28rem) {
+  .pinned-row,
+  .pinned-row .akcje {
+    column-gap: 0.5rem;
+  }
+  .pinned-row .btn-sm {
+    padding-inline: 0.7rem;
+  }
 }
 /* The narrowest phones: the logo, the order button and the menu button
    still fit on one line. */
@@ -668,7 +798,7 @@ html:not([data-js]) .menu-toggle {
 }
 .table thead th {
   font-weight: 800;
-  border-bottom: 3px solid var(--color-black);
+  border-bottom: 3px solid var(--color-ink);
 }
 .table tbody th {
   font-weight: 400;
@@ -867,9 +997,9 @@ legend {
   width: 100%;
   min-height: 2.9rem;
   padding: 0.6rem 0.8rem 0.5rem;
-  border: 2px solid var(--color-black);
+  border: 2px solid var(--color-ink);
   border-radius: var(--radius-sign);
-  background: var(--color-white);
+  background: var(--color-page);
   color: var(--color-ink);
   font: inherit;
 }
@@ -903,7 +1033,7 @@ input[type="date"].input::-webkit-date-and-time-value {
 .input:focus-visible {
   outline: 3px solid var(--color-yellow);
   outline-offset: 0;
-  box-shadow: 0 0 0 5px var(--color-black);
+  box-shadow: 0 0 0 5px var(--color-ink);
 }
 .input:user-invalid,
 .input[aria-invalid="true"] {
@@ -914,7 +1044,7 @@ input[type="date"].input::-webkit-date-and-time-value {
 .input[aria-invalid="true"]:focus-visible {
   box-shadow:
     inset 0.35rem 0 0 var(--color-danger),
-    0 0 0 5px var(--color-black);
+    0 0 0 5px var(--color-ink);
 }
 .check {
   display: grid;
@@ -958,7 +1088,7 @@ input[type="date"].input::-webkit-date-and-time-value {
   width: 100%;
   aspect-ratio: 4 / 3;
   max-height: 36rem;
-  border: 2px solid var(--color-black);
+  border: 2px solid var(--color-ink);
   border-radius: var(--radius-sign);
   background: var(--color-sand);
   z-index: 0; /* keeps Leaflet's panes under the pinned header */
@@ -1024,8 +1154,8 @@ input[type="date"].input::-webkit-date-and-time-value {
   padding: 0.45rem 0.7rem 0.3rem;
   border: 2px solid rgb(0 0 0 / 0.2);
   border-radius: 4px;
-  background: var(--color-white) padding-box;
-  color: var(--color-black);
+  background: var(--color-page) padding-box;
+  color: var(--color-ink);
   font: inherit;
   font-size: 0.9rem;
   font-weight: 700;
@@ -1097,12 +1227,12 @@ input[type="date"].input::-webkit-date-and-time-value {
   color: var(--color-black);
 }
 .mapa .mapa-dymek a.link-strong {
-  color: var(--color-sign);
+  color: var(--color-link);
   text-decoration-line: underline;
   text-decoration-thickness: 1px;
 }
 .mapa .mapa-dymek a.link-strong:hover {
-  color: var(--color-sign-deep);
+  color: var(--color-link-hover);
   text-decoration-thickness: 2px;
 }
 @media (pointer: coarse) {
@@ -1115,7 +1245,34 @@ input[type="date"].input::-webkit-date-and-time-value {
 .mapa .leaflet-popup-content-wrapper,
 .mapa .leaflet-popup-tip {
   border-radius: var(--radius-sign);
-  box-shadow: 0 0 0 2px var(--color-black);
+  box-shadow: 0 0 0 2px var(--color-ink);
+}
+/* Leaflet's popups and controls are white boxes of its own; they take the
+   page's colours, so in the dark theme they turn with it. The tiles stay as
+   they are: a darkened street map loses the roads it is there to show. */
+.mapa .leaflet-popup-content-wrapper,
+.mapa .leaflet-popup-tip,
+.mapa .leaflet-bar a {
+  background-color: var(--color-page);
+  color: var(--color-ink);
+}
+.mapa .leaflet-bar a {
+  border-bottom-color: var(--color-line);
+}
+.mapa .leaflet-bar a:hover,
+.mapa .leaflet-bar a:focus {
+  background-color: var(--color-sand);
+}
+.mapa .leaflet-bar a.leaflet-disabled {
+  background-color: var(--color-sand);
+  color: color-mix(in srgb, var(--color-ink) 40%, var(--color-page));
+}
+.mapa .leaflet-control-attribution {
+  background: color-mix(in srgb, var(--color-page) 80%, transparent);
+  color: var(--color-ink);
+}
+.mapa .leaflet-control-attribution a {
+  color: var(--color-link);
 }
 
 /* The town dots. Leaflet draws them as SVG paths with its own colours as
@@ -1277,7 +1434,7 @@ input[type="date"].input::-webkit-date-and-time-value {
   padding: 1rem;
   border: 0;
   border-radius: var(--radius-sign);
-  background: var(--color-white);
+  background: var(--color-page);
   color: var(--color-ink);
   touch-action: pan-y pinch-zoom;
 }
@@ -1338,10 +1495,10 @@ html:has(.lightbox[open]) {
 /* FAQ: each question a <details>, the answer under it. The marker is a black
    square with a plus that turns into a minus when open. */
 .faq details {
-  border-top: 2px solid var(--color-black);
+  border-top: 2px solid var(--color-ink);
 }
 .faq details:last-child {
-  border-bottom: 2px solid var(--color-black);
+  border-bottom: 2px solid var(--color-ink);
 }
 .faq summary {
   display: flex;
@@ -1366,8 +1523,8 @@ html:has(.lightbox[open]) {
   height: 1.6rem;
   padding-top: 0.15rem;
   border-radius: 0.2rem;
-  background: var(--color-black);
-  color: var(--color-white);
+  background: var(--color-ink);
+  color: var(--color-page);
   font-size: 1.4rem;
   font-weight: 900;
   line-height: 1;
