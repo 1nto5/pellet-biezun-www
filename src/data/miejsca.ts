@@ -18,6 +18,7 @@
  */
 import type { Geo } from "../lib/geo";
 import { maPodstrone } from "../lib/miejsce";
+import { sprawdzOpisy, type Opis } from "../lib/opis";
 import { href } from "../lib/url";
 import drogi from "./drogi.json";
 import { DARMOWA_DOSTAWA_KM, ZASADA_DOSTAWY } from "./dostawa";
@@ -35,13 +36,14 @@ export interface Podstrona {
   /** "w powiecie mławskim": the county the town is in or is the seat of. */
   wPowiecie: string;
   /**
-   * What only this town's page can say, from the client: delivery days, the
-   * estates and villages around it, the car that usually goes there.
+   * What only this town's page can say: delivery days, the estates and
+   * villages around it, the car that usually goes there.
    */
-  // TODO(produkcja): ask the client for a few sentences per town; without
-  // them the 16 pages differ only in the town's name, county, distance and
-  // the towns around it and on the way.
-  opis?: string;
+  // TODO(produkcja): the 16 texts are drafts for the client to confirm; the
+  // days, villages, estates and cars in them are examples. Set `potwierdzony`
+  // to true only after the client confirms a text: until then the
+  // production build stops (`sprawdzOpisy` in lib/opis.ts).
+  opis?: Opis;
 }
 
 export interface Miejsce {
@@ -60,19 +62,19 @@ export { DARMOWA_DOSTAWA_KM, ZASADA_DOSTAWY };
 
 export const miejsca: Miejsce[] = [
   { nazwa: "Bieżuń", wojewodztwo: "mazowieckie", geo: { lat: 52.9618, lng: 19.89 } },
-  { nazwa: "Żuromin", wojewodztwo: "mazowieckie", geo: { lat: 53.0672, lng: 19.9078 }, podstrona: { slug: "zuromin", wMiejscowosci: "w Żurominie", doMiejscowosci: "do Żuromina", wPowiecie: "w powiecie żuromińskim" } },
-  { nazwa: "Sierpc", wojewodztwo: "mazowieckie", geo: { lat: 52.8529, lng: 19.6675 }, podstrona: { slug: "sierpc", wMiejscowosci: "w Sierpcu", doMiejscowosci: "do Sierpca", wPowiecie: "w powiecie sierpeckim" } },
+  { nazwa: "Żuromin", wojewodztwo: "mazowieckie", geo: { lat: 53.0672, lng: 19.9078 }, podstrona: { slug: "zuromin", wMiejscowosci: "w Żurominie", doMiejscowosci: "do Żuromina", wPowiecie: "w powiecie żuromińskim", opis: { tekst: "Żuromin mamy najbliżej, więc pellet przywozimy tu zwykle już następnego dnia po zamówieniu. Często jeździmy też do Wiadrowa, Brudnic i Poniatowa. Kilka palet przywozi najczęściej Iveco Daily.", potwierdzony: false } } },
+  { nazwa: "Sierpc", wojewodztwo: "mazowieckie", geo: { lat: 52.8529, lng: 19.6675 }, podstrona: { slug: "sierpc", wMiejscowosci: "w Sierpcu", doMiejscowosci: "do Sierpca", wPowiecie: "w powiecie sierpeckim", opis: { tekst: "W stronę Sierpca jeździmy zwykle we wtorki i czwartki. Tym samym kursem dowozimy pellet do Borkowa Kościelnego, Miłobędzyna i Studzieńca.", potwierdzony: false } } },
   { nazwa: "Raciąż", wojewodztwo: "mazowieckie", geo: { lat: 52.7811, lng: 20.1181 } },
   { nazwa: "Glinojeck", wojewodztwo: "mazowieckie", geo: { lat: 52.8192, lng: 20.2863 } },
-  { nazwa: "Mława", wojewodztwo: "mazowieckie", geo: { lat: 53.1116, lng: 20.3832 }, podstrona: { slug: "mlawa", wMiejscowosci: "w Mławie", doMiejscowosci: "do Mławy", wPowiecie: "w powiecie mławskim" } },
-  { nazwa: "Ciechanów", wojewodztwo: "mazowieckie", geo: { lat: 52.882, lng: 20.6191 }, podstrona: { slug: "ciechanow", wMiejscowosci: "w Ciechanowie", doMiejscowosci: "do Ciechanowa", wPowiecie: "w powiecie ciechanowskim" } },
-  { nazwa: "Płońsk", wojewodztwo: "mazowieckie", geo: { lat: 52.6227, lng: 20.3705 }, podstrona: { slug: "plonsk", wMiejscowosci: "w Płońsku", doMiejscowosci: "do Płońska", wPowiecie: "w powiecie płońskim" } },
+  { nazwa: "Mława", wojewodztwo: "mazowieckie", geo: { lat: 53.1116, lng: 20.3832 }, podstrona: { slug: "mlawa", wMiejscowosci: "w Mławie", doMiejscowosci: "do Mławy", wPowiecie: "w powiecie mławskim", opis: { tekst: "Do Mławy jeździmy zwykle w środy. Oprócz miasta często dowozimy też do Wiśniewa, Szydłowa i Starej Otoczni.", potwierdzony: false } } },
+  { nazwa: "Ciechanów", wojewodztwo: "mazowieckie", geo: { lat: 52.882, lng: 20.6191 }, podstrona: { slug: "ciechanow", wMiejscowosci: "w Ciechanowie", doMiejscowosci: "do Ciechanowa", wPowiecie: "w powiecie ciechanowskim", opis: { tekst: "Do Ciechanowa jeździ zwykle Volvo FM, które zabiera kilkanaście palet naraz. Dzięki temu jednym kursem dowozimy też do Kargoszyna, Przążewa i Chruszczewa.", potwierdzony: false } } },
+  { nazwa: "Płońsk", wojewodztwo: "mazowieckie", geo: { lat: 52.6227, lng: 20.3705 }, podstrona: { slug: "plonsk", wMiejscowosci: "w Płońsku", doMiejscowosci: "do Płońska", wPowiecie: "w powiecie płońskim", opis: { tekst: "W Płońsku bywamy zwykle w poniedziałki. Wozimy też do wsi tuż za miastem: Poświętnego, Szeromina i Siedlina. Gdy zamówień z okolicy jest więcej, jedzie Volvo FH.", potwierdzony: false } } },
   { nazwa: "Nowe Miasto", dopisek: "k. Płońska", wojewodztwo: "mazowieckie", geo: { lat: 52.6563, lng: 20.6307 } },
   { nazwa: "Drobin", wojewodztwo: "mazowieckie", geo: { lat: 52.7378, lng: 19.9893 } },
   { nazwa: "Bulkowo", wojewodztwo: "mazowieckie", geo: { lat: 52.5428, lng: 20.1162 } },
   { nazwa: "Staroźreby", wojewodztwo: "mazowieckie", geo: { lat: 52.6322, lng: 19.9876 } },
   { nazwa: "Bielsk", wojewodztwo: "mazowieckie", geo: { lat: 52.6713, lng: 19.8049 } },
-  { nazwa: "Płock", wojewodztwo: "mazowieckie", geo: { lat: 52.5465, lng: 19.7009 }, podstrona: { slug: "plock", wMiejscowosci: "w Płocku", doMiejscowosci: "do Płocka", wPowiecie: "w powiecie płockim" } },
+  { nazwa: "Płock", wojewodztwo: "mazowieckie", geo: { lat: 52.5465, lng: 19.7009 }, podstrona: { slug: "plock", wMiejscowosci: "w Płocku", doMiejscowosci: "do Płocka", wPowiecie: "w powiecie płockim", opis: { tekst: "Do Płocka jeździmy prawie co tydzień, zwykle w piątki. Dowozimy na wszystkie osiedla, m.in. na Podolszyce, Winiary, Radziwie i Borowiczki. Za miastem często bywamy w Radzanowie i Starej Białej.", potwierdzony: false } } },
   { nazwa: "Gostynin", wojewodztwo: "mazowieckie", geo: { lat: 52.4288, lng: 19.4613 } },
   { nazwa: "Gąbin", wojewodztwo: "mazowieckie", geo: { lat: 52.3994, lng: 19.7307 } },
   { nazwa: "Iłów", wojewodztwo: "mazowieckie", geo: { lat: 52.3395, lng: 20.0263 } },
@@ -92,19 +94,19 @@ export const miejsca: Miejsce[] = [
   { nazwa: "Brok", wojewodztwo: "mazowieckie", geo: { lat: 52.6989, lng: 21.8602 } },
   { nazwa: "Małkinia Górna", wojewodztwo: "mazowieckie", geo: { lat: 52.6932, lng: 22.0351 } },
   { nazwa: "Ostrów Mazowiecka", wojewodztwo: "mazowieckie", geo: { lat: 52.8, lng: 21.8976 } },
-  { nazwa: "Ostrołęka", wojewodztwo: "mazowieckie", geo: { lat: 53.0843, lng: 21.5669 }, podstrona: { slug: "ostroleka", wMiejscowosci: "w Ostrołęce", doMiejscowosci: "do Ostrołęki", wPowiecie: "w powiecie ostrołęckim" } },
+  { nazwa: "Ostrołęka", wojewodztwo: "mazowieckie", geo: { lat: 53.0843, lng: 21.5669 }, podstrona: { slug: "ostroleka", wMiejscowosci: "w Ostrołęce", doMiejscowosci: "do Ostrołęki", wPowiecie: "w powiecie ostrołęckim", opis: { tekst: "Ostrołęka to dla nas dłuższy kurs, więc jedziemy tu zwykle raz na dwa tygodnie, gdy zbierzemy zamówienia z okolicy. Przy okazji dowozimy do Olszewa-Borek, Drężewa i Goworek. Na taką trasę jedzie najczęściej Volvo FH.", potwierdzony: false } } },
   { nazwa: "Baranowo", wojewodztwo: "mazowieckie", geo: { lat: 53.1752, lng: 21.2952 } },
   { nazwa: "Kadzidło", wojewodztwo: "mazowieckie", geo: { lat: 53.2346, lng: 21.4643 } },
   { nazwa: "Krasnosielc", wojewodztwo: "mazowieckie", geo: { lat: 53.0336, lng: 21.1575 } },
   { nazwa: "Jednorożec", wojewodztwo: "mazowieckie", geo: { lat: 53.1405, lng: 21.0506 } },
-  { nazwa: "Przasnysz", wojewodztwo: "mazowieckie", geo: { lat: 53.019, lng: 20.8804 }, podstrona: { slug: "przasnysz", wMiejscowosci: "w Przasnyszu", doMiejscowosci: "do Przasnysza", wPowiecie: "w powiecie przasnyskim" } },
+  { nazwa: "Przasnysz", wojewodztwo: "mazowieckie", geo: { lat: 53.019, lng: 20.8804 }, podstrona: { slug: "przasnysz", wMiejscowosci: "w Przasnyszu", doMiejscowosci: "do Przasnysza", wPowiecie: "w powiecie przasnyskim", opis: { tekst: "Do Przasnysza jeździmy zwykle w czwartki. Wozimy też do Klewek, Sierakowa i Obrębu pod miastem. Do 4 palet przywozi Iveco Daily, większe zamówienie wiezie Volvo FM.", potwierdzony: false } } },
   { nazwa: "Chorzele", wojewodztwo: "mazowieckie", geo: { lat: 53.261, lng: 20.8979 } },
   { nazwa: "Myszyniec", wojewodztwo: "mazowieckie", geo: { lat: 53.3832, lng: 21.3421 } },
   { nazwa: "Łowicz", wojewodztwo: "łódzkie", geo: { lat: 52.1077, lng: 19.9448 } },
   { nazwa: "Kiernozia", wojewodztwo: "łódzkie", geo: { lat: 52.2688, lng: 19.8711 } },
   { nazwa: "Żychlin", wojewodztwo: "łódzkie", geo: { lat: 52.244, lng: 19.6261 } },
   { nazwa: "Łomża", wojewodztwo: "podlaskie", geo: { lat: 53.1751, lng: 22.0728 } },
-  { nazwa: "Włocławek", wojewodztwo: "kujawsko-pomorskie", geo: { lat: 52.6604, lng: 19.0719 }, podstrona: { slug: "wloclawek", wMiejscowosci: "we Włocławku", doMiejscowosci: "do Włocławka", wPowiecie: "w powiecie włocławskim" } },
+  { nazwa: "Włocławek", wojewodztwo: "kujawsko-pomorskie", geo: { lat: 52.6604, lng: 19.0719 }, podstrona: { slug: "wloclawek", wMiejscowosci: "we Włocławku", doMiejscowosci: "do Włocławka", wPowiecie: "w powiecie włocławskim", opis: { tekst: "Kurs do Włocławka mamy zwykle w środy. Pellet wozimy na Zazamcze, Michelin, Południe i inne osiedla. Po drugiej stronie Wisły jeździmy też do Fabianek i Szpetala Górnego.", potwierdzony: false } } },
   { nazwa: "Dobrzyń nad Wisłą", wojewodztwo: "kujawsko-pomorskie", geo: { lat: 52.6375, lng: 19.3214 } },
   { nazwa: "Tłuchowo", wojewodztwo: "kujawsko-pomorskie", geo: { lat: 52.7468, lng: 19.4673 } },
   { nazwa: "Wielgie", wojewodztwo: "kujawsko-pomorskie", geo: { lat: 52.7404, lng: 19.2617 } },
@@ -118,15 +120,15 @@ export const miejsca: Miejsce[] = [
   { nazwa: "Golub-Dobrzyń", wojewodztwo: "kujawsko-pomorskie", geo: { lat: 53.1139, lng: 19.0545 } },
   { nazwa: "Jabłonowo Pomorskie", wojewodztwo: "kujawsko-pomorskie", geo: { lat: 53.388, lng: 19.1527 } },
   { nazwa: "Wąbrzeźno", wojewodztwo: "kujawsko-pomorskie", geo: { lat: 53.28, lng: 18.9473 } },
-  { nazwa: "Brodnica", wojewodztwo: "kujawsko-pomorskie", geo: { lat: 53.2581, lng: 19.3994 }, podstrona: { slug: "brodnica", wMiejscowosci: "w Brodnicy", doMiejscowosci: "do Brodnicy", wPowiecie: "w powiecie brodnickim" } },
-  { nazwa: "Rypin", wojewodztwo: "kujawsko-pomorskie", geo: { lat: 53.0673, lng: 19.406 }, podstrona: { slug: "rypin", wMiejscowosci: "w Rypinie", doMiejscowosci: "do Rypina", wPowiecie: "w powiecie rypińskim" } },
+  { nazwa: "Brodnica", wojewodztwo: "kujawsko-pomorskie", geo: { lat: 53.2581, lng: 19.3994 }, podstrona: { slug: "brodnica", wMiejscowosci: "w Brodnicy", doMiejscowosci: "do Brodnicy", wPowiecie: "w powiecie brodnickim", opis: { tekst: "Do Brodnicy jeździmy zwykle we wtorki, często jednym kursem z Rypinem. Dowozimy też do Karbowa, Szabdy i Tarnówka.", potwierdzony: false } } },
+  { nazwa: "Rypin", wojewodztwo: "kujawsko-pomorskie", geo: { lat: 53.0673, lng: 19.406 }, podstrona: { slug: "rypin", wMiejscowosci: "w Rypinie", doMiejscowosci: "do Rypina", wPowiecie: "w powiecie rypińskim", opis: { tekst: "Rypin mamy blisko, więc pellet przywozimy tu zwykle w ciągu 2–3 dni od zamówienia. Jeździmy też do Głowińska, Sikor i Kowalek. Najczęściej przyjeżdża tu Iveco Daily.", potwierdzony: false } } },
   { nazwa: "Górzno", wojewodztwo: "kujawsko-pomorskie", geo: { lat: 53.1988, lng: 19.6412 } },
   { nazwa: "Nowe Miasto Lubawskie", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.4256, lng: 19.5936 } },
   { nazwa: "Lubawa", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.5051, lng: 19.7494 } },
-  { nazwa: "Iława", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.5976, lng: 19.5612 }, podstrona: { slug: "ilawa", wMiejscowosci: "w Iławie", doMiejscowosci: "do Iławy", wPowiecie: "w powiecie iławskim" } },
+  { nazwa: "Iława", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.5976, lng: 19.5612 }, podstrona: { slug: "ilawa", wMiejscowosci: "w Iławie", doMiejscowosci: "do Iławy", wPowiecie: "w powiecie iławskim", opis: { tekst: "Do Iławy jeździmy zwykle co dwa tygodnie, w czwartki. Tym samym kursem dowozimy do Wikielca, Szałkowa i Kamienia Dużego. Najczęściej jedzie tu Volvo FM.", potwierdzony: false } } },
   { nazwa: "Grunwald", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.4853, lng: 20.0915 } },
   { nazwa: "Dąbrówno", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.433, lng: 20.0361 } },
-  { nazwa: "Działdowo", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.2347, lng: 20.1818 }, podstrona: { slug: "dzialdowo", wMiejscowosci: "w Działdowie", doMiejscowosci: "do Działdowa", wPowiecie: "w powiecie działdowskim" } },
+  { nazwa: "Działdowo", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.2347, lng: 20.1818 }, podstrona: { slug: "dzialdowo", wMiejscowosci: "w Działdowie", doMiejscowosci: "do Działdowa", wPowiecie: "w powiecie działdowskim", opis: { tekst: "W Działdowie pellet przywozi najczęściej Iveco Daily, do 4 palet naraz. Dowozimy też do Kisin, Malinowa i Komornik pod miastem.", potwierdzony: false } } },
   { nazwa: "Lidzbark", dopisek: "Welski", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.2628, lng: 19.8232 } },
   { nazwa: "Kozłowo", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.3072, lng: 20.2931 } },
   { nazwa: "Nidzica", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.3614, lng: 20.4276 } },
@@ -134,11 +136,11 @@ export const miejsca: Miejsce[] = [
   { nazwa: "Jedwabno", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.5298, lng: 20.7268 } },
   { nazwa: "Pasym", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.6522, lng: 20.7917 } },
   { nazwa: "Dźwierzuty", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.7046, lng: 20.9609 } },
-  { nazwa: "Szczytno", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.5655, lng: 20.9916 }, podstrona: { slug: "szczytno", wMiejscowosci: "w Szczytnie", doMiejscowosci: "do Szczytna", wPowiecie: "w powiecie szczycieńskim" } },
+  { nazwa: "Szczytno", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.5655, lng: 20.9916 }, podstrona: { slug: "szczytno", wMiejscowosci: "w Szczytnie", doMiejscowosci: "do Szczytna", wPowiecie: "w powiecie szczycieńskim", opis: { tekst: "Do Szczytna jeździmy zwykle raz na dwa tygodnie, w poniedziałki. Zamówienia z Korpel, Leman i Szczycionka zabieramy tym samym autem, najczęściej Volvo FM.", potwierdzony: false } } },
   { nazwa: "Rozogi", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.4824, lng: 21.3597 } },
   { nazwa: "Wielbark", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.3984, lng: 20.9463 } },
   { nazwa: "Stare Kiełbonki", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.662, lng: 21.3446 } },
-  { nazwa: "Biskupiec", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.8638, lng: 20.955 }, podstrona: { slug: "biskupiec", wMiejscowosci: "w Biskupcu", doMiejscowosci: "do Biskupca", wPowiecie: "w powiecie olsztyńskim" } },
+  { nazwa: "Biskupiec", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.8638, lng: 20.955 }, podstrona: { slug: "biskupiec", wMiejscowosci: "w Biskupcu", doMiejscowosci: "do Biskupca", wPowiecie: "w powiecie olsztyńskim", opis: { tekst: "Biskupiec to jeden z naszych najdalszych kursów, więc jedziemy tu, gdy zbierze się pełne auto zamówień z okolicy. Wozimy wtedy też do Rukławek, Najdymowa i Rozwad.", potwierdzony: false } } },
   { nazwa: "Mrągowo", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.8661, lng: 21.3046 } },
   { nazwa: "Mikołajki", dopisek: "czasem", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.7982, lng: 21.5772 } },
   { nazwa: "Reszel", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 54.0483, lng: 21.1422 } },
@@ -148,13 +150,15 @@ export const miejsca: Miejsce[] = [
   { nazwa: "Bartoszyce", dopisek: "rzadziej", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 54.2524, lng: 20.8144 } },
   { nazwa: "Dobre Miasto", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.9869, lng: 20.3973 } },
   { nazwa: "Dywity", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.834, lng: 20.4734 } },
-  { nazwa: "Olsztyn", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.7767, lng: 20.4765 }, podstrona: { slug: "olsztyn", wMiejscowosci: "w Olsztynie", doMiejscowosci: "do Olsztyna", wPowiecie: "w powiecie olsztyńskim" } },
+  { nazwa: "Olsztyn", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.7767, lng: 20.4765 }, podstrona: { slug: "olsztyn", wMiejscowosci: "w Olsztynie", doMiejscowosci: "do Olsztyna", wPowiecie: "w powiecie olsztyńskim", opis: { tekst: "Do Olsztyna jeździmy zwykle w czwartki. W mieście bywamy m.in. na Pieczewie, Nagórkach, w Kortowie i na Dajtkach. Za miastem często dowozimy do Bartąga, Kieźlin i Wadąga.", potwierdzony: false } } },
   { nazwa: "Gietrzwałd", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.748, lng: 20.2344 } },
   { nazwa: "Łukta", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.8049, lng: 20.084 } },
   { nazwa: "Ostróda", wojewodztwo: "warmińsko-mazurskie", geo: { lat: 53.7029, lng: 19.9623 } },
 ];
 
 export const podstrony: MiejsceZPodstrona[] = miejsca.filter(maPodstrone);
+// Cloudflare Pages builds main for pelletbiezun.pl: no draft text goes live.
+sprawdzOpisy(podstrony, process.env.CF_PAGES_BRANCH);
 export const miejsceHref = (m: MiejsceZPodstrona) => href(`/dostawa/${m.podstrona.slug}/`);
 /** Km by road from the warehouse; a town missing from `drogi.json` stops the build. */
 export const odlegloscKm = (m: Miejsce): number => {
