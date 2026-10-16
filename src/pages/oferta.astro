@@ -170,7 +170,7 @@ const produktyLd = await Promise.all(
       <ul role="list" id="flota" class="flota mt-6" data-ruch-grupa="auto">
         {
           auta.map((f) => (
-            <li class:list={["flota-auto", f.wParze && "flota-w-parze"]}>
+            <li class:list={["flota-auto", f.wParze && "flota-w-parze"]} data-ruch-razem={f.wParze}>
               <span class="flota-pas">
                 <span class="flota-foto" style={`--dl:${f.dl}`} data-ruch-auto>
                   <Image
