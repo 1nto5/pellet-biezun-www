@@ -630,6 +630,38 @@ const webSite = {
       }
     }
   }
+  /* On a laptop's window the products stand under the sign from the start
+     (droga.css), and the hall and the truck get what room is left under
+     them: at full height the cards left them a third of their size on a
+     1366 × 768 screen. There the cards close up, the bag and the tonne's
+     price on one line, so the scene keeps about half its size or more. */
+  @media screen and (prefers-reduced-motion: no-preference) and (min-width: 64rem) and (orientation: landscape) and (min-height: 38rem) and (height < 56rem) {
+    :global(html[data-js] .stopy[data-pod-hero]) .produkty {
+      padding: 0.9rem 1.5rem;
+    }
+    :global(html[data-js] .stopy[data-pod-hero]) .produkt-opis {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      justify-items: start;
+      gap: 0.15rem 0.9rem;
+    }
+    :global(html[data-js] .stopy[data-pod-hero]) .produkt-opis > * {
+      grid-column: 1 / -1;
+    }
+    :global(html[data-js] .stopy[data-pod-hero]) .produkt-opis > .produkt-cena {
+      margin-block: 0.1rem 0.15rem;
+    }
+    :global(html[data-js] .stopy[data-pod-hero]) .produkt-opis > .produkt-cena ~ .miekki {
+      grid-column: auto;
+    }
+    :global(html[data-js] .stopy[data-pod-hero]) .produkty .naklejka {
+      width: 9.5rem;
+      margin-top: -2.5rem;
+    }
+    :global(html[data-js] .stopy[data-pod-hero]) .produkty .naklejka strong {
+      font-size: 1.2rem;
+    }
+  }
 
   /* The fleet: each vehicle on its own strip of road, all to one scale and
      nose to the left, as on the offer page. A Volvo has a row to itself; the

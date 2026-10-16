@@ -505,6 +505,9 @@
      scrolls to it). */
   html[data-js] .stop {
     grid-area: 1 / 1;
+    /* Each stop as tall as its content, not as the tallest stop's: the
+       script measures the first one's for its place under the hero. */
+    align-content: start;
     opacity: 0;
     transition: opacity 0.15s;
   }
