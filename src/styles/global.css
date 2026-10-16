@@ -129,7 +129,6 @@ html {
   --niebo-srodek: #f3f7f9;
   --karta-foto: transparent;
   --karta-foto-odstep: 0;
-  --karta-wyciete: transparent;
 }
 /* The same values twice: for the reader's choice, and for the system's
    when there is none (also without scripts). Change both together. */
@@ -151,9 +150,6 @@ html[data-theme="dark"] {
      as a card rather than a white photo. */
   --karta-foto: #e4e4e0;
   --karta-foto-odstep: 1;
-  /* The cut-out packed pallet's dark film would melt into the page: it
-     stands on a lighter grey. */
-  --karta-wyciete: #3a3e42;
 }
 @media (prefers-color-scheme: dark) {
   html:not([data-theme="light"]) {
@@ -171,7 +167,6 @@ html[data-theme="dark"] {
     --niebo-srodek: #18212b;
     --karta-foto: #e4e4e0;
     --karta-foto-odstep: 1;
-    --karta-wyciete: #3a3e42;
   }
 }
 

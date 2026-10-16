@@ -17,9 +17,9 @@
  */
 import type { ImageMetadata } from "astro";
 import hitonZdjecie from "../assets/produkty/hiton.jpg";
-import hitonPaleta from "../assets/produkty/hiton-paleta.png";
+import hitonPaleta from "../assets/produkty/hiton-paleta.jpg";
 import wielbarkZdjecie from "../assets/produkty/wielbark.jpg";
-import wielbarkPaleta from "../assets/produkty/wielbark-paleta.png";
+import wielbarkPaleta from "../assets/produkty/wielbark-paleta.jpg";
 import { nazwyProduktow, type ProduktId } from "./produkty";
 
 /** The date the client gave the prices for. */
@@ -99,7 +99,7 @@ export const produkty: Produkt[] = [
     ],
     zrodloParametrow: "dane producenta z worka.",
     zdjecie: { src: hitonZdjecie, alt: "Worek pelletu HITON 15 kg" },
-    paleta: { src: hitonPaleta, alt: "Paleta worków pelletu HITON 15 kg owinięta folią" },
+    paleta: { src: hitonPaleta, alt: "Paleta czarnych worków pelletu HITON 15 kg owinięta folią" },
   },
   {
     id: "wielbark",
@@ -132,7 +132,7 @@ export const produkty: Produkt[] = [
       plik: "/dokumenty/sprawozdanie-z-badan-wood-pellets-ikea-wielbark.pdf",
     },
     zdjecie: { src: wielbarkZdjecie, alt: "Worek pelletu z napisem „Wood Pellets”" },
-    paleta: { src: wielbarkPaleta, alt: "Paleta worków Wood Pellets 15 kg owinięta folią, z etykietą 1080 kg" },
+    paleta: { src: wielbarkPaleta, alt: "Paleta worków Wood Pellets 15 kg owinięta folią" },
   },
 ];
 
