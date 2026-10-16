@@ -205,10 +205,10 @@ const stopy: Stop[] = [
     let widok = 1;
     // Room in px kept between the content above and the scene's tallest part.
     const ODSTEP = 12;
-    // On a tall window the one-line hero leaves a lot of empty sky over the
-    // scene. Where it fits, the first stop (the products with their prices)
-    // shows from the start, under the hero, goes up with the hero as it
-    // scrolls away and stops at the stops' own place. It follows the scroll
+    // The one-line hero leaves a lot of empty sky over the scene. So the
+    // first stop (the products with their prices) shows from the start,
+    // under the hero, goes up with the hero as it scrolls away and stops
+    // at the stops' own place. It follows the scroll
     // by a scroll-driven animation (droga.css), which the browser runs
     // itself: moved by this script it trailed the hero by a frame. Without
     // such animations the stop comes in after the hero, as on a low window.
@@ -245,15 +245,17 @@ const stopy: Stop[] = [
       // has to fit under the hero. Never larger than during the drive, or
       // the scene would shrink as the hero scrolls away.
       let room = droga.clientHeight - hero.offsetHeight - ODSTEP;
-      // The first stop under the hero: only where the hall then still fits
-      // at four fifths of its size or more. The hero's foot at the top of
+      // The first stop under the hero, on every window: the hall takes the
+      // room left under it (a low window closes the cards up for it,
+      // index.astro). Gated at four fifths of the hall's size, a laptop's
+      // window showed only empty sky there. The hero's foot at the top of
       // the page, counted from the stage's top (the stage's foot is the
       // window's).
       const heroDol =
         podroz.getBoundingClientRect().top + window.scrollY + hero.offsetTop + hero.offsetHeight - (window.innerHeight - droga.clientHeight);
       const wysokoscTresci = trescPierwszego?.offsetHeight ?? 0;
       const roomZOferta = droga.clientHeight - heroDol - POD_HERO - wysokoscTresci - ODSTEP;
-      ofertaNaStarcie = animacjeScrolla && wysokoscTresci > 0 && roomZOferta / (34 * u1) >= 0.8;
+      ofertaNaStarcie = animacjeScrolla && wysokoscTresci > 0;
       if (ofertaNaStarcie) {
         room = roomZOferta;
         const podHero = `${Math.max(0, Math.round(heroDol + POD_HERO - parseFloat(getComputedStyle(lista).paddingTop)))}px`;
