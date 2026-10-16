@@ -74,6 +74,8 @@ export const firma = {
   closedNote: "Niedziela: nieczynne.",
   /** The company's Google Business Profile, for the JSON-LD `sameAs`. */
   googleMaps: "https://maps.google.com/?cid=4869671231987334697",
+  /** The company's OLX shop, for the footer, the contact page and the JSON-LD `sameAs`. */
+  olx: "https://pelletbiezun.olx.pl/home/",
 };
 
 /** The company's JSON-LD `@id` (Base.astro), for the other JSON-LD objects to point at. */
