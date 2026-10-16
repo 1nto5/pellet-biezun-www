@@ -1,0 +1,34 @@
+---
+/**
+ * The company's OLX shop, with the OLX wordmark drawn in the link's colour
+ * (the logo is only decoration: the text says where the link goes). Used in
+ * the footer and on the contact page; `class` styles the link like its
+ * neighbours there.
+ */
+import { firma } from "../data/firma";
+
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<a href={firma.olx} class:list={["olx", className]} target="_blank" rel="noopener"
+  ><svg viewBox="0 0 48 18" fill="none" stroke="currentColor" stroke-width="3.2" aria-hidden="true" focusable="false"
+    ><circle cx="8" cy="9" r="6.4"></circle><path d="M20 1.5v15h8.5M32 1.5l12 15M44 1.5l-12 15"></path></svg
+  >Nasze ogłoszenia na OLX<span class="sr-only"> (otwiera się w nowej karcie)</span></a
+>
+
+<style>
+  .olx {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .olx svg {
+    flex: none;
+    width: 2.4em;
+    height: 0.9em;
+  }
+</style>

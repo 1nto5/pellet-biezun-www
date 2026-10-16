@@ -5,6 +5,7 @@ import PageHeader from "../components/PageHeader.astro";
 import Formularz from "../components/Formularz.astro";
 import Mapa from "../components/Mapa.astro";
 import TablicaWjazdowa from "../components/TablicaWjazdowa.astro";
+import OlxLink from "../components/OlxLink.astro";
 import { firma, hoursRange } from "../data/firma";
 
 // The `maxlength` of each field is the limit `functions/api/kontakt.ts` checks again.
@@ -39,6 +40,7 @@ import { firma, hoursRange } from "../data/firma";
           <p class="mt-3">
             <a href={firma.googleMaps} class="link-strong">Dojazd w Mapach Google</a>
           </p>
+          <p class="mt-2"><OlxLink class="link-strong" /></p>
           <p class="mt-2 text-sm text-ink-soft">{firma.legalName}{firma.nip && `, NIP ${firma.nip}`}</p>
         </section>
 

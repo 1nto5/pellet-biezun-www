@@ -2,7 +2,7 @@
 /**
  * The top of every page, pinned there from `lg` up: one row with the company
  * name set like its sign, the sections on a green direction board from `lg`
- * up and the „Zamów pellet" button. Below `lg` the
+ * up, the „Zamów pellet" button and the light/dark button. Below `lg` the
  * sections live behind a menu button, in a native <dialog> that slides in from
  * the left as a drawer under the header. The same button, a tap outside, a
  * swipe to the left or Escape closes it.
@@ -18,6 +18,15 @@ const wordmark = firma.znak;
 // "page" for the page itself; "true" for the section a deeper page belongs
 // to, such as "Mapa dystrybucji" on a town's page.
 const current = (href: string) => (href === Astro.url.pathname ? "page" : href === section?.href ? "true" : undefined);
+// The theme button's icon: a moon on a light page, a sun on a dark one
+// (global.css shows one by `aria-pressed`).
+const ikonaMotywu = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" aria-hidden="true">
+  <path class="motyw-ksiezyc" d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"></path>
+  <g class="motyw-slonce">
+    <circle cx="12" cy="12" r="4"></circle>
+    <path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"></path>
+  </g>
+</svg>`;
 ---
 
 <header class="site-header">
@@ -49,6 +58,19 @@ const current = (href: string) => (href === Astro.url.pathname ? "page" : href =
             class="btn btn-primary btn-sm"
             aria-current={current(orderLink.href)}>{orderLink.label}</a
           >
+          <button type="button" class="tool motyw-toggle" data-motyw aria-pressed="false">
+            <Fragment set:html={ikonaMotywu} />
+            <span class="sr-only">Tryb nocny</span>
+          </button>
+          {/* Pressed or not before the first paint, so the icon does not
+              change in view once the module below runs. */}
+          <script is:inline>
+            (function (b) {
+              var t = document.documentElement.getAttribute("data-theme");
+              var ciemny = t ? t === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+              b.setAttribute("aria-pressed", String(ciemny));
+            })(document.currentScript.previousElementSibling);
+          </script>
           <button type="button" class="tool menu-toggle" data-menu-open aria-haspopup="dialog" aria-expanded="false">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" aria-hidden="true">
               <path class="menu-ikona-otworz" d="M4 6h16M4 12h16M4 18h16"></path>
@@ -86,6 +108,12 @@ const current = (href: string) => (href === Astro.url.pathname ? "page" : href =
         }
       </ul>
     </nav>
+    {/* On the narrowest phones the header row has no room for the theme
+        button (global.css), so it is here instead. */}
+    <button type="button" class="menu-motyw" data-motyw aria-pressed="false">
+      <Fragment set:html={ikonaMotywu} />
+      Tryb nocny
+    </button>
   </dialog>
 </header>
 
@@ -95,6 +123,40 @@ const current = (href: string) => (href === Astro.url.pathname ? "page" : href =
   const backdrop = document.querySelector<HTMLElement>("[data-menu-backdrop]");
   const open = document.querySelector<HTMLButtonElement>("[data-menu-open]");
   const surface = document.querySelector<HTMLElement>("[data-surface]");
+  // The theme button in the header row and its twin in the drawer.
+  const motywy = [...document.querySelectorAll<HTMLButtonElement>("[data-motyw]")];
+
+  // Light or dark. The page follows the system until the reader presses the
+  // button; from then on the choice is kept (`motyw` in localStorage) and
+  // set as `data-theme` on <html>, which the script in Base.astro restores
+  // before the first paint of every page. The browser's own bars follow it
+  // through the two `theme-color` metas.
+  {
+    const systemCiemny = window.matchMedia("(prefers-color-scheme: dark)");
+    const ciemny = () => {
+      const wybrany = doc.getAttribute("data-theme");
+      return wybrany ? wybrany === "dark" : systemCiemny.matches;
+    };
+    const pokaz = () => {
+      for (const b of motywy) b.setAttribute("aria-pressed", String(ciemny()));
+    };
+    pokaz();
+    systemCiemny.addEventListener("change", pokaz);
+    const przelacz = () => {
+      const nowy = ciemny() ? "light" : "dark";
+      doc.setAttribute("data-theme", nowy);
+      try {
+        localStorage.setItem("motyw", nowy);
+      } catch {
+        // Storage blocked (a private window): the choice holds for this page.
+      }
+      // The page's colour, as the theme now paints it, for both metas.
+      const kolor = getComputedStyle(doc).getPropertyValue("--color-page").trim();
+      for (const meta of document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')) meta.content = kolor;
+      pokaz();
+    };
+    for (const b of motywy) b.addEventListener("click", przelacz);
+  }
 
   // `--header-height` is the pinned row's height: same-page links and the
   // drawer sit below it. It changes with the window as lines wrap. Where the

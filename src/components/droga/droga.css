@@ -37,9 +37,10 @@
   position: relative;
   container-type: size;
   overflow: hidden;
-  /* A faint sky over the forest, white higher up like the page: the photos
-     stand on something rather than float on white. */
-  background: linear-gradient(to top, #dfe9ef 0%, #f3f7f9 38%, var(--color-white) 70%);
+  /* A faint sky over the forest, the page's own colour higher up: the
+     photos stand on something rather than float on white. At night
+     (global.css sets the stops) a dark blue sky, lightest at the horizon. */
+  background: linear-gradient(to top, var(--niebo-dol) 0%, var(--niebo-srodek) 38%, var(--color-page) 70%);
 }
 .scena-in {
   --u: min(var(--uh, 1) * 1cqh, var(--uw, 0.9) * 1cqw);
@@ -447,7 +448,7 @@
     min-height: 22rem;
     padding: 0;
     overflow: hidden;
-    background: var(--color-white);
+    background: var(--color-page);
   }
   html[data-js] .droga-scena {
     display: block;

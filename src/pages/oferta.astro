@@ -62,7 +62,7 @@ const produktyLd = await Promise.all(
     {
       produkty.map((p, i) => (
         <section
-          class:list={["produkt-sekcja", i > 0 && "mt-16 border-t-2 border-black pt-16"]}
+          class:list={["produkt-sekcja", i > 0 && "mt-16 border-t-2 border-ink pt-16"]}
           aria-labelledby={`produkt-${p.id}`}
         >
           <div class="produkt-zdjecia" data-ruch-grupa>
@@ -90,15 +90,16 @@ const produktyLd = await Promise.all(
                 tag the bag, then the tonne, then what is on a pallet. */}
             <div class="produkt-ceny mt-6">
               {p.paleta && (
-                <Image
-                  src={p.paleta.src}
-                  alt={p.paleta.alt}
-                  width={600}
-                  widths={[200, 400, 600]}
-                  sizes="(min-width: 40rem) 10rem, 5rem"
-                  loading="lazy"
-                  class="produkt-paleta"
-                />
+                <span class="produkt-paleta">
+                  <Image
+                    src={p.paleta.src}
+                    alt={p.paleta.alt}
+                    width={600}
+                    widths={[200, 400, 600]}
+                    sizes="(min-width: 40rem) 10rem, 5rem"
+                    loading="lazy"
+                  />
+                </span>
               )}
               <div>
                 <p class="cena-tag text-2xl sm:text-3xl">{cenaLabel(p)}</p>
@@ -171,7 +172,7 @@ const produktyLd = await Promise.all(
       <ul role="list" id="flota" class="flota mt-6" data-ruch-grupa="auto">
         {
           auta.map((f) => (
-            <li class:list={["flota-auto", f.wParze && "flota-w-parze"]}>
+            <li class:list={["flota-auto", f.wParze && "flota-w-parze"]} data-ruch-razem={f.wParze}>
               <span class="flota-pas">
                 <span class="flota-foto" style={`--dl:${f.dl}`} data-ruch-auto>
                   <Image
@@ -236,24 +237,38 @@ const produktyLd = await Promise.all(
     }
   }
   /* Packshots are shot on white; multiply lets that white vanish into the
-     page, so only the bag and its shadow show. */
+     page, so only the bag and its shadow show. On a dark page it melts into
+     a light card instead (`--karta-foto`, global.css). */
   .produkt-foto {
     display: block;
+    padding: calc(var(--karta-foto-odstep) * 1rem);
+    border-radius: 1rem;
+    background: var(--karta-foto);
+    isolation: isolate;
   }
   .produkt-foto :global(img) {
     mix-blend-mode: multiply;
   }
   /* The packed pallet stands to the left of its prices, its foot level
      with the last line. Shot on white like the bags, so multiply lets the
-     white vanish into the page. */
+     white vanish into the page, and a dark page gets the bag's light card. */
   .produkt-ceny {
     display: flex;
     align-items: flex-end;
     gap: 0.75rem;
   }
   .produkt-paleta {
+    display: block;
     flex: none;
     width: 4.5rem;
+    padding: calc(var(--karta-foto-odstep) * 0.4rem);
+    border-radius: 0.6rem;
+    background: var(--karta-foto);
+    isolation: isolate;
+  }
+  .produkt-paleta :global(img) {
+    display: block;
+    width: 100%;
     height: auto;
     mix-blend-mode: multiply;
   }
@@ -365,7 +380,7 @@ const produktyLd = await Promise.all(
     box-shadow: inset 0 -0.25rem 0 var(--color-black);
   }
   .flota-palety .flota-moze {
-    background: var(--color-white);
+    background: var(--color-page);
     box-shadow: inset 0 0 0 2px var(--color-asphalt);
   }
 </style>
