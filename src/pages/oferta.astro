@@ -12,6 +12,15 @@ import { produkty, produktHref, cenyZDnia } from "../data/oferta";
 import { ZASADA_DOSTAWY } from "../data/miejsca";
 import { flota, udzial, szczegolyLabel } from "../data/flota";
 
+/**
+ * What the product's own page adds, for the link to it: "Parametry,
+ * certyfikat i badania" with a test report, "Parametry i certyfikat" without.
+ */
+function zawartoscStrony(p: (typeof produkty)[number]): string {
+  const czesci = ["Parametry", ...(p.certyfikat ? ["certyfikat"] : []), ...(p.dokument ? ["badania"] : [])];
+  return czesci.length < 2 ? czesci.join("") : `${czesci.slice(0, -1).join(", ")} i ${czesci.at(-1)}`;
+}
+
 /** Each vehicle with its width as a share of a full row (`dl`). */
 const auta = flota.map((f) => ({ ...f, dl: udzial(f) }));
 ---
@@ -42,7 +51,7 @@ const auta = flota.map((f) => ({ ...f, dl: udzial(f) }));
           </h2>
           <div class="mt-6">
             <a href={produktHref(p)} class="link-strong">
-              Parametry, certyfikat i badania<span class="sr-only">: {p.nazwa}</span>
+              {zawartoscStrony(p)}<span class="sr-only">: {p.nazwa}</span>
               <span aria-hidden="true">→</span>
             </a>
           </div>

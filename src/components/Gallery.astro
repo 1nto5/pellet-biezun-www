@@ -13,9 +13,14 @@ import type { ImageMetadata } from "astro";
 
 interface Props {
   photos: readonly { src: ImageMetadata; alt: string }[];
+  /**
+   * False where the gallery sits far below the first screen, as on a product
+   * page: then every photo waits until it is scrolled near, none first.
+   */
+  naGorze?: boolean;
 }
 
-const { photos } = Astro.props;
+const { photos, naGorze = true } = Astro.props;
 
 /**
  * The grid is four columns from `lg`, three from `sm`, two below that, inside
@@ -59,8 +64,8 @@ function styl(i: number, n: number): string {
   }).join(";");
 }
 
-/** About as many photos as the first screen shows; they load at once. */
-const OD_RAZU = 3;
+/** About as many photos as the first screen shows; they load at once, unless the gallery is lower down. */
+const OD_RAZU = naGorze ? 3 : 0;
 
 /**
  * The enlarged photo, uncropped, in three sizes: a phone takes the 1200 px
@@ -111,8 +116,8 @@ const items = await Promise.all(
                   widths={[560, 700, 1000, 1100, 1400]}
                   quality={65}
                   sizes={sizesPierwsze}
-                  loading="eager"
-                  fetchpriority="high"
+                  loading={naGorze ? "eager" : "lazy"}
+                  fetchpriority={naGorze ? "high" : undefined}
                 />
               ) : (
                 <Image
