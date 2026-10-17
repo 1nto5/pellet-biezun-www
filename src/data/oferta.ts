@@ -86,7 +86,7 @@ export interface Produkt {
   zdjecie: Zdjecie;
   /** The client's photos of this product in the gallery, by file name in `src/assets/galeria/`; the product page shows them. */
   galeria: string[];
-  /** The whole pallet as it leaves the warehouse: the client's photo, cut out of its background. Only the offer page shows it, small, under the bag. */
+  /** The whole pallet as it leaves the warehouse: the client's photo, cut out of its background. The offer page and the product pages show it, small, beside the price. */
   paleta?: Zdjecie;
 }
 
