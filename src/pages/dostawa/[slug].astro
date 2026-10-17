@@ -24,7 +24,7 @@ import {
   poDrodze,
   type MiejsceZPodstrona,
 } from "../../data/miejsca";
-import { produkty, cenyLabel, paletaLabel, cenyZDnia } from "../../data/oferta";
+import { produkty, produktHref, cenyLabel, paletaLabel, cenyZDnia } from "../../data/oferta";
 import { distanceKm } from "../../lib/geo";
 import { maPodstrone, nazwaWlasna, pelnaNazwa } from "../../lib/miejsce";
 import { absoluteUrl } from "../../lib/url";
@@ -111,14 +111,14 @@ const usluga = {
           {
             produkty.map((p) => (
               <li>
-                {p.nazwa}: <strong>{cenyLabel(p).join(", ")}</strong> ({paletaLabel(p)})
+                <a href={produktHref(p)}>{p.nazwa}</a>: <strong>{cenyLabel(p).join(", ")}</strong> ({paletaLabel(p)})
               </li>
             ))
           }
         </ul>
         <p>
-          Ceny z {cenyZDnia}. Przy większym zamówieniu cena do negocjacji.{" "}
-          <a href={strony.oferta.href}>Parametry i certyfikaty pelletu</a> znajdziesz w ofercie.
+          Ceny z {cenyZDnia}. Przy większym zamówieniu cena do negocjacji.
+          Parametry i certyfikat każdego pelletu są na jego stronie.
         </p>
 
         <h2>Odbiór w magazynie</h2>

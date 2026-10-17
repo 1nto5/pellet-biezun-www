@@ -1,0 +1,157 @@
+---
+/**
+ * One product as the offer page and the product's own page show it: the bag
+ * on the left (above on a phone); on the right the subtitle, the packed
+ * pallet beside its price on the yellow tag, the other prices, the order
+ * button, the description and the certificate. The page puts the product's
+ * heading in the `nazwa` slot, above the subtitle, and anything more under
+ * the certificate.
+ */
+import { Image } from "astro:assets";
+import type { HTMLAttributes } from "astro/types";
+import Button from "./Button.astro";
+import { orderLink } from "../data/nav";
+import { cenyLabel, cenaLabel, paletaLabel, type Produkt } from "../data/oferta";
+
+interface Props extends HTMLAttributes<"section"> {
+  produkt: Produkt;
+  /** The first product on the page: its bag loads at once, as the largest image of the first screen. */
+  pierwszy?: boolean;
+}
+
+const { produkt: p, pierwszy = false, class: className, ...attrs } = Astro.props;
+---
+
+<section class:list={["produkt-sekcja", className]} {...attrs}>
+  <div class="produkt-zdjecia" data-ruch-grupa>
+    <span class="produkt-foto">
+      <Image
+        src={p.zdjecie.src}
+        alt={p.zdjecie.alt}
+        width={800}
+        widths={[400, 640, 800]}
+        sizes="(min-width: 64rem) 26rem, 15rem"
+        loading={pierwszy ? "eager" : "lazy"}
+        fetchpriority={pierwszy ? "high" : undefined}
+        class="w-full"
+      />
+    </span>
+  </div>
+
+  <div data-ruch-grupa>
+    <slot name="nazwa" />
+    <p class="mt-2 text-lg font-medium">{p.podtytul}</p>
+
+    {/* The packed pallet beside its price on the yellow tag; under the
+        tag the bag, then the tonne, then what is on a pallet. */}
+    <div class="produkt-ceny mt-6">
+      {p.paleta && (
+        <span class="produkt-paleta">
+          <Image
+            src={p.paleta.src}
+            alt={p.paleta.alt}
+            width={600}
+            widths={[200, 400, 600]}
+            sizes="(min-width: 40rem) 10rem, 5rem"
+            loading="lazy"
+          />
+        </span>
+      )}
+      <div>
+        <p class="cena-tag text-2xl sm:text-3xl">{cenaLabel(p)}</p>
+        {cenyLabel(p).slice(1).map((c, j) => (
+          <p class:list={["text-xl font-bold", j === 0 ? "mt-3" : "mt-1"]}>{c}</p>
+        ))}
+        <p class="mt-4 font-semibold">Paleta: {paletaLabel(p)}</p>
+      </div>
+    </div>
+    <div class="mt-6">
+      <Button href={`${orderLink.href}?produkt=${p.id}`} variant="secondary">
+        Zamów ten pellet<span class="sr-only">: {p.nazwa}</span>
+      </Button>
+    </div>
+
+    <p class="mt-6 max-w-prose">{p.opis}</p>
+    {p.certyfikat && <p class="mt-4 max-w-prose">{p.certyfikat}</p>}
+    <slot />
+  </div>
+</section>
+
+<style>
+  .produkt-sekcja {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.5rem;
+  }
+  @media (min-width: 64rem) {
+    .produkt-sekcja {
+      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+      gap: 4rem;
+    }
+  }
+  /* On a phone the bag stays small enough that its name and price show on
+     the first screen with it. */
+  .produkt-zdjecia {
+    max-width: 15rem;
+  }
+  @media (min-width: 64rem) {
+    .produkt-zdjecia {
+      max-width: none;
+      align-self: start;
+    }
+  }
+  /* Packshots are shot on white; multiply lets that white vanish into the
+     page, so only the bag and its shadow show. On a dark page it melts into
+     a light card instead (`--karta-foto`, global.css). */
+  .produkt-foto {
+    display: block;
+    padding: calc(var(--karta-foto-odstep) * 1rem);
+    border-radius: 1rem;
+    background: var(--karta-foto);
+    isolation: isolate;
+  }
+  .produkt-foto :global(img) {
+    mix-blend-mode: multiply;
+  }
+  /* The packed pallet stands to the left of its prices, its foot level
+     with the last line. Shot on white like the bags, so multiply lets the
+     white vanish into the page, and a dark page gets the bag's light card. */
+  .produkt-ceny {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.75rem;
+  }
+  .produkt-paleta {
+    display: block;
+    flex: none;
+    width: 4.5rem;
+    padding: calc(var(--karta-foto-odstep) * 0.4rem);
+    border-radius: 0.6rem;
+    background: var(--karta-foto);
+    isolation: isolate;
+  }
+  .produkt-paleta :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    mix-blend-mode: multiply;
+  }
+  /* The tag keeps "2440 zł / paleta" on one line beside the pallet; the
+     narrowest phones set it a size smaller to fit. */
+  .produkt-ceny .cena-tag {
+    white-space: nowrap;
+  }
+  @media (width < 24rem) {
+    .produkt-ceny .cena-tag {
+      font-size: 1.05rem;
+    }
+  }
+  @media (min-width: 40rem) {
+    .produkt-ceny {
+      gap: 1.25rem;
+    }
+    .produkt-paleta {
+      width: 9rem;
+    }
+  }
+</style>

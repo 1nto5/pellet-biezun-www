@@ -21,6 +21,7 @@ import hitonPaleta from "../assets/produkty/hiton-paleta.jpg";
 import wielbarkZdjecie from "../assets/produkty/wielbark.jpg";
 import wielbarkPaleta from "../assets/produkty/wielbark-paleta.jpg";
 import { nazwyProduktow, type ProduktId } from "./produkty";
+import { href } from "../lib/url";
 
 /** The date the client gave the prices for. */
 // TODO(produkcja): ask the client whether the prices include VAT.
@@ -48,6 +49,16 @@ export interface Zdjecie {
 export interface Produkt {
   /** Sent with the order form; keep it stable once orders come in. The ids and names live in produkty.ts. */
   id: ProduktId;
+  /** The product's own page: /oferta/<slug>/ (`produktHref`). Keep it stable once the page is indexed. */
+  slug: string;
+  /**
+   * The product page's h1, in the words people search for, so the page title
+   * and the breadcrumbs start with them too. Not the product's name: the
+   * Wielbark pellet's h1 is "Pellet IKEA Wielbark", its name stays under it.
+   */
+  naglowek: string;
+  /** The product page's description for search engines (`opisStrony`): its first words, then what sets the product apart. Titles and descriptions say "opałowy", the text "drzewny". */
+  opisStrony: { poczatek: string; wyroznik: string };
   /**
    * Goes into headings: the name printed on the bag or the origin. The
    * Wielbark pellet's says "IKEA" (the owner's decision of 2026-10-12, at the
@@ -73,6 +84,8 @@ export interface Produkt {
   /** A file to read under the parameters: the test report, later a certificate. Only what the client has sent. */
   dokument?: Dokument;
   zdjecie: Zdjecie;
+  /** The client's photos of this product in the gallery, by file name in `src/assets/galeria/`; the product page shows them. */
+  galeria: string[];
   /** The whole pallet as it leaves the warehouse: the client's photo, cut out of its background. Only the offer page shows it, small, under the bag. */
   paleta?: Zdjecie;
 }
@@ -80,6 +93,9 @@ export interface Produkt {
 export const produkty: Produkt[] = [
   {
     id: "hiton",
+    slug: "pellet-hiton",
+    naglowek: "Pellet HITON",
+    opisStrony: { poczatek: "Pellet opałowy HITON", wyroznik: "Certyfikat DINplus i ENplus A1 producenta, parametry" },
     nazwa: nazwyProduktow.hiton,
     podtytul: "Pellet drzewny certyfikowany, 100% sosna, średnica 6\u00a0mm",
     opis: "Pellet z czystych trocin sosnowych, bez dodatków chemicznych, klejów i innych zanieczyszczeń. Ma stałe, powtarzalne parametry i nie tworzy spieków. Siarki jest bardzo mało, co chroni kocioł przed korozją. Popiół można wykorzystać jako nawóz w ogrodzie.",
@@ -99,10 +115,17 @@ export const produkty: Produkt[] = [
     ],
     zrodloParametrow: "dane producenta z worka.",
     zdjecie: { src: hitonZdjecie, alt: "Worek pelletu HITON 15 kg" },
+    galeria: ["05-hiton-palety", "11-hiton-worki", "15-hiton-granulat"],
     paleta: { src: hitonPaleta, alt: "Paleta czarnych worków pelletu HITON 15 kg owinięta folią" },
   },
   {
     id: "wielbark",
+    slug: "pellet-ikea-wielbark",
+    naglowek: "Pellet IKEA Wielbark",
+    opisStrony: {
+      poczatek: "Pellet opałowy z IKEA Wielbark (Wood Pellets)",
+      wyroznik: "Certyfikat ENplus A1 producenta, wyniki badań z laboratorium",
+    },
     nazwa: nazwyProduktow.wielbark,
     podtytul: "Pellet drzewny certyfikowany, 100% sosna, średnica 6\u00a0mm",
     opis: "Pellet z zakładu IKEA Industry w Wielbarku, z mocno sprasowanych czystych trocin sosnowych, bez kory i innych dodatków. Daje mało popiołu i nie tworzy spieków. Jego jakość jest zawsze taka sama, bardzo wysoka.",
@@ -132,9 +155,35 @@ export const produkty: Produkt[] = [
       plik: "/dokumenty/sprawozdanie-z-badan-wood-pellets-ikea-wielbark.pdf",
     },
     zdjecie: { src: wielbarkZdjecie, alt: "Worek pelletu z napisem „Wood Pellets”" },
+    galeria: [
+      "23-magazyn-hala",
+      "24-magazyn-wood-pellets",
+      "25-wood-pellets-trzy-palety",
+      "26-wood-pellets-paleta",
+      "27-wood-pellets-z-gory",
+      "28-magazyn-rzad-palet",
+    ],
     paleta: { src: wielbarkPaleta, alt: "Paleta worków Wood Pellets 15 kg owinięta folią" },
   },
 ];
+
+/** "/oferta/pellet-hiton/": the product's own page, with the site's base. */
+export const produktHref = (p: Produkt) => href(`/oferta/${p.slug}/`);
+
+/** "Pellet HITON: cena, parametry, dostawa": the product page's title, before the site's name. */
+export const tytulStrony = (p: Produkt) => `${p.naglowek}: cena, parametry, dostawa`;
+
+/**
+ * The product page's description: "Pellet opałowy HITON w workach 15 kg,
+ * 2200 zł za paletę (65 worków, 975 kg). Certyfikat …, dostawa gratis."
+ * Search results keep the slogan "dostawa gratis" (zasady-tekstow.md).
+ */
+export function opisStrony(p: Produkt): string {
+  const { poczatek, wyroznik } = p.opisStrony;
+  const cena = `${p.cenaPaleta.toLocaleString("pl-PL")} zł za paletę`;
+  const paleta = `${p.workowNaPalecie} ${workiOdmiana(p.workowNaPalecie)}, ${p.kgNaPalecie} kg`;
+  return `${poczatek} w workach ${p.workiKg} kg, ${cena} (${paleta}). ${wyroznik}, dostawa gratis.`;
+}
 
 /**
  * The prices in the order the pages show them: "2200 zł / paleta", then,

@@ -7,7 +7,7 @@ import { Image } from "astro:assets";
 import { firma, firmaId, addressLine, hoursRange } from "../data/firma";
 import { orderLink, strony } from "../data/nav";
 import { absoluteUrl } from "../lib/url";
-import { produkty, cenyLabel, cenaLabel, paletaLabel } from "../data/oferta";
+import { produkty, produktHref, cenyLabel, cenaLabel, paletaLabel } from "../data/oferta";
 import { flota, udzial, szczegolyLabel } from "../data/flota";
 import { faq } from "../data/faq";
 import { podstronyPoOdleglosci, miejsceHref } from "../data/miejsca";
@@ -99,7 +99,7 @@ const webSite = {
                   <p class="miekki">{paletaLabel(p)}</p>
                   <p class="cena-tag produkt-cena">{cenaLabel(p)}</p>
                   {inne.map((c) => <p class="miekki">{c}</p>)}
-                  <a href={`${strony.oferta.href}#produkt-${p.id}`} class="link-strong">
+                  <a href={produktHref(p)} class="link-strong">
                     Parametry<span class="sr-only">: {p.nazwa}</span>
                     <span aria-hidden="true">→</span>
                   </a>
