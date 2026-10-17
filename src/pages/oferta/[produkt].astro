@@ -1,0 +1,164 @@
+---
+/**
+ * One page per product, under the offer: what someone searching for this
+ * pellet by name wants to find. The offer page shows both products in short;
+ * only this page has the parameters with their source and the test report,
+ * the client's photos of the product, the questions that name it and the
+ * product's structured data.
+ */
+import type { GetStaticPaths } from "astro";
+import { getImage } from "astro:assets";
+import Base from "../../layouts/Base.astro";
+import PageShell from "../../components/PageShell.astro";
+import PageHeader from "../../components/PageHeader.astro";
+import Produkt from "../../components/Produkt.astro";
+import Gallery from "../../components/Gallery.astro";
+import { firmaId } from "../../data/firma";
+import { strony } from "../../data/nav";
+import { produkty, produktHref, tytulStrony, opisStrony, cenyZDnia, type Produkt as ProduktDane } from "../../data/oferta";
+import { ZASADA_DOSTAWY } from "../../data/miejsca";
+import { faq } from "../../data/faq";
+import { zdjeciaONazwach } from "../../data/galeria";
+import { href } from "../../lib/url";
+
+export const getStaticPaths = (() =>
+  produkty.map((produkt) => ({ params: { produkt: produkt.slug }, props: { produkt } }))) satisfies GetStaticPaths;
+
+interface Props {
+  produkt: ProduktDane;
+}
+
+const { produkt: p } = Astro.props;
+const inne = produkty.filter((x) => x.id !== p.id);
+const zdjecia = zdjeciaONazwach(p.galeria);
+const maWymagania = p.parametry.some((x) => x.wymaganie);
+
+/**
+ * The questions that name this product. By the brand alone, not the full
+ * name: "Co zrobić z popiołem?" speaks of "pelletu HITON".
+ */
+const marka: Record<ProduktDane["id"], RegExp> = { hiton: /hiton/i, wielbark: /wielbark/i };
+const pytania = faq.filter((f) => marka[p.id].test(`${f.q} ${f.a}`));
+
+/**
+ * The product with its pallet price, for search results. No `brand`
+ * field: the products go by the name on the bag or the origin (oferta.ts).
+ */
+const produktLd = {
+  "@context": "https://schema.org",
+  "@type": "Product",
+  name: p.nazwa,
+  description: `${p.podtytul}. ${p.opis}`,
+  image: new URL((await getImage({ src: p.zdjecie.src, width: 800, format: "jpg" })).src, Astro.site).toString(),
+  category: "Pellet drzewny",
+  offers: {
+    "@type": "Offer",
+    url: new URL(produktHref(p), Astro.site).toString(),
+    price: p.cenaPaleta,
+    priceCurrency: "PLN",
+    // The price is per pallet: a unit price, not a minimum order.
+    priceSpecification: {
+      "@type": "UnitPriceSpecification",
+      price: p.cenaPaleta,
+      priceCurrency: "PLN",
+      referenceQuantity: { "@type": "QuantitativeValue", value: 1, unitText: "paleta" },
+    },
+    itemCondition: "https://schema.org/NewCondition",
+    // TODO(produkcja): availability (schema.org/InStock) once the client says how stock is kept.
+    seller: { "@id": firmaId },
+  },
+};
+---
+
+<Base title={tytulStrony(p)} description={opisStrony(p)} jsonLd={[produktLd]}>
+  <PageShell>
+    <PageHeader slot="header" title={p.naglowek}>
+      {/* The name on the bag, where the heading says it in other words. */}
+      {p.nazwa !== p.naglowek && <p class="mt-3 text-2xl font-extrabold">{p.nazwa}</p>}
+    </PageHeader>
+
+    <Produkt produkt={p} pierwszy>
+      <p class="mt-4 max-w-prose">
+        {ZASADA_DOSTAWY} Sprawdź swoją miejscowość na
+        <a href={strony.mapa.href}>mapie dystrybucji</a>.
+      </p>
+
+      <h2 class="mt-10 text-2xl">Parametry</h2>
+      {/* A narrow screen scrolls the table sideways; the box takes focus so
+          a keyboard can scroll it too. */}
+      <div class="mt-3 overflow-x-auto" tabindex="0" role="region" aria-label={`Parametry: ${p.nazwa}`}>
+        <table class="table">
+          {maWymagania && (
+            <thead>
+              <tr>
+                <th scope="col">Parametr</th>
+                <th scope="col">Wynik</th>
+                <th scope="col">Wymaganie ENplus A1</th>
+              </tr>
+            </thead>
+          )}
+          <tbody data-ruch-grupa="wiersz">
+            {p.parametry.map((x) => (
+              <tr>
+                <th scope="row">{x.nazwa}</th>
+                <td>{x.wartosc}</td>
+                {maWymagania && <td class="wymaganie">{x.wymaganie}</td>}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="mt-3 max-w-prose text-sm text-ink-soft">Źródło: {p.zrodloParametrow}</p>
+      {p.dokument && (
+        <p class="mt-3">
+          <a href={href(p.dokument.plik)} class="link-strong">{p.dokument.etykieta}</a>
+        </p>
+      )}
+    </Produkt>
+
+    <p class="mt-10 text-sm text-ink-soft">
+      Ceny z {cenyZDnia}. Przy większym zamówieniu cena do negocjacji.
+    </p>
+
+    {
+      zdjecia.length > 0 && (
+        <section class="mt-16" aria-labelledby="zdjecia">
+          <h2 id="zdjecia" class="mb-6 text-3xl md:text-4xl">Zdjęcia</h2>
+          <Gallery photos={zdjecia} naGorze={false} />
+        </section>
+      )
+    }
+
+    {
+      pytania.length > 0 && (
+        <section class="mt-16" aria-labelledby="pytania">
+          <h2 id="pytania" class="mb-4 text-3xl md:text-4xl">Częste pytania</h2>
+          <div class="faq max-w-prose" data-ruch-grupa>
+            {pytania.map((item) => (
+              <details open>
+                <summary>{item.q}</summary>
+                <p>{item.a}</p>
+              </details>
+            ))}
+          </div>
+          <div class="mt-6">
+            <a href={strony.faq.href} class="link-strong">
+              Wszystkie pytania <span aria-hidden="true">→</span>
+            </a>
+          </div>
+        </section>
+      )
+    }
+
+    {
+      inne.map((x) => (
+        <div class="mt-14">
+          Drugi pellet w ofercie:{" "}
+          <a href={produktHref(x)} class="link-strong">
+            {x.naglowek} <span aria-hidden="true">→</span>
+          </a>
+        </div>
+      ))
+    }
+  </PageShell>
+</Base>

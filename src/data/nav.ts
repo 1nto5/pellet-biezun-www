@@ -4,10 +4,12 @@
  * changed address or the site's `base` (src/lib/url.ts) is set in one place.
  *
  * The header and the footer show the top level; the children only appear in
- * the breadcrumbs. The local pages hang under the map, one per town in
+ * the breadcrumbs. The product pages hang under the offer, one per product
+ * (oferta.ts). The local pages hang under the map, one per town in
  * `podstrony` (miejsca.ts), even though their addresses sit under /dostawa/.
  */
 import { podstrony, miejsceHref } from "./miejsca";
+import { produkty, produktHref } from "./oferta";
 import { href } from "../lib/url";
 
 export interface NavItem {
@@ -30,7 +32,7 @@ export const strony = {
 
 /** The header row, left to right. „Zamów pellet" is the button beside it. */
 export const mainNav: readonly NavItem[] = [
-  strony.oferta,
+  { ...strony.oferta, children: produkty.map((p) => ({ href: produktHref(p), label: p.naglowek })) },
   strony.galeria,
   { ...strony.mapa, children: podstrony.map((m) => ({ href: miejsceHref(m), label: m.nazwa })) },
   strony.faq,

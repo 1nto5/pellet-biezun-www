@@ -1,56 +1,33 @@
 ---
-import { Image, getImage } from "astro:assets";
+import { Image } from "astro:assets";
 import Base from "../layouts/Base.astro";
 import PageShell from "../components/PageShell.astro";
 import PageHeader from "../components/PageHeader.astro";
 import Button from "../components/Button.astro";
 import Pasy from "../components/Pasy.astro";
-import { firma, firmaId, addressLine } from "../data/firma";
+import Produkt from "../components/Produkt.astro";
+import { firma, addressLine } from "../data/firma";
 import { orderLink, strony } from "../data/nav";
-import { produkty, cenyLabel, cenaLabel, paletaLabel, cenyZDnia } from "../data/oferta";
+import { produkty, produktHref, cenyZDnia } from "../data/oferta";
 import { ZASADA_DOSTAWY } from "../data/miejsca";
 import { flota, udzial, szczegolyLabel } from "../data/flota";
-import { href } from "../lib/url";
+
+/**
+ * What the product's own page adds, for the link to it: "Parametry,
+ * certyfikat i badania" with a test report, "Parametry i certyfikat" without.
+ */
+function zawartoscStrony(p: (typeof produkty)[number]): string {
+  const czesci = ["Parametry", ...(p.certyfikat ? ["certyfikat"] : []), ...(p.dokument ? ["badania"] : [])];
+  return czesci.length < 2 ? czesci.join("") : `${czesci.slice(0, -1).join(", ")} i ${czesci.at(-1)}`;
+}
 
 /** Each vehicle with its width as a share of a full row (`dl`). */
 const auta = flota.map((f) => ({ ...f, dl: udzial(f) }));
-
-/**
- * Each product with its pallet price, for search results. No `brand`
- * field: the products go by the name on the bag or the origin (oferta.ts).
- */
-const produktyLd = await Promise.all(
-  produkty.map(async (p) => ({
-    "@context": "https://schema.org",
-    "@type": "Product",
-    name: p.nazwa,
-    description: `${p.podtytul}. ${p.opis}`,
-    image: new URL((await getImage({ src: p.zdjecie.src, width: 800, format: "jpg" })).src, Astro.site).toString(),
-    category: "Pellet drzewny",
-    offers: {
-      "@type": "Offer",
-      url: `${new URL(strony.oferta.href, Astro.site)}#produkt-${p.id}`,
-      price: p.cenaPaleta,
-      priceCurrency: "PLN",
-      // The price is per pallet: a unit price, not a minimum order.
-      priceSpecification: {
-        "@type": "UnitPriceSpecification",
-        price: p.cenaPaleta,
-        priceCurrency: "PLN",
-        referenceQuantity: { "@type": "QuantitativeValue", value: 1, unitText: "paleta" },
-      },
-      itemCondition: "https://schema.org/NewCondition",
-      // TODO(produkcja): availability (schema.org/InStock) once the client says how stock is kept.
-      seller: { "@id": firmaId },
-    },
-  })),
-);
 ---
 
 <Base
   title="Pellet HITON i pellet IKEA Wielbark: ceny"
   description="Pellet HITON i pellet z IKEA Wielbark (Wood Pellets) w workach 15 kg na paletach. Ceny za paletę, certyfikaty, parametry, dostawa gratis."
-  jsonLd={produktyLd}
 >
   <PageShell>
     <PageHeader
@@ -59,98 +36,26 @@ const produktyLd = await Promise.all(
       lead="Dwa rodzaje certyfikowanego pelletu drzewnego polskiej produkcji, w workach 15 kg. Palety są zapakowane fabrycznie i przykryte foliowym kapturem, więc mogą stać na zewnątrz."
     />
 
+    {/* Each product in short; its parameters, certificate and photos are on
+        its own page. The ids stay: the Google Business Profile links here. */}
     {
       produkty.map((p, i) => (
-        <section
-          class:list={["produkt-sekcja", i > 0 && "mt-16 border-t-2 border-ink pt-16"]}
+        <Produkt
+          produkt={p}
+          pierwszy={i === 0}
+          class:list={[i > 0 && "mt-16 border-t-2 border-ink pt-16"]}
           aria-labelledby={`produkt-${p.id}`}
         >
-          <div class="produkt-zdjecia" data-ruch-grupa>
-            <span class="produkt-foto">
-              <Image
-                src={p.zdjecie.src}
-                alt={p.zdjecie.alt}
-                width={800}
-                widths={[400, 640, 800]}
-                sizes="(min-width: 64rem) 26rem, 15rem"
-                loading={i === 0 ? "eager" : "lazy"}
-                fetchpriority={i === 0 ? "high" : undefined}
-                class="w-full"
-              />
-            </span>
+          <h2 slot="nazwa" id={`produkt-${p.id}`} class="produkt-nazwa">
+            <a href={produktHref(p)}>{p.nazwa}</a>
+          </h2>
+          <div class="mt-6">
+            <a href={produktHref(p)} class="link-strong">
+              {zawartoscStrony(p)}<span class="sr-only">: {p.nazwa}</span>
+              <span aria-hidden="true">→</span>
+            </a>
           </div>
-
-          <div data-ruch-grupa>
-            <h2 id={`produkt-${p.id}`} class="produkt-nazwa">
-              {p.nazwa}
-            </h2>
-            <p class="mt-2 text-lg font-medium">{p.podtytul}</p>
-
-            {/* The packed pallet beside its price on the yellow tag; under the
-                tag the bag, then the tonne, then what is on a pallet. */}
-            <div class="produkt-ceny mt-6">
-              {p.paleta && (
-                <span class="produkt-paleta">
-                  <Image
-                    src={p.paleta.src}
-                    alt={p.paleta.alt}
-                    width={600}
-                    widths={[200, 400, 600]}
-                    sizes="(min-width: 40rem) 10rem, 5rem"
-                    loading="lazy"
-                  />
-                </span>
-              )}
-              <div>
-                <p class="cena-tag text-2xl sm:text-3xl">{cenaLabel(p)}</p>
-                {cenyLabel(p).slice(1).map((c, j) => (
-                  <p class:list={["text-xl font-bold", j === 0 ? "mt-3" : "mt-1"]}>{c}</p>
-                ))}
-                <p class="mt-4 font-semibold">Paleta: {paletaLabel(p)}</p>
-              </div>
-            </div>
-            <div class="mt-6">
-              <Button href={`${orderLink.href}?produkt=${p.id}`} variant="secondary">
-                Zamów ten pellet<span class="sr-only">: {p.nazwa}</span>
-              </Button>
-            </div>
-
-            <p class="mt-6 max-w-prose">{p.opis}</p>
-            {p.certyfikat && <p class="mt-4 max-w-prose">{p.certyfikat}</p>}
-
-            <h3 class="mt-10 text-2xl">Parametry</h3>
-            {/* A narrow screen scrolls the table sideways; the box takes focus so
-                a keyboard can scroll it too. */}
-            <div class="mt-3 overflow-x-auto" tabindex="0" role="region" aria-label={`Parametry: ${p.nazwa}`}>
-              <table class="table">
-                {p.parametry.some((x) => x.wymaganie) && (
-                  <thead>
-                    <tr>
-                      <th scope="col">Parametr</th>
-                      <th scope="col">Wynik</th>
-                      <th scope="col">Wymaganie ENplus A1</th>
-                    </tr>
-                  </thead>
-                )}
-                <tbody data-ruch-grupa="wiersz">
-                  {p.parametry.map((x) => (
-                    <tr>
-                      <th scope="row">{x.nazwa}</th>
-                      <td>{x.wartosc}</td>
-                      {p.parametry.some((y) => y.wymaganie) && <td class="wymaganie">{x.wymaganie}</td>}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <p class="mt-3 max-w-prose text-sm text-ink-soft">Źródło: {p.zrodloParametrow}</p>
-            {p.dokument && (
-              <p class="mt-3">
-                <a href={href(p.dokument.plik)} class="link-strong">{p.dokument.etykieta}</a>
-              </p>
-            )}
-          </div>
-        </section>
+        </Produkt>
       ))
     }
 
@@ -214,87 +119,16 @@ const produktyLd = await Promise.all(
 </Base>
 
 <style>
-  .produkt-sekcja {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 2.5rem;
-  }
-  @media (min-width: 64rem) {
-    .produkt-sekcja {
-      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-      gap: 4rem;
-    }
-  }
-  /* On a phone the bag stays small enough that its name and price show on
-     the first screen with it. */
-  .produkt-zdjecia {
-    max-width: 15rem;
-  }
-  @media (min-width: 64rem) {
-    .produkt-zdjecia {
-      max-width: none;
-      align-self: start;
-    }
-  }
-  /* Packshots are shot on white; multiply lets that white vanish into the
-     page, so only the bag and its shadow show. On a dark page it melts into
-     a light card instead (`--karta-foto`, global.css). */
-  .produkt-foto {
-    display: block;
-    padding: calc(var(--karta-foto-odstep) * 1rem);
-    border-radius: 1rem;
-    background: var(--karta-foto);
-    isolation: isolate;
-  }
-  .produkt-foto :global(img) {
-    mix-blend-mode: multiply;
-  }
-  /* The packed pallet stands to the left of its prices, its foot level
-     with the last line. Shot on white like the bags, so multiply lets the
-     white vanish into the page, and a dark page gets the bag's light card. */
-  .produkt-ceny {
-    display: flex;
-    align-items: flex-end;
-    gap: 0.75rem;
-  }
-  .produkt-paleta {
-    display: block;
-    flex: none;
-    width: 4.5rem;
-    padding: calc(var(--karta-foto-odstep) * 0.4rem);
-    border-radius: 0.6rem;
-    background: var(--karta-foto);
-    isolation: isolate;
-  }
-  .produkt-paleta :global(img) {
-    display: block;
-    width: 100%;
-    height: auto;
-    mix-blend-mode: multiply;
-  }
-  /* The tag keeps "2440 zł / paleta" on one line beside the pallet; the
-     narrowest phones set it a size smaller to fit. */
-  .produkt-ceny .cena-tag {
-    white-space: nowrap;
-  }
-  @media (width < 24rem) {
-    .produkt-ceny .cena-tag {
-      font-size: 1.05rem;
-    }
-  }
-  @media (min-width: 40rem) {
-    .produkt-ceny {
-      gap: 1.25rem;
-    }
-    .produkt-paleta {
-      width: 9rem;
-    }
-  }
   .produkt-nazwa {
     font-size: clamp(2.2rem, 5vw, 3.6rem);
     font-weight: 900;
     line-height: 1;
     letter-spacing: -0.03em;
+  }
+  /* The name links to the product's page but reads as a heading. */
+  .produkt-nazwa a {
+    color: inherit;
+    text-decoration-thickness: 3px;
   }
 
   /* The fleet: each truck standing on its own strip of road, all to one

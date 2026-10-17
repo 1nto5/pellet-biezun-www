@@ -8,6 +8,7 @@ import PageShell from "../components/PageShell.astro";
 import PageHeader from "../components/PageHeader.astro";
 import { firma, addressLine } from "../data/firma";
 import { strony } from "../data/nav";
+import { produkty, produktHref } from "../data/oferta";
 import { ZASADA_DOSTAWY } from "../data/miejsca";
 ---
 
@@ -29,8 +30,9 @@ import { ZASADA_DOSTAWY } from "../data/miejsca";
       </p>
       <p>
         Sprzedajemy pellet z certyfikatami producentów ENplus A1 i DINplus, w workach 15 kg na paletach. Obsługujemy
-        klientów indywidualnych i hurtowych. Dbamy o dobrą obsługę, konkurencyjne ceny i terminową dostawę. Ceny i parametry pelletu znajdziesz w{" "}
-        <a href={strony.oferta.href}>ofercie</a>.
+        klientów indywidualnych i hurtowych. Dbamy o dobrą obsługę, konkurencyjne ceny i terminową dostawę. Ceny znajdziesz w{" "}
+        <a href={strony.oferta.href}>ofercie</a>, a parametry każdego pelletu na jego stronie:{" "}
+        {produkty.map((p, i) => <>{i > 0 && ", "}<a href={produktHref(p)}>{p.naglowek}</a></>)}.
       </p>
       <p>
         Pellet dowozimy własnymi samochodami. {ZASADA_DOSTAWY} Współpracujemy z zaufanymi producentami pelletu.

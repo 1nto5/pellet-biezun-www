@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 import { firma, addressLine, hoursRange } from "../data/firma";
-import { produkty, cenyLabel, paletaLabel, cenyZDnia } from "../data/oferta";
+import { produkty, produktHref, cenyLabel, paletaLabel, cenyZDnia } from "../data/oferta";
 import { ZASADA_DOSTAWY, miejsca, podstronyPoOdleglosci, wojewodztwa, miejsceHref } from "../data/miejsca";
 import { flota } from "../data/flota";
 import { faq } from "../data/faq";
@@ -46,6 +46,7 @@ export const GET: APIRoute = ({ site }) => {
       `Paleta: ${paletaLabel(p)}. Cena: ${cenyLabel(p).join(", ")}.`,
       ...(p.certyfikat ? [p.certyfikat] : []),
       `Parametry: ${p.parametry.map((x) => `${x.nazwa.toLowerCase()} ${x.wartosc}`).join("; ")}. Źródło: ${p.zrodloParametrow}`,
+      `Strona produktu: ${url(produktHref(p))}`,
       "",
     ]),
     "## Dostawa",
@@ -66,6 +67,7 @@ export const GET: APIRoute = ({ site }) => {
     "## Strony",
     "",
     `- [Oferta i ceny](${url(strony.oferta.href)})`,
+    ...produkty.map((p) => `- [${p.naglowek}](${url(produktHref(p))})`),
     `- [Mapa dystrybucji](${url(strony.mapa.href)})`,
     `- [Galeria](${url(strony.galeria.href)})`,
     `- [Zamówienie](${url(strony.zamowienie.href)})`,
