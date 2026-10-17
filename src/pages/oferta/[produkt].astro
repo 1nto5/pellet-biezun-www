@@ -70,7 +70,7 @@ const produktLd = {
 };
 ---
 
-<Base title={tytulStrony(p)} description={opisStrony(p)} jsonLd={[produktLd]}>
+<Base title={tytulStrony(p)} description={opisStrony(p)} jsonLd={[produktLd]} podglad={{ src: href(`/og/${p.slug}.jpg`), alt: p.zdjecie.alt }}>
   <PageShell>
     <PageHeader slot="header" title={p.naglowek}>
       {/* The name on the bag, where the heading says it in other words. */}
