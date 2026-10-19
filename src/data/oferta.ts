@@ -3,7 +3,7 @@
  * the local pages, the choices in the order form and llms.txt all read this
  * list. Prices live here and nowhere else; a page only prints them.
  *
- * Prices are the client's own, from the corrections document of 2026-10-13,
+ * Prices are the client's own, from the client's message of 2026-10-19,
  * as of `cenyZDnia`: per pallet, per 15 kg bag and per tonne for each
  * product. Whether they include VAT is not known, so no page says "brutto"
  * or "z VAT".
@@ -25,7 +25,7 @@ import { href } from "../lib/url";
 
 /** The date the client gave the prices for. */
 // TODO(produkcja): ask the client whether the prices include VAT.
-export const cenyZDnia = "01.10.2026";
+export const cenyZDnia = "19.10.2026";
 
 export interface Parametr {
   nazwa: string;
@@ -102,9 +102,9 @@ export const produkty: Produkt[] = [
     workiKg: 15,
     workowNaPalecie: 65,
     kgNaPalecie: 975,
-    cenaPaleta: 2200,
-    cenaTona: 2257,
-    cenaWorek: 34,
+    cenaPaleta: 2100,
+    cenaTona: 2154,
+    cenaWorek: 32,
     certyfikat: "Certyfikat DINplus 7A433 i certyfikat ENplus A1 producenta, ID PL 078.",
     parametry: [
       { nazwa: "Wartość opałowa", wartosc: "≥ 18,0 MJ/kg (≥ 5,0 kWh/kg)" },
@@ -132,9 +132,9 @@ export const produkty: Produkt[] = [
     workiKg: 15,
     workowNaPalecie: 72,
     kgNaPalecie: 1080,
-    cenaPaleta: 2440,
-    cenaTona: 2260,
-    cenaWorek: 34,
+    cenaPaleta: 2400,
+    cenaTona: 2223,
+    cenaWorek: 33,
     certyfikat: "Certyfikat ENplus A1 producenta, ID PL 002.",
     parametry: [
       { nazwa: "Wartość opałowa", wartosc: "18,54 MJ/kg (5,15 kWh/kg)", wymaganie: "≥ 16,5 MJ/kg" },
