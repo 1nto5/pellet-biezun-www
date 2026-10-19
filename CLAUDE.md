@@ -6,7 +6,7 @@ without payment, gallery, distribution map, contact form.
 ## Plan and decisions
 
 The plan, decisions, stages and open questions for the client live in
-`~/iCloud/PelletBiezun/strona-www.md` (Polish). Read it before starting
+`~/iCloud/Pellet Bieżuń/strona-www.md` (Polish). Read it before starting
 work; record progress and decisions there, not here.
 
 ## Working rules
