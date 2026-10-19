@@ -102,9 +102,9 @@ export const produkty: Produkt[] = [
     workiKg: 15,
     workowNaPalecie: 65,
     kgNaPalecie: 975,
-    cenaPaleta: 2100,
-    cenaTona: 2154,
-    cenaWorek: 32,
+    cenaPaleta: 2150,
+    cenaTona: 2206,
+    cenaWorek: 33,
     certyfikat: "Certyfikat DINplus 7A433 i certyfikat ENplus A1 producenta, ID PL 078.",
     parametry: [
       { nazwa: "Wartość opałowa", wartosc: "≥ 18,0 MJ/kg (≥ 5,0 kWh/kg)" },
@@ -123,7 +123,7 @@ export const produkty: Produkt[] = [
     slug: "pellet-ikea-wielbark",
     naglowek: "Pellet IKEA Wielbark",
     opisStrony: {
-      poczatek: "Pellet opałowy z IKEA Wielbark (Wood Pellets)",
+      poczatek: "Pellet opałowy IKEA Wielbark (Wood Pellets)",
       wyroznik: "Certyfikat ENplus A1 producenta, wyniki badań z laboratorium",
     },
     nazwa: nazwyProduktow.wielbark,
@@ -209,8 +209,8 @@ export function cenaLabel(p: Produkt): string {
 
 /**
  * The products also sold by the bag, in sentences: one for each bag price,
- * naming every product sold at it. "Pellet HITON i Wood Pellets z IKEA
- * Wielbark" with "34 zł za worek 15 kg" while both cost the same.
+ * naming every product sold at it. "Pellet HITON i Wood Pellets IKEA
+ * Wielbark" with "33 zł za worek 15 kg" while both cost the same.
  */
 export function naWorki(): { nazwy: string; cena: string }[] {
   const grupy = new Map<string, string[]>();

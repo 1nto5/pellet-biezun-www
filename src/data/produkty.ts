@@ -12,7 +12,7 @@
  */
 export const nazwyProduktow = {
   hiton: "Pellet HITON",
-  wielbark: "Wood Pellets z IKEA Wielbark",
+  wielbark: "Wood Pellets IKEA Wielbark",
 } as const;
 
 export type ProduktId = keyof typeof nazwyProduktow;

@@ -43,7 +43,7 @@ export const faq: { q: string; a: string }[] = [
   },
   {
     q: "Do jakich kotłów nadaje się ten pellet?",
-    a: "Pellet HITON i Wood Pellets z IKEA Wielbark to certyfikowany pellet drzewny wysokiej jakości, doskonały do kotłów 5. generacji. Mają bardzo mało siarki, co chroni kocioł przed korozją.",
+    a: "Pellet HITON i Wood Pellets IKEA Wielbark to certyfikowany pellet drzewny wysokiej jakości, doskonały do kotłów 5. generacji. Mają bardzo mało siarki, co chroni kocioł przed korozją.",
   },
   {
     q: "Czy mogę odebrać pellet osobiście?",
