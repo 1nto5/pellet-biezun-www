@@ -190,6 +190,34 @@ html {
     --header-height: 5.15rem;
   }
 }
+/* What stands above the home page's first screen where the header is not
+   pinned (Header.astro measures them): the whole header, and its bar
+   against advance payments alone; and that bar's height anywhere. Until
+   measured: the header's row, and the bar's two lines on a phone and one
+   line on a wide screen. */
+html {
+  --naglowek-nad: 4.35rem;
+  --pasek-h: 0px;
+  --pasek-nad: 0px;
+}
+html:has(.pasek-zaliczki) {
+  --naglowek-nad: 6.95rem;
+  --pasek-h: 2.6rem;
+  --pasek-nad: 2.6rem;
+}
+@media (width >= 64rem) {
+  html:has(.pasek-zaliczki) {
+    --pasek-h: 1.75rem;
+    --pasek-nad: 1.75rem;
+  }
+}
+@media (width >= 64rem) and (height > 26rem) {
+  html,
+  html:has(.pasek-zaliczki) {
+    --naglowek-nad: 0px;
+    --pasek-nad: 0px;
+  }
+}
 
 /* What a link jumps to, or the focus moves to, stops clear of the pinned
    header. Set on the page's own content rather than as the root's
@@ -597,6 +625,14 @@ html:not([data-js]) :is(.menu-toggle, [data-motyw]) {
   color: inherit;
   font-weight: 800;
   white-space: nowrap;
+}
+.pasek-zaliczki-telefon {
+  display: none;
+}
+@media (width >= 40rem) {
+  .pasek-zaliczki-telefon {
+    display: inline;
+  }
 }
 
 /* PELLET over BIEŻUŃ, both in capitals as on the sign; the words stay
@@ -1835,6 +1871,7 @@ html[data-galeria] .lightbox img {
      text would otherwise print white on white. */
   .sign,
   .naklejka,
+  .pasek-zaliczki,
   .scena {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;

@@ -284,12 +284,13 @@ const webSite = {
      tall, gives way as far as that needs, down to a floor on the lowest
      windows. `--reszta` is the rest of the hero by its sizes here: the
      paddings, the sticker's part below the sign, the row of actions, and a
-     strip of white under the scene's road. Without the drive the wordmark keeps its own size:
+     strip of white under the scene's road; the header above it, where not
+     pinned, is `--naglowek-nad`. Without the drive the wordmark keeps its own size:
      `--wm-ekran` is then invalid, and the fallback is taken. */
   @media (width < 56rem), (aspect-ratio < 1) {
     .hero {
       --reszta: 8.4rem;
-      --wm-ekran: calc((100svh - var(--header-height) - var(--scena-h) - var(--reszta)) / 1.715);
+      --wm-ekran: calc((100svh - var(--header-height) - var(--naglowek-nad) - var(--scena-h) - var(--reszta)) / 1.715);
       padding-bottom: 0.75rem;
     }
     .wordmark {
@@ -334,8 +335,10 @@ const webSite = {
     .hero {
       container-type: inline-size;
     }
+    /* The bar against advance payments (global.css) comes off the 24svh:
+       the sign's line with its room above is 1.14 times its font size. */
     .hero-znak {
-      --wm1: min(17rem, 24svh, 100cqi / 7.6);
+      --wm1: min(17rem, 24svh - var(--pasek-h) / 1.14, 100cqi / 7.6);
     }
     .wordmark {
       --wm: var(--wm1);
@@ -368,7 +371,7 @@ const webSite = {
   @media (min-width: 56rem) and (min-aspect-ratio: 1 / 1) and (height < 38rem) {
     .hero {
       --reszta: 7rem;
-      --wm-ekran: calc((100svh - var(--header-height) - var(--scena-h) - var(--reszta)) / 0.97);
+      --wm-ekran: calc((100svh - var(--header-height) - var(--pasek-nad) - var(--scena-h) - var(--reszta)) / 0.97);
     }
     .hero-znak {
       --wm1: max(3.5rem, min(17rem, 24svh, 100cqi / 7.6, var(--wm-ekran, 17rem)));
@@ -383,7 +386,7 @@ const webSite = {
   @media (prefers-reduced-motion: reduce) and (min-width: 56rem) and (min-aspect-ratio: 1 / 1) {
     .hero {
       --reszta: 10.5rem;
-      --wm-ekran: calc((100svh - var(--header-height) - var(--scena-h) - var(--reszta)) / 0.97);
+      --wm-ekran: calc((100svh - var(--header-height) - var(--pasek-nad) - var(--scena-h) - var(--reszta)) / 0.97);
     }
     .hero-znak {
       --wm1: max(3.5rem, min(17rem, 24svh, 100cqi / 7.6, var(--wm-ekran, 17rem)));
