@@ -425,7 +425,7 @@ const webSite = {
 
   /* A shop-window sticker, after the red "DOSTAWA GRATIS!" disc on the
      printer's banner: a tilted tag on phones, a disc on wide screens. The
-     products' disc stands in a column of its own at the frame's right end,
+     products' disc stands in a column of its own at the frame's left end,
      poking over its corner; the hero's stands past the end of the sign, once
      the hero sets it in one line. */
   .naklejka {
@@ -608,12 +608,15 @@ const webSite = {
     .produkty-lista {
       flex: 1;
     }
+    /* At the frame's left end, the products to its right: the hero's red
+       disc pokes out on the right, so the two never stand one over the other. */
     .produkty .naklejka {
+      order: -1;
       flex: none;
       justify-content: center;
       width: 11rem;
       aspect-ratio: 1;
-      margin: -3.25rem -2.75rem 0 0;
+      margin: -3.25rem 0 0 -2.75rem;
       padding: 1rem;
       border-radius: 50%;
       transform: rotate(-10deg);
