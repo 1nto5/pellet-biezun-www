@@ -6,6 +6,7 @@ import Formularz from "../components/Formularz.astro";
 import { firma } from "../data/firma";
 import { produkty, cenaLabel, naWorki } from "../data/oferta";
 import { miejsca } from "../data/miejsca";
+import { BEZ_ZALICZEK } from "../data/zaliczki";
 
 // The `maxlength` of each field is the limit `functions/api/zamowienie.ts` checks again.
 ---
@@ -18,7 +19,7 @@ import { miejsca } from "../data/miejsca";
     <PageHeader
       slot="header"
       title="Zamów pellet"
-      lead="Wypełnij formularz, a oddzwonimy w ciągu 24 godzin, żeby ustalić termin dostawy i formę płatności. Strona nie pobiera płatności."
+      lead={`Wypełnij formularz, a oddzwonimy w ciągu 24 godzin, żeby ustalić termin dostawy i formę płatności. ${BEZ_ZALICZEK}`}
     />
 
     <div class="grid gap-12 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
@@ -114,7 +115,7 @@ import { miejsca } from "../data/miejsca";
         <h2 id="jak-to-dziala" class="text-2xl">Jak to działa</h2>
         <ol class="kroki">
           <li>Wysyłasz formularz, a na e-mail dostajesz potwierdzenie jego przyjęcia.</li>
-          <li>Oddzwaniamy w ciągu 24 godzin, żeby ustalić termin dostawy i formę płatności.</li>
+          <li>Oddzwaniamy w ciągu 24 godzin, żeby ustalić termin dostawy i formę płatności. <strong>{BEZ_ZALICZEK}</strong></li>
           <li>Przywozimy pellet i rozładowujemy go windą i elektrycznym wózkiem paletowym.</li>
         </ol>
         <p>

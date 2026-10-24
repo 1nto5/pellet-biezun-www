@@ -284,12 +284,13 @@ const webSite = {
      tall, gives way as far as that needs, down to a floor on the lowest
      windows. `--reszta` is the rest of the hero by its sizes here: the
      paddings, the sticker's part below the sign, the row of actions, and a
-     strip of white under the scene's road. Without the drive the wordmark keeps its own size:
+     strip of white under the scene's road; the header above it, where not
+     pinned, is `--naglowek-nad`. Without the drive the wordmark keeps its own size:
      `--wm-ekran` is then invalid, and the fallback is taken. */
   @media (width < 56rem), (aspect-ratio < 1) {
     .hero {
       --reszta: 8.4rem;
-      --wm-ekran: calc((100svh - var(--header-height) - var(--scena-h) - var(--reszta)) / 1.715);
+      --wm-ekran: calc((100svh - var(--header-height) - var(--naglowek-nad) - var(--scena-h) - var(--reszta)) / 1.715);
       padding-bottom: 0.75rem;
     }
     .wordmark {
@@ -334,8 +335,10 @@ const webSite = {
     .hero {
       container-type: inline-size;
     }
+    /* The bar against advance payments (global.css) comes off the 24svh:
+       the sign's line with its room above is 1.14 times its font size. */
     .hero-znak {
-      --wm1: min(17rem, 24svh, 100cqi / 7.6);
+      --wm1: min(17rem, 24svh - var(--pasek-h) / 1.14, 100cqi / 7.6);
     }
     .wordmark {
       --wm: var(--wm1);
@@ -368,7 +371,7 @@ const webSite = {
   @media (min-width: 56rem) and (min-aspect-ratio: 1 / 1) and (height < 38rem) {
     .hero {
       --reszta: 7rem;
-      --wm-ekran: calc((100svh - var(--header-height) - var(--scena-h) - var(--reszta)) / 0.97);
+      --wm-ekran: calc((100svh - var(--header-height) - var(--pasek-nad) - var(--scena-h) - var(--reszta)) / 0.97);
     }
     .hero-znak {
       --wm1: max(3.5rem, min(17rem, 24svh, 100cqi / 7.6, var(--wm-ekran, 17rem)));
@@ -383,7 +386,7 @@ const webSite = {
   @media (prefers-reduced-motion: reduce) and (min-width: 56rem) and (min-aspect-ratio: 1 / 1) {
     .hero {
       --reszta: 10.5rem;
-      --wm-ekran: calc((100svh - var(--header-height) - var(--scena-h) - var(--reszta)) / 0.97);
+      --wm-ekran: calc((100svh - var(--header-height) - var(--pasek-nad) - var(--scena-h) - var(--reszta)) / 0.97);
     }
     .hero-znak {
       --wm1: max(3.5rem, min(17rem, 24svh, 100cqi / 7.6, var(--wm-ekran, 17rem)));
@@ -425,7 +428,7 @@ const webSite = {
 
   /* A shop-window sticker, after the red "DOSTAWA GRATIS!" disc on the
      printer's banner: a tilted tag on phones, a disc on wide screens. The
-     products' disc stands in a column of its own at the frame's right end,
+     products' disc stands in a column of its own at the frame's left end,
      poking over its corner; the hero's stands past the end of the sign, once
      the hero sets it in one line. */
   .naklejka {
@@ -450,9 +453,14 @@ const webSite = {
     font-weight: 900;
     text-transform: uppercase;
   }
-  /* Under the products' rows, never over one. */
+  /* Under the products' rows, never over one. The hero's disc turned
+     inside out, white with a red ring and red text, so the two stickers
+     make a pair without running into each other. */
   .produkty .naklejka {
     margin: 1.25rem 0 0;
+    background: var(--color-white);
+    color: var(--color-red);
+    box-shadow: inset 0 0 0 0.3rem var(--color-red);
   }
   /* Sized in em, so a low window can set the whole disc smaller with one
      font size. */
@@ -605,16 +613,21 @@ const webSite = {
     .produkty-lista {
       flex: 1;
     }
+    /* At the frame's left end, the products to its right: the hero's red
+       disc pokes out on the right, so the two never stand one over the other. */
     .produkty .naklejka {
+      order: -1;
       flex: none;
       justify-content: center;
       width: 11rem;
       aspect-ratio: 1;
-      margin: -3.25rem -2.75rem 0 0;
+      margin: -3.25rem 0 0 -2.75rem;
       padding: 1rem;
       border-radius: 50%;
       transform: rotate(-10deg);
-      box-shadow: 0 0 0 0.3rem var(--color-page);
+      box-shadow:
+        inset 0 0 0 0.3rem var(--color-red),
+        0 0 0 0.3rem var(--color-page);
     }
     .produkty .naklejka strong {
       font-size: 1.35rem;

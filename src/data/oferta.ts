@@ -3,7 +3,7 @@
  * the local pages, the choices in the order form and llms.txt all read this
  * list. Prices live here and nowhere else; a page only prints them.
  *
- * Prices are the client's own, from the client's message of 2026-10-19,
+ * Prices are the client's own, from the client's message of 2026-10-24,
  * as of `cenyZDnia`: per pallet, per 15 kg bag and per tonne for each
  * product. Whether they include VAT is not known, so no page says "brutto"
  * or "z VAT".
@@ -25,7 +25,7 @@ import { href } from "../lib/url";
 
 /** The date the client gave the prices for. */
 // TODO(produkcja): ask the client whether the prices include VAT.
-export const cenyZDnia = "19.10.2026";
+export const cenyZDnia = "24.10.2026";
 
 export interface Parametr {
   nazwa: string;
@@ -74,7 +74,7 @@ export interface Produkt {
   cenaPaleta: number;
   /** Złoty per tonne, where the client gives one. */
   cenaTona?: number;
-  /** Złoty per single bag, where the product is also sold by the bag. */
+  /** Złoty per single bag, where the product is also sold by the bag; may have grosze (32.5). */
   cenaWorek?: number;
   /** Left out where neither the bag nor the ad names one; the pages then say nothing about a certificate. */
   certyfikat?: string;
@@ -102,9 +102,9 @@ export const produkty: Produkt[] = [
     workiKg: 15,
     workowNaPalecie: 65,
     kgNaPalecie: 975,
-    cenaPaleta: 2150,
-    cenaTona: 2206,
-    cenaWorek: 33,
+    cenaPaleta: 2100,
+    cenaTona: 2154,
+    cenaWorek: 33.5,
     certyfikat: "Certyfikat DINplus 7A433 i certyfikat ENplus A1 producenta, ID PL 078.",
     parametry: [
       { nazwa: "Wartość opałowa", wartosc: "≥ 18,0 MJ/kg (≥ 5,0 kWh/kg)" },
@@ -132,9 +132,9 @@ export const produkty: Produkt[] = [
     workiKg: 15,
     workowNaPalecie: 72,
     kgNaPalecie: 1080,
-    cenaPaleta: 2400,
-    cenaTona: 2223,
-    cenaWorek: 33,
+    cenaPaleta: 2350,
+    cenaTona: 2176,
+    cenaWorek: 32.5,
     certyfikat: "Certyfikat ENplus A1 producenta, ID PL 002.",
     parametry: [
       { nazwa: "Wartość opałowa", wartosc: "18,54 MJ/kg (5,15 kWh/kg)", wymaganie: "≥ 16,5 MJ/kg" },
@@ -180,7 +180,7 @@ export const tytulStrony = (p: Produkt) => `${p.naglowek}: cena, parametry, dost
  */
 export function opisStrony(p: Produkt): string {
   const { poczatek, wyroznik } = p.opisStrony;
-  const cena = `${p.cenaPaleta.toLocaleString("pl-PL")} zł za paletę`;
+  const cena = `${kwota(p.cenaPaleta)} zł za paletę`;
   const paleta = `${p.workowNaPalecie} ${workiOdmiana(p.workowNaPalecie)}, ${p.kgNaPalecie} kg`;
   return `${poczatek} w workach ${p.workiKg} kg, ${cena} (${paleta}). ${wyroznik}, dostawa gratis.`;
 }
@@ -193,7 +193,7 @@ export function opisStrony(p: Produkt): string {
  */
 export function cenyLabel(p: Produkt): string[] {
   // The number stays with its "zł"; a line may break only before the "/".
-  const zl = (n: number) => `${n.toLocaleString("pl-PL")}\u00a0zł`;
+  const zl = (n: number) => `${kwota(n)}\u00a0zł`;
   const za = (unit: string) => `/\u00a0${unit}`;
   return [
     `${zl(p.cenaPaleta)} ${za("paleta")}`,
@@ -216,10 +216,16 @@ export function naWorki(): { nazwy: string; cena: string }[] {
   const grupy = new Map<string, string[]>();
   for (const p of produkty) {
     if (!p.cenaWorek) continue;
-    const cena = `${p.cenaWorek.toLocaleString("pl-PL")}\u00a0zł za worek ${p.workiKg} kg`;
+    const cena = `${kwota(p.cenaWorek)}\u00a0zł za worek ${p.workiKg} kg`;
     grupy.set(cena, [...(grupy.get(cena) ?? []), p.nazwa]);
   }
   return [...grupy].map(([cena, nazwy]) => ({ nazwy: wylicz(nazwy), cena }));
+}
+
+/** "2100", "32,50": whole złoty without grosze, otherwise always both digits of the grosze. */
+function kwota(n: number): string {
+  const grosze = Number.isInteger(n) ? 0 : 2;
+  return n.toLocaleString("pl-PL", { minimumFractionDigits: grosze, maximumFractionDigits: grosze });
 }
 
 /** "A", "A i B", "A, B i C". */

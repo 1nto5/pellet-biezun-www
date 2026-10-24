@@ -11,6 +11,7 @@ import { Image } from "astro:assets";
 import { mainNav, orderLink, strony, activeSection } from "../data/nav";
 import autoFm from "../assets/droga/auto-fm.png";
 import { firma } from "../data/firma";
+import { BEZ_ZALICZEK, pasekBezZaliczek } from "../data/zaliczki";
 
 const section = activeSection(Astro.url.pathname);
 /** "Pellet Bieżuń" → the two lines of the sign. */
@@ -31,6 +32,21 @@ const ikonaMotywu = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
 
 <header class="site-header">
   <div class="header-surface" data-surface>
+    {/* Inside the surface, so `--header-height` counts it and the home
+        page's first screen still fits; pinned with the row from `lg` up. */}
+    {
+      pasekBezZaliczek && (
+        <p class="pasek-zaliczki">
+          <span class="page-wrap block">
+            <strong>{BEZ_ZALICZEK}</strong>
+            {/* Two lines at most on a phone, whose hero shows the number anyway. */}
+            <span class="pasek-zaliczki-telefon">
+              W razie wątpliwości zadzwoń: <a href={firma.phone.href}>{firma.phone.label}</a>
+            </span>
+          </span>
+        </p>
+      )
+    }
     <div class="pinned-row page-wrap flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
       <a href={strony.home.href} class="marka" aria-label={firma.name}>
         <span class="marka-pellet" aria-hidden="true">{wordmark[0]}</span>
@@ -165,11 +181,23 @@ const ikonaMotywu = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
   // is open does not count. The observer reports the first size itself,
   // after the page's first layout; reading it here, mid-parse, would force
   // one more.
+  //
+  // The home page's first screen also needs what stands above it where the
+  // header is not pinned (global.css has the first guesses): `--naglowek-nad`
+  // is the whole header then, `--pasek-nad` its bar against advance payments
+  // alone, and `--pasek-h` that bar's height anywhere. They follow the
+  // window, not the drawer, so opening it does not resize the page behind.
   const header = surface?.closest<HTMLElement>(".site-header");
+  const pasek = surface?.querySelector<HTMLElement>(".pasek-zaliczki");
+  const przypiety = window.matchMedia("(width >= 64rem) and (height > 26rem)");
   const measure = () => {
     if (!surface || !header) return;
     const pinned = getComputedStyle(header).position === "sticky" && !menu?.open;
     doc.style.setProperty("--header-height", pinned ? `${surface.offsetHeight}px` : "0px");
+    const pasekH = pasek?.offsetHeight ?? 0;
+    doc.style.setProperty("--naglowek-nad", przypiety.matches ? "0px" : `${surface.offsetHeight}px`);
+    doc.style.setProperty("--pasek-nad", przypiety.matches ? "0px" : `${pasekH}px`);
+    doc.style.setProperty("--pasek-h", `${pasekH}px`);
   };
   if (surface) {
     // On the next frame: set straight from the observer, the height resized

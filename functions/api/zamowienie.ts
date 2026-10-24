@@ -4,6 +4,7 @@
  * in `../lib/formularz.ts`.
  */
 import { nazwyProduktow, type ProduktId } from "../../src/data/produkty";
+import { BEZ_ZALICZEK } from "../../src/data/zaliczki";
 import { EMAIL, obsluz, type Env, type Formularz } from "../lib/formularz";
 
 type PoleZamowienia = "produkt" | "ilosc" | "ulica" | "kod" | "miejscowosc" | "imie" | "telefon" | "email" | "uwagi";
@@ -71,7 +72,7 @@ const zamowienie: Formularz<PoleZamowienia> = {
       `Produkt: ${nazwa(d.produkt)}`,
       ...(ZWYKLA_ILOSC.test(d.ilosc) ? [`Ilość: ${d.ilosc}`] : []),
       "",
-      "Oddzwonimy w ciągu 24 godzin, żeby ustalić termin dostawy i formę płatności. Strona nie pobiera płatności.",
+      `Oddzwonimy w ciągu 24 godzin, żeby ustalić termin dostawy i formę płatności. Strona nie pobiera płatności. ${BEZ_ZALICZEK}`,
       "",
       "Jeśli to nie Twoje zamówienie, odpowiedz na tę wiadomość.",
       "",
