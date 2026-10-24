@@ -6,6 +6,7 @@ import { flota } from "../data/flota";
 import { faq } from "../data/faq";
 import { strony } from "../data/nav";
 import { pelnaNazwa } from "../lib/miejsce";
+import { BEZ_ZALICZEK } from "../data/zaliczki";
 
 /**
  * llms.txt: a short Markdown summary of the company for language models, in
@@ -33,7 +34,7 @@ export const GET: APIRoute = ({ site }) => {
     "",
     `Magazyn: ${addressLine()} (wieś Władysławowo w gminie Bieżuń). Telefon: ${firma.phone.label}.${firma.email ? ` E-mail: ${firma.email}.` : ""} Ogłoszenia na OLX: ${firma.olx}`,
     `Godziny otwarcia: ${firma.hours.map((h) => `${h.label.toLowerCase()} ${hoursRange(h)}`).join(", ")}. ${firma.closedNote}`,
-    "Zamówienia przez formularz na stronie albo telefonicznie; strona nie pobiera płatności.",
+    `Zamówienia przez formularz na stronie albo telefonicznie; strona nie pobiera płatności. ${BEZ_ZALICZEK}`,
     "",
     "## Oferta",
     "",

@@ -2,13 +2,15 @@
  * Questions and answers: the FAQ page and its FAQPage JSON-LD. Answers are
  * plain text, because the JSON-LD needs them without markup.
  *
- * Only what the client has confirmed. Payment, minimum order and delivery
- * times are left out until they are known; single bags only for the products
+ * Only what the client has confirmed. Payment (beyond "no advance
+ * payments", zaliczki.ts), minimum order and delivery times are left out
+ * until they are known; single bags only for the products
  * that have a bag price. Prices live in `oferta.ts` and are only printed here.
  */
 import { firma, addressLine } from "./firma";
 import { produkty, paletaLabel, certyfikatZNazwa, naWorki } from "./oferta";
 import { ZASADA_DOSTAWY } from "./miejsca";
+import { BEZ_ZALICZEK } from "./zaliczki";
 
 export const faq: { q: string; a: string }[] = [
   {
@@ -28,6 +30,10 @@ export const faq: { q: string; a: string }[] = [
   {
     q: "Ile kosztuje dostawa?",
     a: ZASADA_DOSTAWY,
+  },
+  {
+    q: "Czy trzeba wpłacić zaliczkę?",
+    a: `Nie. ${BEZ_ZALICZEK} Jeśli ktoś podaje się za nas i prosi o wpłatę z góry, zadzwoń pod ${firma.phone.label}.`,
   },
   {
     q: "Jak wygląda rozładunek?",

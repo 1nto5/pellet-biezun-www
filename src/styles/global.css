@@ -583,6 +583,22 @@ html:not([data-js]) :is(.menu-toggle, [data-motyw]) {
   padding-block: 0.55rem;
 }
 
+/* The warning against advance payments (data/zaliczki.ts): red as the
+   fleet, white text, 7.6:1. */
+.pasek-zaliczki {
+  background: var(--color-red);
+  color: var(--color-white);
+  font-size: 0.85rem;
+  line-height: 1.3;
+  padding-block: 0.4rem;
+  text-align: center;
+}
+.pasek-zaliczki a {
+  color: inherit;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
 /* PELLET over BIEŻUŃ, both in capitals as on the sign; the words stay
    readable text, the capitals are only a style. */
 .marka {
