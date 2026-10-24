@@ -450,12 +450,14 @@ const webSite = {
     font-weight: 900;
     text-transform: uppercase;
   }
-  /* Under the products' rows, never over one. Blue as the road's info
-     signs, so on a desktop it does not run into the hero's red disc right
-     above it. */
+  /* Under the products' rows, never over one. The hero's disc turned
+     inside out, white with a red ring and red text, so the two stickers
+     make a pair without running into each other. */
   .produkty .naklejka {
     margin: 1.25rem 0 0;
-    background: var(--color-info);
+    background: var(--color-white);
+    color: var(--color-red);
+    box-shadow: inset 0 0 0 0.3rem var(--color-red);
   }
   /* Sized in em, so a low window can set the whole disc smaller with one
      font size. */
@@ -620,7 +622,9 @@ const webSite = {
       padding: 1rem;
       border-radius: 50%;
       transform: rotate(-10deg);
-      box-shadow: 0 0 0 0.3rem var(--color-page);
+      box-shadow:
+        inset 0 0 0 0.3rem var(--color-red),
+        0 0 0 0.3rem var(--color-page);
     }
     .produkty .naklejka strong {
       font-size: 1.35rem;
