@@ -186,6 +186,33 @@ export function opisStrony(p: Produkt): string {
   return `${poczatek} w workach ${p.workiKg} kg, ${cena} (${paleta}). ${wyroznik}, dostawa gratis.`;
 }
 
+/** The bag size all the products share; undefined once they differ, and the descriptions then leave it out. */
+function workiWspolne(): number | undefined {
+  const kg = new Set(produkty.map((p) => p.workiKg));
+  return kg.size === 1 ? [...kg][0] : undefined;
+}
+
+/**
+ * The home page's description: "Pellet opałowy w workach 15 kg, od 2100 zł
+ * za paletę. Dowozimy …", with the lowest pallet price. Not
+ * `firma.description`: the company's structured data and llms.txt keep that
+ * one without a price.
+ */
+export function opisStronyGlownej(): string {
+  const kg = workiWspolne();
+  const od = Math.min(...produkty.map((p) => p.cenaPaleta));
+  const worki = kg ? ` w workach ${kg} kg` : "";
+  return `Pellet opałowy${worki}, od ${kwota(od)} zł za paletę. Dowozimy własnymi autami z windą, dostawa gratis. Odbiór w magazynie we Władysławowie.`;
+}
+
+/** The offer page's description: "Pellet HITON 2100 zł i Wood Pellets IKEA Wielbark 2350 zł za paletę, w workach 15 kg. Certyfikaty, …". */
+export function opisOferty(): string {
+  const kg = workiWspolne();
+  const ceny = wylicz(produkty.map((p) => `${p.nazwa} ${kwota(p.cenaPaleta)} zł`));
+  const worki = kg ? `, w workach ${kg} kg` : "";
+  return `${ceny} za paletę${worki}. Certyfikaty, parametry, dostawa gratis.`;
+}
+
 /**
  * The prices in the order the pages show them: "2200 zł / paleta", then,
  * where set, "34 zł / worek 15 kg" and "2257 zł / t" (Polish leaves

@@ -7,7 +7,7 @@ import { Image } from "astro:assets";
 import { firma, firmaId, addressLine, hoursRange } from "../data/firma";
 import { orderLink, strony } from "../data/nav";
 import { absoluteUrl } from "../lib/url";
-import { produkty, produktHref, cenyLabel, cenaLabel, paletaLabel } from "../data/oferta";
+import { produkty, produktHref, cenyLabel, cenaLabel, paletaLabel, opisStronyGlownej } from "../data/oferta";
 import { flota, udzial, szczegolyLabel } from "../data/flota";
 import { faq } from "../data/faq";
 import { podstronyPoOdleglosci, miejsceHref } from "../data/miejsca";
@@ -47,7 +47,7 @@ const webSite = {
 };
 ---
 
-<Base jsonLd={[webSite]}>
+<Base description={opisStronyGlownej()} jsonLd={[webSite]}>
   <Droga>
     <section class="hero page-wrap" aria-labelledby="hero-title">
       <div class="hero-znak">
