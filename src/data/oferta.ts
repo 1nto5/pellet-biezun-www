@@ -5,7 +5,8 @@
  *
  * Prices are the client's own, from the client's message of 2026-10-24,
  * as of `cenyZDnia`: per pallet, per 15 kg bag and per tonne for each
- * product. Whether they include VAT is not known, so no page says "brutto"
+ * product. On 2026-10-25 the client corrected the HITON bag to 32.50 zł,
+ * the same as Wielbark's. Whether they include VAT is not known, so no page says "brutto"
  * or "z VAT".
  *
  * Certificates belong to the producers, not to the company: without a trader's
@@ -104,7 +105,7 @@ export const produkty: Produkt[] = [
     kgNaPalecie: 975,
     cenaPaleta: 2100,
     cenaTona: 2154,
-    cenaWorek: 33.5,
+    cenaWorek: 32.5,
     certyfikat: "Certyfikat DINplus 7A433 i certyfikat ENplus A1 producenta, ID PL 078.",
     parametry: [
       { nazwa: "Wartość opałowa", wartosc: "≥ 18,0 MJ/kg (≥ 5,0 kWh/kg)" },
