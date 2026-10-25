@@ -14,7 +14,9 @@
  * itself, and the text says whose certificate it is (`certyfikat`).
  *
  * The Wielbark pellet's name states its origin with "IKEA": the client's wish,
- * decided by the owner on 2026-10-12. The IKEA logo is still never used.
+ * decided by the owner on 2026-10-12. Since the owner's decision of
+ * 2026-10-25 the structured data also name IKEA as its brand (`marka`). The
+ * IKEA logo is still never used.
  */
 import type { ImageMetadata } from "astro";
 import hitonZdjecie from "../assets/produkty/hiton.jpg";
@@ -66,6 +68,8 @@ export interface Produkt {
    * client's wish); no page shows the IKEA logo.
    */
   nazwa: string;
+  /** The brand in the product's structured data: "HITON", and "IKEA" for Wielbark (the owner's decision of 2026-10-25). Never shown as a logo. */
+  marka: string;
   podtytul: string;
   opis: string;
   workiKg: number;
@@ -98,6 +102,7 @@ export const produkty: Produkt[] = [
     naglowek: "Pellet HITON",
     opisStrony: { poczatek: "Pellet opałowy HITON", wyroznik: "Certyfikat DINplus i ENplus A1 producenta, parametry" },
     nazwa: nazwyProduktow.hiton,
+    marka: "HITON",
     podtytul: "Pellet drzewny certyfikowany, 100% sosna, średnica 6\u00a0mm",
     opis: "Pellet z czystych trocin sosnowych, bez dodatków chemicznych, klejów i innych zanieczyszczeń. Ma stałe, powtarzalne parametry i nie tworzy spieków. Siarki jest bardzo mało, co chroni kocioł przed korozją. Popiół można wykorzystać jako nawóz w ogrodzie.",
     workiKg: 15,
@@ -128,6 +133,7 @@ export const produkty: Produkt[] = [
       wyroznik: "Certyfikat ENplus A1 producenta, wyniki badań z laboratorium",
     },
     nazwa: nazwyProduktow.wielbark,
+    marka: "IKEA",
     podtytul: "Pellet drzewny certyfikowany, 100% sosna, średnica 6\u00a0mm",
     opis: "Pellet z zakładu IKEA Industry w Wielbarku, z mocno sprasowanych czystych trocin sosnowych, bez kory i innych dodatków. Daje mało popiołu i nie tworzy spieków. Jego jakość jest zawsze taka sama, bardzo wysoka.",
     workiKg: 15,
@@ -184,6 +190,33 @@ export function opisStrony(p: Produkt): string {
   const cena = `${kwota(p.cenaPaleta)} zł za paletę`;
   const paleta = `${p.workowNaPalecie} ${workiOdmiana(p.workowNaPalecie)}, ${p.kgNaPalecie} kg`;
   return `${poczatek} w workach ${p.workiKg} kg, ${cena} (${paleta}). ${wyroznik}, dostawa gratis.`;
+}
+
+/** The bag size all the products share; undefined once they differ, and the descriptions then leave it out. */
+function workiWspolne(): number | undefined {
+  const kg = new Set(produkty.map((p) => p.workiKg));
+  return kg.size === 1 ? [...kg][0] : undefined;
+}
+
+/**
+ * The home page's description: "Pellet opałowy w workach 15 kg, od 2100 zł
+ * za paletę. Dowozimy …", with the lowest pallet price. Not
+ * `firma.description`: the company's structured data and llms.txt keep that
+ * one without a price.
+ */
+export function opisStronyGlownej(): string {
+  const kg = workiWspolne();
+  const od = Math.min(...produkty.map((p) => p.cenaPaleta));
+  const worki = kg ? ` w workach ${kg} kg` : "";
+  return `Pellet opałowy${worki}, od ${kwota(od)} zł za paletę. Dowozimy własnymi autami z windą, dostawa gratis. Odbiór w magazynie we Władysławowie.`;
+}
+
+/** The offer page's description: "Pellet HITON 2100 zł i Wood Pellets IKEA Wielbark 2350 zł za paletę, w workach 15 kg. Certyfikaty, …". */
+export function opisOferty(): string {
+  const kg = workiWspolne();
+  const ceny = wylicz(produkty.map((p) => `${p.nazwa} ${kwota(p.cenaPaleta)} zł`));
+  const worki = kg ? `, w workach ${kg} kg` : "";
+  return `${ceny} za paletę${worki}. Certyfikaty, parametry, dostawa gratis.`;
 }
 
 /**

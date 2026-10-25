@@ -41,8 +41,8 @@ const marka: Record<ProduktDane["id"], RegExp> = { hiton: /hiton/i, wielbark: /w
 const pytania = faq.filter((f) => marka[p.id].test(`${f.q} ${f.a}`));
 
 /**
- * The product with its pallet price, for search results. No `brand`
- * field: the products go by the name on the bag or the origin (oferta.ts).
+ * The product with its pallet price, for search results. The brand is
+ * `marka` (oferta.ts), since the owner's decision of 2026-10-25.
  */
 const produktLd = {
   "@context": "https://schema.org",
@@ -50,6 +50,7 @@ const produktLd = {
   name: p.nazwa,
   description: `${p.podtytul}. ${p.opis}`,
   image: new URL((await getImage({ src: p.zdjecie.src, width: 800, format: "jpg" })).src, Astro.site).toString(),
+  brand: { "@type": "Brand", name: p.marka },
   category: "Pellet drzewny",
   offers: {
     "@type": "Offer",
@@ -64,7 +65,8 @@ const produktLd = {
       referenceQuantity: { "@type": "QuantitativeValue", value: 1, unitText: "paleta" },
     },
     itemCondition: "https://schema.org/NewCondition",
-    // TODO(produkcja): availability (schema.org/InStock) once the client says how stock is kept.
+    // In stock: the owner's decision of 2026-10-25.
+    availability: "https://schema.org/InStock",
     seller: { "@id": firmaId },
   },
 };
