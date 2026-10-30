@@ -12,7 +12,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check && tsc -p functions --noEmit && bun test functions src",
-    "astro": "astro"
+    "astro": "astro",
+    "indexnow": "bun scripts/indexnow.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
