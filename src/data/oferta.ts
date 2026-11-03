@@ -3,10 +3,10 @@
  * the local pages, the choices in the order form and llms.txt all read this
  * list. Prices live here and nowhere else; a page only prints them.
  *
- * Prices are the client's own, from the client's message of 2026-10-24,
- * as of `cenyZDnia`: per pallet, per 15 kg bag and per tonne for each
- * product. On 2026-10-25 the client corrected the HITON bag to 32.50 zł,
- * the same as Wielbark's. Whether they include VAT is not known, so no page says "brutto"
+ * Prices are the client's own, as of `cenyZDnia`: per pallet and per tonne
+ * from the client's price list of 2026-11-03, per 15 kg bag from the
+ * message of 2026-10-24 (corrected for HITON on 2026-10-25); the 2026-11-03
+ * list gives no bag prices. Whether they include VAT is not known, so no page says "brutto"
  * or "z VAT".
  *
  * Certificates belong to the producers, not to the company: without a trader's
@@ -28,7 +28,7 @@ import { href } from "../lib/url";
 
 /** The date the client gave the prices for. */
 // TODO(produkcja): ask the client whether the prices include VAT.
-export const cenyZDnia = "24.10.2026";
+export const cenyZDnia = "03.11.2026";
 
 export interface Parametr {
   nazwa: string;
@@ -108,8 +108,8 @@ export const produkty: Produkt[] = [
     workiKg: 15,
     workowNaPalecie: 65,
     kgNaPalecie: 975,
-    cenaPaleta: 2100,
-    cenaTona: 2154,
+    cenaPaleta: 2000,
+    cenaTona: 2052,
     cenaWorek: 32.5,
     certyfikat: "Certyfikat DINplus 7A433 i certyfikat ENplus A1 producenta, ID PL 078.",
     parametry: [
@@ -139,8 +139,8 @@ export const produkty: Produkt[] = [
     workiKg: 15,
     workowNaPalecie: 72,
     kgNaPalecie: 1080,
-    cenaPaleta: 2350,
-    cenaTona: 2176,
+    cenaPaleta: 2300,
+    cenaTona: 2130,
     cenaWorek: 32.5,
     certyfikat: "Certyfikat ENplus A1 producenta, ID PL 002.",
     parametry: [
