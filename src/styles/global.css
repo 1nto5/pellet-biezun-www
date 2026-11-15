@@ -1525,8 +1525,8 @@ input[type="date"].input::-webkit-date-and-time-value {
    next photo, not a pan. */
 .lightbox {
   width: fit-content;
-  max-width: 92vw;
-  max-height: 92vh;
+  max-width: 92dvw;
+  max-height: 92dvh;
   margin: auto;
   padding: 1rem;
   border: 0;
@@ -1546,14 +1546,14 @@ html:has(.lightbox[open]) {
 .lightbox::backdrop {
   background: color-mix(in srgb, var(--color-asphalt) 92%, transparent);
 }
-/* As large as fits the window, 72vh high at most, in the photo's own
+/* As large as fits the window, 72dvh high at most, in the photo's own
    proportions (`--proporcja`, set by the script), so the frame has its size
    before the photo arrives. Gallery.astro asks for the photo's file by the
    same width: change both together. */
 .lightbox img {
   display: block;
   background: var(--color-sand) center / cover no-repeat;
-  width: min(92vw - 2rem, 62rem, 72vh * var(--proporcja, 1.333));
+  width: min(92dvw - 2rem, 62rem, 72dvh * var(--proporcja, 1.333));
   height: auto;
   aspect-ratio: var(--proporcja, 4 / 3);
   object-fit: contain;
