@@ -21,7 +21,7 @@ import { firma, hoursRange } from "../data/firma";
     <div class="grid grid-cols-[minmax(0,1fr)] gap-12 lg:grid-cols-2">
       <div class="space-y-10">
         <div class="max-w-[26rem]" data-ruch="tablica"><TablicaWjazdowa /></div>
-        <section aria-labelledby="dane" data-ruch>
+        <section data-ruch>
           <h2 id="dane" class="text-3xl">{firma.name}</h2>
           <address class="mt-3 text-lg">
             {firma.address.street}<br />
@@ -44,9 +44,9 @@ import { firma, hoursRange } from "../data/firma";
           <p class="mt-2 text-sm text-ink-soft">{firma.legalName}{firma.nip && `, NIP ${firma.nip}`}</p>
         </section>
 
-        <section aria-labelledby="godziny" data-ruch>
+        <section data-ruch>
           <h2 id="godziny" class="text-3xl">Godziny otwarcia</h2>
-          <table class="table mt-3 max-w-md">
+          <table class="table mt-3 max-w-md" aria-labelledby="godziny">
             <tbody>
               {
                 firma.hours.map((h) => (
@@ -64,25 +64,37 @@ import { firma, hoursRange } from "../data/firma";
         <Mapa zoom={14} label={`Mapa: magazyn ${firma.name}`} />
       </div>
 
-      <section aria-labelledby="napisz">
+      <section>
         <h2 id="napisz" class="mb-6 text-3xl">Napisz do nas</h2>
         <Formularz action="/api/kontakt" submitLabel="Wyślij wiadomość" purpose="odpowiedzi na wiadomość" consent>
           <div class="field">
-            <label for="imie">Imię <span class="req">*</span></label>
-            <input id="imie" name="imie" type="text" class="input" autocomplete="given-name" autocapitalize="words" maxlength="100" required />
+            <label for="imie">Imię <span class="req" aria-hidden="true">*</span></label>
+            <input id="imie" name="imie" type="text" class="input" autocomplete="given-name" autocapitalize="words" maxlength="100" enterkeyhint="next" required />
           </div>
           <div class="grid gap-5 sm:grid-cols-2">
             <div class="field">
-              <label for="email">E-mail <span class="req">*</span></label>
-              <input id="email" name="email" type="email" class="input" autocomplete="email" maxlength="254" required />
+              <label for="email">E-mail <span class="req" aria-hidden="true">*</span></label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                class="input"
+                autocomplete="email"
+                autocapitalize="none"
+                autocorrect="off"
+                spellcheck="false"
+                maxlength="254"
+                enterkeyhint="next"
+                required
+              />
             </div>
             <div class="field">
               <label for="telefon">Telefon</label>
-              <input id="telefon" name="telefon" type="tel" class="input" autocomplete="tel" maxlength="30" />
+              <input id="telefon" name="telefon" type="tel" class="input" autocomplete="tel" maxlength="30" enterkeyhint="next" />
             </div>
           </div>
           <div class="field">
-            <label for="wiadomosc">Wiadomość <span class="req">*</span></label>
+            <label for="wiadomosc">Wiadomość <span class="req" aria-hidden="true">*</span></label>
             <textarea id="wiadomosc" name="wiadomosc" class="input" rows="6" maxlength="2000" required></textarea>
           </div>
         </Formularz>
