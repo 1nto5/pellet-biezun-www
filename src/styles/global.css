@@ -142,6 +142,9 @@ html[data-theme="dark"] {
   --color-link: #7fd65a;
   --color-link-hover: #a6e78b;
   --color-danger: #ff7b6e;
+  /* The ticked consent box: sign green is 2.6:1 on the dark page; this
+     is 5:1 and still dark enough for the browser's white tick. */
+  --color-accent: #3f9a1f;
   --color-scrim: color-mix(in srgb, #000 70%, transparent);
   --niebo-dol: #1d2b3a;
   --niebo-srodek: #18212b;
@@ -162,6 +165,7 @@ html[data-theme="dark"] {
     --color-link: #7fd65a;
     --color-link-hover: #a6e78b;
     --color-danger: #ff7b6e;
+    --color-accent: #3f9a1f;
     --color-scrim: color-mix(in srgb, #000 70%, transparent);
     --niebo-dol: #1d2b3a;
     --niebo-srodek: #18212b;
@@ -1110,7 +1114,7 @@ input[type="date"].input::-webkit-date-and-time-value {
   width: 1.3rem;
   height: 1.3rem;
   margin-top: 0.15rem;
-  accent-color: var(--color-sign);
+  accent-color: var(--color-accent, var(--color-sign));
 }
 /* The trap field: off-screen for people, still in the form for bots. */
 .hp {
