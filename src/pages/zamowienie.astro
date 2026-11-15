@@ -35,7 +35,7 @@ import { BEZ_ZALICZEK } from "../data/zaliczki";
             </div>
             <div class="field">
               <label for="ilosc">Ilość <span class="req" aria-hidden="true">*</span></label>
-              <input id="ilosc" name="ilosc" type="text" class="input" maxlength="60" enterkeyhint="next" required aria-describedby="ilosc-hint" />
+              <input id="ilosc" name="ilosc" type="text" class="input" maxlength="60" required aria-describedby="ilosc-hint" />
               <span id="ilosc-hint" class="hint">Np. „2 palety”.{naWorki().length > 0 && ` ${naWorki().map((g) => g.nazwy).join(", ")} sprzedajemy też na worki.`}</span>
             </div>
           </div>
@@ -53,7 +53,6 @@ import { BEZ_ZALICZEK } from "../data/zaliczki";
               autocomplete="address-line1"
               autocapitalize="words"
               maxlength="100"
-              enterkeyhint="next"
               required
             />
           </div>
@@ -69,7 +68,6 @@ import { BEZ_ZALICZEK } from "../data/zaliczki";
                 autocomplete="postal-code"
                 autocorrect="off"
                 spellcheck="false"
-                enterkeyhint="next"
                 pattern="[0-9]{2}-?[0-9]{3}"
                 maxlength="6"
                 title="Kod w formacie 00-000"
@@ -90,7 +88,6 @@ import { BEZ_ZALICZEK } from "../data/zaliczki";
                 autocapitalize="words"
                 list="miejscowosci"
                 maxlength="100"
-                enterkeyhint="next"
                 required
               />
               <datalist id="miejscowosci">
@@ -104,12 +101,12 @@ import { BEZ_ZALICZEK } from "../data/zaliczki";
           <legend class="mb-4 text-3xl">Dane kontaktowe</legend>
           <div class="field">
             <label for="imie">Imię i nazwisko <span class="req" aria-hidden="true">*</span></label>
-            <input id="imie" name="imie" type="text" class="input" autocomplete="name" autocapitalize="words" maxlength="100" enterkeyhint="next" required />
+            <input id="imie" name="imie" type="text" class="input" autocomplete="name" autocapitalize="words" maxlength="100" required />
           </div>
           <div class="grid gap-5 sm:grid-cols-2">
             <div class="field">
               <label for="telefon">Telefon <span class="req" aria-hidden="true">*</span></label>
-              <input id="telefon" name="telefon" type="tel" class="input" autocomplete="tel" maxlength="30" enterkeyhint="next" required />
+              <input id="telefon" name="telefon" type="tel" class="input" autocomplete="tel" maxlength="30" required />
             </div>
             <div class="field">
               <label for="email">E-mail <span class="req" aria-hidden="true">*</span></label>
@@ -123,7 +120,6 @@ import { BEZ_ZALICZEK } from "../data/zaliczki";
                 autocorrect="off"
                 spellcheck="false"
                 maxlength="254"
-                enterkeyhint="next"
                 required
                 aria-describedby="email-hint"
               />
