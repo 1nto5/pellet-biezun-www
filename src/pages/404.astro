@@ -16,7 +16,7 @@ import { mainNav, orderLink, strony } from "../data/nav";
     <div class="max-w-prose">
       <!-- A wrong exit: the way back is on a direction board. -->
       <nav class="sign zjazd" aria-label="Dokąd dalej" data-ruch="tablica">
-        <ul role="list">
+        <ul>
           {
             [strony.home, orderLink, ...mainNav].map((item) => (
               <li>
