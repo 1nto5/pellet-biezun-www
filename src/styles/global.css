@@ -336,6 +336,13 @@ main :where(p, address, dd, td) > a:not(.btn),
   border-radius: var(--radius-sign);
   box-shadow: inset 0 0 0 0.2rem var(--color-sign), inset 0 0 0 0.3rem var(--color-white);
 }
+/* Forced colours drop the green and the inset line, so a border keeps the
+   board's edge. */
+@media (forced-colors: active) {
+  .sign {
+    border: 2px solid CanvasText;
+  }
+}
 /* Inside a board the ring is yellow on green; round a board that is itself
    a link it stays black, on the page. */
 .sign :focus-visible {
@@ -1151,6 +1158,7 @@ input[type="date"].input::-webkit-date-and-time-value {
   place-items: center;
 }
 .mapa:empty::after {
+  content: "Ładowanie mapy…";
   content: "Ładowanie mapy…" / "";
   color: var(--color-ink-soft);
   font-weight: 600;
@@ -1466,7 +1474,7 @@ input[type="date"].input::-webkit-date-and-time-value {
 .gallery-media {
   display: block;
   height: 100%;
-  overflow: hidden;
+  overflow: clip;
   border-radius: var(--radius-sign);
   /* What shows until the photo arrives. */
   background: var(--color-sand);
@@ -1526,6 +1534,11 @@ html:has(.lightbox[open]) {
   gap: 0.5rem;
   margin-left: auto;
 }
+/* The close button's form (Gallery.astro) leaves no box of its own: the
+   button stays a flex item of the row. */
+.lightbox-tools form {
+  display: contents;
+}
 .lightbox-tools .tool {
   min-height: 2.75rem;
 }
@@ -1562,6 +1575,7 @@ html:has(.lightbox[open]) {
   display: none;
 }
 .faq summary::before {
+  content: "+";
   content: "+" / "";
   flex: none;
   display: inline-grid;
@@ -1577,6 +1591,7 @@ html:has(.lightbox[open]) {
   line-height: 1;
 }
 .faq details[open] summary::before {
+  content: "−";
   content: "−" / "";
   background: var(--color-yellow);
   color: var(--color-black);

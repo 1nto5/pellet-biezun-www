@@ -36,7 +36,7 @@
 .scena {
   position: relative;
   container-type: size;
-  overflow: hidden;
+  overflow: clip;
   /* A faint sky over the forest, the page's own colour higher up: the
      photos stand on something rather than float on white. At night
      (global.css sets the stops) a dark blue sky, lightest at the horizon. */
@@ -447,7 +447,7 @@
     height: calc(100svh - var(--header-height));
     min-height: 22rem;
     padding: 0;
-    overflow: hidden;
+    overflow: clip;
     background: var(--color-page);
   }
   html[data-js] .droga-scena {
@@ -479,7 +479,7 @@
      from the script, the same by the stops' count until it runs. */
   html[data-js] .droga-dystans {
     display: block;
-    height: var(--dlugosc, calc(var(--odcinki) * 100vh));
+    height: var(--dlugosc, calc(var(--odcinki) * 100dvh));
   }
   html[data-js] .kadr {
     display: none;
@@ -528,7 +528,7 @@
      opened in a background tab). The animation is written property by
      property: from the short `animation` form the build makes one line with
      the timeline in it, which browsers throw away. */
-  @supports (animation-timeline: scroll()) {
+  @supports (animation-timeline: scroll()) and (animation-range: 0% 100%) {
     html[data-js] .stopy[data-pod-hero] .stop:first-child {
       translate: 0 var(--pod-hero);
       animation-name: stop-pod-hero;
