@@ -89,7 +89,8 @@ import { firma, hoursRange } from "../data/firma";
             </div>
             <div class="field">
               <label for="telefon">Telefon</label>
-              <input id="telefon" name="telefon" type="tel" class="input" autocomplete="tel" maxlength="30" />
+              <input id="telefon" name="telefon" type="tel" class="input" autocomplete="tel" maxlength="30" aria-describedby="telefon-hint" />
+              <span id="telefon-hint" class="hint">Opcjonalnie: jeśli wolisz, żebyśmy oddzwonili.</span>
             </div>
           </div>
           <div class="field">
