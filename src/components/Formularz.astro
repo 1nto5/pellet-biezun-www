@@ -37,7 +37,8 @@
  * all at once, then takes the reader to the first: the browser's bubbles
  * come one at a time, briefly, and in the browser's language. A field's
  * `data-blad` gives its own message for a wrong format. Without scripts the
- * browser's checks stay as they are. Every field says it is not wrong
+ * browser's checks stay as they are. A radio group, which always has one
+ * option ticked, is not checked here. Every other field says it is not wrong
  * (`aria-invalid="false"`) until the script finds it is: left unset, some
  * browsers call an empty required field invalid before anyone types.
  */
@@ -269,7 +270,12 @@ const { action, submitLabel, purpose, consent = false } = Astro.props;
     addEventListener("pageshow", (e) => {
       if (e.persisted) form.querySelector("button[type=submit]")?.removeAttribute("disabled");
     });
-    const pola = [...form.querySelectorAll<Pole>("input, select, textarea")].filter((p) => p.name !== "strona_www" && p.willValidate);
+    // Radios are left out: a group comes with one option ticked, and a radio
+    // cannot be unticked, so the group is never wrong; the server checks the
+    // value again all the same.
+    const pola = [...form.querySelectorAll<Pole>("input, select, textarea")].filter(
+      (p) => p.name !== "strona_www" && p.willValidate && p.type !== "radio",
+    );
     for (const p of pola) p.setAttribute("aria-invalid", "false");
 
     // An error that comes up as the reader leaves a field is said aloud
@@ -294,6 +300,7 @@ const { action, submitLabel, purpose, consent = false } = Astro.props;
     });
     form.addEventListener("change", (e) => {
       const pole = e.target as Pole;
+      if (!pola.includes(pole)) return;
       const nowy = pokaz(pole);
       if (pole === glosPole && pole.getAttribute("aria-invalid") !== "true") ucisz();
       if (!nowy || !glos) return;

@@ -1116,6 +1116,44 @@ input[type="date"].input::-webkit-date-and-time-value {
   margin-top: 0.15rem;
   accent-color: var(--color-accent, var(--color-sign));
 }
+/* A few options, all in view (the product on the order form): a legend that
+   reads like a field's label, then one box per option, drawn as a text field
+   (`.input` on the label), so the whole box takes the click. */
+.wybory {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  /* A fieldset is at least as wide as its content; this lets long text wrap. */
+  min-width: 0;
+}
+.wybory > legend {
+  margin-bottom: 0.3rem;
+  font-weight: 700;
+  letter-spacing: inherit;
+}
+.wybor {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.6rem;
+  align-items: start;
+  cursor: pointer;
+}
+.wybor input {
+  width: 1.3rem;
+  height: 1.3rem;
+  margin-top: 0.05rem;
+  accent-color: var(--color-accent, var(--color-sign));
+}
+/* The focus ring of a text field, on the box; the radio's own ring goes,
+   where the browser can tell the box holds the focus. */
+.wybor:has(:focus-visible) {
+  outline: 3px solid var(--color-yellow);
+  outline-offset: 0;
+  box-shadow: 0 0 0 5px var(--color-ink);
+}
+.wybor:has(:focus-visible) input {
+  outline: none;
+}
 /* The trap field: off-screen for people, still in the form for bots. */
 .hp {
   position: absolute;
