@@ -178,4 +178,4 @@ export const wStrefieDarmowej = (m: Miejsce) => odlegloscKm(m) <= DARMOWA_DOSTAW
  * delivery: the pages state the free delivery distance once and never sort
  * the towns by it (Adrian, 2026-10-05).
  */
-export const podstronyPoOdleglosci = [...podstrony].sort((a, b) => odlegloscKm(a) - odlegloscKm(b));
+export const podstronyPoOdleglosci = podstrony.toSorted((a, b) => odlegloscKm(a) - odlegloscKm(b));

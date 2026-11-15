@@ -20,13 +20,23 @@ const wordmark = firma.znak;
 // to, such as "Mapa dystrybucji" on a town's page.
 const current = (href: string) => (href === Astro.url.pathname ? "page" : href === section?.href ? "true" : undefined);
 // The theme button's icon: a moon on a light page, a sun on a dark one
-// (global.css shows one by `aria-pressed`).
-const ikonaMotywu = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" aria-hidden="true">
-  <path class="motyw-ksiezyc" d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"></path>
-  <g class="motyw-slonce">
+// (global.css shows one by `aria-pressed`, through the classes on `<use>`).
+// The shapes are drawn once, in the header row's button, and its twin in the
+// drawer points at them.
+const ikonaMotywu = (zKsztaltami: boolean) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" aria-hidden="true">${
+  zKsztaltami
+    ? `
+  <symbol id="ikona-ksiezyc" viewBox="0 0 24 24">
+    <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"></path>
+  </symbol>
+  <symbol id="ikona-slonce" viewBox="0 0 24 24">
     <circle cx="12" cy="12" r="4"></circle>
     <path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"></path>
-  </g>
+  </symbol>`
+    : ""
+}
+  <use class="motyw-ksiezyc" href="#ikona-ksiezyc"></use>
+  <use class="motyw-slonce" href="#ikona-slonce"></use>
 </svg>`;
 ---
 
@@ -55,7 +65,7 @@ const ikonaMotywu = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
 
       <div class="flex items-center gap-x-5">
         <nav aria-label="Menu główne" class="sign nav-board hidden lg:block">
-          <ul role="list" class="flex">
+          <ul class="flex">
             {
               mainNav.map((item) => (
                 <li>
@@ -75,7 +85,7 @@ const ikonaMotywu = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
             aria-current={current(orderLink.href)}>{orderLink.label}</a
           >
           <button type="button" class="tool motyw-toggle" data-motyw aria-pressed="false">
-            <Fragment set:html={ikonaMotywu} />
+            <Fragment set:html={ikonaMotywu(true)} />
             <span class="sr-only">Tryb nocny</span>
           </button>
           {/* Pressed or not before the first paint, so the icon does not
@@ -87,7 +97,7 @@ const ikonaMotywu = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
               b.setAttribute("aria-pressed", String(ciemny));
             })(document.currentScript.previousElementSibling);
           </script>
-          <button type="button" class="tool menu-toggle" data-menu-open aria-haspopup="dialog" aria-expanded="false">
+          <button type="button" class="tool menu-toggle" data-menu-open aria-haspopup="dialog" aria-expanded="false" aria-controls="menu-szuflada">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" aria-hidden="true">
               <path class="menu-ikona-otworz" d="M4 6h16M4 12h16M4 18h16"></path>
               <path class="menu-ikona-zamknij" d="M6 6l12 12M18 6L6 18"></path>
@@ -106,12 +116,12 @@ const ikonaMotywu = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
   </div>
 
   <div class="menu-backdrop" data-menu-backdrop hidden></div>
-  <dialog class="menu" data-menu aria-label="Menu główne" tabindex="-1">
+  <dialog id="menu-szuflada" class="menu" data-menu aria-label="Menu główne" tabindex="-1">
     <p class="pb-3">
       Telefon: <a href={firma.phone.href} class="inline-block py-2 text-xl font-extrabold">{firma.phone.label}</a>
     </p>
     <nav aria-label="Menu" class="mt-2">
-      <ul role="list">
+      <ul>
         <li><a href={strony.home.href} aria-current={current(strony.home.href)}>{strony.home.label}</a></li>
         {
           mainNav.map((item) => (
@@ -127,7 +137,7 @@ const ikonaMotywu = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
     {/* On the narrowest phones the header row has no room for the theme
         button (global.css), so it is here instead. */}
     <button type="button" class="menu-motyw" data-motyw aria-pressed="false">
-      <Fragment set:html={ikonaMotywu} />
+      <Fragment set:html={ikonaMotywu(false)} />
       Tryb nocny
     </button>
   </dialog>
@@ -158,20 +168,29 @@ const ikonaMotywu = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
     };
     pokaz();
     systemCiemny.addEventListener("change", pokaz);
+    // Sets the theme (with no choice, the system's) and the page's colour,
+    // as the theme now paints it, for both metas.
+    const ustaw = (motyw: string | null) => {
+      if (motyw === "light" || motyw === "dark") doc.setAttribute("data-theme", motyw);
+      else doc.removeAttribute("data-theme");
+      const kolor = getComputedStyle(doc).getPropertyValue("--color-page").trim();
+      for (const meta of document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')) meta.content = kolor;
+      pokaz();
+    };
     const przelacz = () => {
       const nowy = ciemny() ? "light" : "dark";
-      doc.setAttribute("data-theme", nowy);
+      ustaw(nowy);
       try {
         localStorage.setItem("motyw", nowy);
       } catch {
         // Storage blocked (a private window): the choice holds for this page.
       }
-      // The page's colour, as the theme now paints it, for both metas.
-      const kolor = getComputedStyle(doc).getPropertyValue("--color-page").trim();
-      for (const meta of document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')) meta.content = kolor;
-      pokaz();
     };
     for (const b of motywy) b.addEventListener("click", przelacz);
+    // A choice made in another tab of the site applies here too.
+    window.addEventListener("storage", (e) => {
+      if (e.key === "motyw") ustaw(e.newValue);
+    });
   }
 
   // `--header-height` is the pinned row's height: same-page links and the
@@ -192,10 +211,13 @@ const ikonaMotywu = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
   const przypiety = window.matchMedia("(width >= 64rem) and (height > 26rem)");
   const measure = () => {
     if (!surface || !header) return;
+    // All the reading first, then the writing: a write between two reads
+    // would lay the page out again for the second.
     const pinned = getComputedStyle(header).position === "sticky" && !menu?.open;
-    doc.style.setProperty("--header-height", pinned ? `${surface.offsetHeight}px` : "0px");
+    const surfaceH = surface.offsetHeight;
     const pasekH = pasek?.offsetHeight ?? 0;
-    doc.style.setProperty("--naglowek-nad", przypiety.matches ? "0px" : `${surface.offsetHeight}px`);
+    doc.style.setProperty("--header-height", pinned ? `${surfaceH}px` : "0px");
+    doc.style.setProperty("--naglowek-nad", przypiety.matches ? "0px" : `${surfaceH}px`);
     doc.style.setProperty("--pasek-nad", przypiety.matches ? "0px" : `${pasekH}px`);
     doc.style.setProperty("--pasek-h", `${pasekH}px`);
   };

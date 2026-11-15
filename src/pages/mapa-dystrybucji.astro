@@ -49,32 +49,36 @@ const dublety = [...new Set(miejsca.flatMap((m) => [nazwaWlasna(m), pelnaNazwa(m
     {/* Beside the map, never in it: Leaflet draws into an empty box. Only the
         page script makes it work, so without scripts it is not shown. */}
     <div class="szukaj mb-5" data-szukaj data-tel={firma.phone.label} data-tel-href={firma.phone.href} data-zasada={ZASADA_DOSTAWY} data-dublety={dublety.join("|")}>
-      <form role="search" class="szukaj-form">
-        <div class="field">
-          <label for="szukaj-miejsce">Sprawdź swoją miejscowość</label>
-          <input
-            id="szukaj-miejsce"
-            type="text"
-            class="input"
-            placeholder="np. Mława"
-            autocomplete="off"
-            autocapitalize="words"
-            enterkeyhint="search"
-            list="szukaj-miejscowosci"
-            maxlength="100"
-          />
-          <datalist id="szukaj-miejscowosci">
-            {miejsca.map((m) => <option value={nazwaWlasna(m)} />)}
-          </datalist>
-        </div>
-        <button type="submit" class="btn btn-primary">Pokaż na mapie</button>
-      </form>
+      <search>
+        <form class="szukaj-form">
+          <div class="field">
+            <label for="szukaj-miejsce">Sprawdź swoją miejscowość</label>
+            <input
+              id="szukaj-miejsce"
+              name="miejscowosc"
+              type="text"
+              class="input"
+              placeholder="np. Mława"
+              autocomplete="off"
+              autocapitalize="words"
+              autocorrect="off"
+              spellcheck="false"
+              list="szukaj-miejscowosci"
+              maxlength="100"
+            />
+            <datalist id="szukaj-miejscowosci">
+              {miejsca.map((m) => <option value={nazwaWlasna(m)} />)}
+            </datalist>
+          </div>
+          <button type="submit" class="btn btn-primary">Pokaż na mapie</button>
+        </form>
+      </search>
       <p class="szukaj-wynik" aria-live="polite" data-wynik data-podpowiedz>Możesz też wybrać miejscowość na mapie.</p>
     </div>
 
     <Mapa miejsca={miejsca} trasy class="mapa-dystrybucja" label="Mapa: magazyn i miejscowości, do których dowozimy" />
 
-    <section class="mt-12" aria-labelledby="podstrony">
+    <section class="mt-12">
       <h2 id="podstrony" class="text-3xl">Dostawa w Twojej okolicy</h2>
       <ul role="list" class="tablice mt-6" data-ruch-grupa="tablica">
         {
@@ -87,13 +91,13 @@ const dublety = [...new Set(miejsca.flatMap((m) => [nazwaWlasna(m), pelnaNazwa(m
       </ul>
     </section>
 
-    <section class="mt-12" aria-labelledby="wszystkie">
+    <section class="mt-12">
       <h2 id="wszystkie" class="text-3xl">Wszystkie miejscowości</h2>
       <p class="tylko-js mt-2 text-ink-soft">Wybierz miejscowość, żeby zobaczyć ją na mapie.</p>
       <div class="miejscowosci mt-6">
         {
           grupy.map((g, i) => (
-            <section aria-labelledby={`wojewodztwo-${i}`}>
+            <section>
               <h3 id={`wojewodztwo-${i}`} class="text-xl">Województwo {g.wojewodztwo}</h3>
               <ul role="list" class="mt-3">
                 {g.miejsca.map((m) => (
@@ -342,7 +346,7 @@ const dublety = [...new Set(miejsca.flatMap((m) => [nazwaWlasna(m), pelnaNazwa(m
         const lista = Object.assign(document.createElement("select"), { className: "input" });
         lista.setAttribute("aria-label", jednaNazwa && sameGminy ? "Gmina" : "Miejscowość");
         lista.append(Object.assign(document.createElement("option"), { value: "", textContent: "wybierz z listy", disabled: true, selected: true }));
-        const poAlfabecie = [...kandydaci].sort((a, b) => a.etykieta.localeCompare(b.etykieta, "pl"));
+        const poAlfabecie = kandydaci.toSorted((a, b) => a.etykieta.localeCompare(b.etykieta, "pl"));
         // Names from the index go in as text, like the towns' below.
         lista.append(...poAlfabecie.map((k, i) => Object.assign(document.createElement("option"), { value: String(i), textContent: k.etykieta })));
         // Choosing an option confirms nothing by itself: with a keyboard

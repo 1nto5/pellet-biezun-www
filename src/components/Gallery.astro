@@ -1,9 +1,9 @@
 ---
 /**
  * A grid of photographs. Each one is a button that opens the full picture in a
- * native <dialog>; Escape and a click on the backdrop close it. Inside, the
- * arrow buttons, the arrow keys and a finger swipe move to the previous or
- * next photo, round from the last to the first.
+ * native <dialog>; its „Zamknij" button, Escape and a click on the backdrop
+ * close it. Inside, the arrow buttons, the arrow keys and a finger swipe move
+ * to the previous or next photo, round from the last to the first.
  *
  * Without JavaScript the buttons do nothing and the grid is simply a grid of
  * photographs, which is most of what it is for.
@@ -130,7 +130,6 @@ const items = await Promise.all(
                   quality={65}
                   sizes={sizes}
                   loading={i < OD_RAZU ? "eager" : "lazy"}
-                  fetchpriority={i < OD_RAZU ? undefined : "low"}
                 />
               )}
             </span>
@@ -159,7 +158,10 @@ const items = await Promise.all(
           </svg>
           <span class="sr-only">Następne zdjęcie</span>
         </button>
-        <button type="button" class="tool" data-lightbox-close autofocus>Zamknij</button>
+        {/* A dialog form: the button closes the dialog with no script. */}
+        <form method="dialog">
+          <button type="submit" class="tool" autofocus>Zamknij</button>
+        </form>
       </div>
     </div>
   </dialog>
@@ -272,12 +274,6 @@ const items = await Promise.all(
       const r = target.getBoundingClientRect();
       const obok = event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom;
       if (obok && performance.now() - swipedAt > 500) target.close();
-      return;
-    }
-
-    const close = target.closest("[data-lightbox-close]");
-    if (close) {
-      close.closest("dialog")?.close();
       return;
     }
 

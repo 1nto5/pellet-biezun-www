@@ -37,7 +37,9 @@
  * all at once, then takes the reader to the first: the browser's bubbles
  * come one at a time, briefly, and in the browser's language. A field's
  * `data-blad` gives its own message for a wrong format. Without scripts the
- * browser's checks stay as they are.
+ * browser's checks stay as they are. Every field says it is not wrong
+ * (`aria-invalid="false"`) until the script finds it is: left unset, some
+ * browsers call an empty required field invalid before anyone types.
  */
 import { formularzeWlaczone, turnstileSiteKey } from "../data/strona";
 import { firma } from "../data/firma";
@@ -95,7 +97,7 @@ const { action, submitLabel, purpose, consent = false } = Astro.props;
         <input type="checkbox" name="zgoda" value="tak" required />
         <span>
           Zgadzam się na przetwarzanie moich danych w celu {purpose}. Szczegóły w <a href={strony.polityka.href}>polityce prywatności</a>.{" "}
-          <span class="req">*</span>
+          <span class="req" aria-hidden="true">*</span>
         </span>
       </label>
     ) : (
@@ -126,10 +128,12 @@ const { action, submitLabel, purpose, consent = false } = Astro.props;
 
   <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
     <button type="submit" class="btn btn-primary" disabled>{submitLabel}</button>
-    <p class="text-sm text-ink-soft"><span class="req">*</span> pole wymagane</p>
+    <p class="text-sm text-ink-soft"><span class="req" aria-hidden="true">*</span> pole wymagane</p>
   </div>
 
   <p class="form-status font-semibold" role="status" data-form-status></p>
+  {/* Says aloud an error that comes up as the reader leaves a field (the script below). */}
+  <p class="sr-only" aria-live="polite" data-form-glos></p>
 
   {
     // Only while the forms are switched off (formularzeWlaczone in strona.ts).
@@ -158,7 +162,11 @@ const { action, submitLabel, purpose, consent = false } = Astro.props;
   }
 </form>
 
-{formularzeWlaczone && <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer />}
+{
+  formularzeWlaczone && (
+    <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer referrerpolicy="strict-origin-when-cross-origin" />
+  )
+}
 
 <script>
   type Pole = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
@@ -175,18 +183,29 @@ const { action, submitLabel, purpose, consent = false } = Astro.props;
     return v.valid ? "" : "Sprawdź, czy wszystko jest wpisane poprawnie.";
   }
 
-  /** Shows the field's message under it, or takes it away once it is right. */
-  function pokaz(pole: Pole) {
+  /** The field's label as read out, without the asterisk. */
+  function etykieta(pole: Pole): string {
+    const label = pole.labels?.[0]?.cloneNode(true) as HTMLElement | undefined;
+    label?.querySelectorAll(".req").forEach((r) => r.remove());
+    return (label?.textContent ?? "").replace(/\s+/g, " ").trim();
+  }
+
+  /**
+   * Shows the field's message under it, or takes it away once it is right.
+   * True when the message is new: the field was not marked wrong before.
+   */
+  function pokaz(pole: Pole): boolean {
     const id = `${pole.id || pole.name}-blad`;
     const tresc = komunikat(pole);
     let blad = document.getElementById(id);
     if (!tresc) {
       blad?.remove();
-      pole.removeAttribute("aria-invalid");
+      pole.setAttribute("aria-invalid", "false");
       pole.setAttribute("aria-describedby", (pole.getAttribute("aria-describedby") ?? "").replace(id, "").trim());
       if (!pole.getAttribute("aria-describedby")) pole.removeAttribute("aria-describedby");
-      return;
+      return false;
     }
+    const nowy = !blad;
     if (!blad) {
       blad = Object.assign(document.createElement("span"), { id, className: "blad" });
       // Last in the field's own box, which may be a cell of a grid; after a
@@ -198,6 +217,7 @@ const { action, submitLabel, purpose, consent = false } = Astro.props;
     }
     blad.textContent = tresc;
     pole.setAttribute("aria-invalid", "true");
+    return nowy;
   }
 
   /** Writes the message for a Pages Function's error code into the status line; an unknown code reads as a failed send. */
@@ -250,15 +270,42 @@ const { action, submitLabel, purpose, consent = false } = Astro.props;
       if (e.persisted) form.querySelector("button[type=submit]")?.removeAttribute("disabled");
     });
     const pola = [...form.querySelectorAll<Pole>("input, select, textarea")].filter((p) => p.name !== "strona_www" && p.willValidate);
+    for (const p of pola) p.setAttribute("aria-invalid", "false");
+
+    // An error that comes up as the reader leaves a field is said aloud
+    // through the form's one live region, a moment later, so the next
+    // field's own announcement does not cut it off; it goes once the field
+    // is right. A failed send needs none: the focus goes to the first wrong
+    // field, which reads its message.
+    const glos = form.querySelector<HTMLElement>("[data-form-glos]");
+    let glosPole: Pole | null = null;
+    let glosZwloka = 0;
+    const ucisz = () => {
+      window.clearTimeout(glosZwloka);
+      if (glos) glos.textContent = "";
+      glosPole = null;
+    };
 
     // A field already marked wrong is checked again as the reader fixes it.
     form.addEventListener("input", (e) => {
       const pole = e.target as Pole;
-      if (pole.getAttribute("aria-invalid")) pokaz(pole);
+      if (pole.getAttribute("aria-invalid") === "true") pokaz(pole);
+      if (pole === glosPole && pole.getAttribute("aria-invalid") !== "true") ucisz();
     });
-    form.addEventListener("change", (e) => pokaz(e.target as Pole));
+    form.addEventListener("change", (e) => {
+      const pole = e.target as Pole;
+      const nowy = pokaz(pole);
+      if (pole === glosPole && pole.getAttribute("aria-invalid") !== "true") ucisz();
+      if (!nowy || !glos) return;
+      ucisz();
+      glosPole = pole;
+      glosZwloka = window.setTimeout(() => {
+        glos.textContent = `${etykieta(pole)}: ${komunikat(pole)}`;
+      }, 500);
+    });
 
     form.addEventListener("submit", (event) => {
+      ucisz();
       const zle = pola.filter((p) => !p.checkValidity());
       for (const p of pola) pokaz(p);
       if (zle.length) {

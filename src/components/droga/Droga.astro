@@ -98,7 +98,7 @@ const stopy: Stop[] = [
 <div class="podroz" data-podroz>
   <slot />
 
-  <section class="droga" aria-label="Jak pellet jedzie do klienta" data-droga>
+  <section class="droga" data-droga>
     <div class="droga-scena" data-droga-scena>
       <Scena stan={start} live />
     </div>
@@ -215,7 +215,7 @@ const stopy: Stop[] = [
     const POD_HERO = 24;
     const pierwszy = stopy[0]!;
     const trescPierwszego = pierwszy.querySelector<HTMLElement>(".stop-tresc");
-    const animacjeScrolla = CSS.supports("animation-timeline: scroll()");
+    const animacjeScrolla = CSS.supports("(animation-timeline: scroll()) and (animation-range: 0% 100%)");
     let ofertaNaStarcie = false;
 
     const measure = () => {

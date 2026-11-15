@@ -44,7 +44,6 @@ const auta = flota.map((f) => ({ ...f, dl: udzial(f) }));
           produkt={p}
           pierwszy={i === 0}
           class:list={[i > 0 && "mt-16 border-t-2 border-ink pt-16"]}
-          aria-labelledby={`produkt-${p.id}`}
         >
           <h2 slot="nazwa" id={`produkt-${p.id}`} class="produkt-nazwa">
             <a href={produktHref(p)}>{p.nazwa}</a>
@@ -63,7 +62,7 @@ const auta = flota.map((f) => ({ ...f, dl: udzial(f) }));
       Ceny z {cenyZDnia}. Przy większym zamówieniu cena do negocjacji.
     </p>
 
-    <section class="mt-20" aria-labelledby="dostawa">
+    <section class="mt-20">
       <Pasy />
       <h2 id="dostawa" class="mt-6 text-3xl md:text-4xl">Dostawa i odbiór</h2>
       <div class="prose mt-5">
