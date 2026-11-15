@@ -12,6 +12,7 @@
  * - The Cloudflare Turnstile widget, the anti-spam check: it puts its token
  *   in a hidden field of the form, and the Pages Function checks it. Its
  *   script loads only here, so only on the pages with a form.
+ * - A note on what the asterisk means, above the fields.
  * - The submit button and a status line for the reply.
  *
  * `action` is the Pages Function that receives the form (`functions/api/`).
@@ -83,6 +84,8 @@ const { action, submitLabel, purpose, consent = false } = Astro.props;
       </noscript>
     )
   }
+  {/* What the asterisk means, before the first field that has one. */}
+  <p class="text-sm text-ink-soft"><span class="req" aria-hidden="true">*</span> pole wymagane</p>
   <slot />
 
   <div class="hp" aria-hidden="true">
@@ -127,9 +130,8 @@ const { action, submitLabel, purpose, consent = false } = Astro.props;
     })();
   </script>
 
-  <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
+  <div>
     <button type="submit" class="btn btn-primary" disabled>{submitLabel}</button>
-    <p class="text-sm text-ink-soft"><span class="req" aria-hidden="true">*</span> pole wymagane</p>
   </div>
 
   <p class="form-status font-semibold" role="status" data-form-status></p>
