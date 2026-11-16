@@ -27,12 +27,18 @@ import { BEZ_ZALICZEK } from "../data/zaliczki";
         <fieldset class="space-y-5">
           <legend class="mb-4 text-3xl">Co zamawiasz</legend>
           <div class="grid gap-5 sm:grid-cols-2">
-            <div class="field">
-              <label for="produkt">Produkt <span class="req" aria-hidden="true">*</span></label>
-              <select id="produkt" name="produkt" class="input" required>
-                {produkty.map((p) => <option value={p.id}>{p.nazwa} ({cenaLabel(p)})</option>)}
-              </select>
-            </div>
+            {/* The first product starts ticked, so the group never needs an error message (Formularz.astro). */}
+            <fieldset class="wybory">
+              <legend>Produkt <span class="req" aria-hidden="true">*</span></legend>
+              {
+                produkty.map((p, i) => (
+                  <label class="input wybor">
+                    <input type="radio" name="produkt" value={p.id} required checked={i === 0} />
+                    <span>{p.nazwa} ({cenaLabel(p)})</span>
+                  </label>
+                ))
+              }
+            </fieldset>
             <div class="field">
               <label for="ilosc">Ilość <span class="req" aria-hidden="true">*</span></label>
               <input id="ilosc" name="ilosc" type="text" class="input" maxlength="60" required aria-describedby="ilosc-hint" />
@@ -150,12 +156,12 @@ import { BEZ_ZALICZEK } from "../data/zaliczki";
 </Base>
 
 <script>
-  // A link from a product (/zamowienie/?produkt=hiton) picks it in the list;
+  // A link from a product (/zamowienie/?produkt=hiton) ticks it;
   // one from a town's page (?miejscowosc=Płock) fills in the town.
   const parametry = new URLSearchParams(location.search);
-  const produkt = document.querySelector<HTMLSelectElement>("#produkt");
   const wybrany = parametry.get("produkt");
-  if (produkt && [...produkt.options].some((o) => o.value === wybrany)) produkt.value = wybrany!;
+  const produkt = [...document.querySelectorAll<HTMLInputElement>('input[name="produkt"]')].find((r) => r.value === wybrany);
+  if (produkt) produkt.checked = true;
   const miejscowosc = document.querySelector<HTMLInputElement>("#miejscowosc");
   const podana = parametry.get("miejscowosc");
   if (miejscowosc && podana && !miejscowosc.value) miejscowosc.value = podana;

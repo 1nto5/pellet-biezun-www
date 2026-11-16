@@ -142,6 +142,9 @@ html[data-theme="dark"] {
   --color-link: #7fd65a;
   --color-link-hover: #a6e78b;
   --color-danger: #ff7b6e;
+  /* The ticked consent box: sign green is 2.6:1 on the dark page; this
+     is 5:1 and still dark enough for the browser's white tick. */
+  --color-accent: #3f9a1f;
   --color-scrim: color-mix(in srgb, #000 70%, transparent);
   --niebo-dol: #1d2b3a;
   --niebo-srodek: #18212b;
@@ -162,6 +165,7 @@ html[data-theme="dark"] {
     --color-link: #7fd65a;
     --color-link-hover: #a6e78b;
     --color-danger: #ff7b6e;
+    --color-accent: #3f9a1f;
     --color-scrim: color-mix(in srgb, #000 70%, transparent);
     --niebo-dol: #1d2b3a;
     --niebo-srodek: #18212b;
@@ -1110,7 +1114,45 @@ input[type="date"].input::-webkit-date-and-time-value {
   width: 1.3rem;
   height: 1.3rem;
   margin-top: 0.15rem;
-  accent-color: var(--color-sign);
+  accent-color: var(--color-accent, var(--color-sign));
+}
+/* A few options, all in view (the product on the order form): a legend that
+   reads like a field's label, then one box per option, drawn as a text field
+   (`.input` on the label), so the whole box takes the click. */
+.wybory {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  /* A fieldset is at least as wide as its content; this lets long text wrap. */
+  min-width: 0;
+}
+.wybory > legend {
+  margin-bottom: 0.3rem;
+  font-weight: 700;
+  letter-spacing: inherit;
+}
+.wybor {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.6rem;
+  align-items: start;
+  cursor: pointer;
+}
+.wybor input {
+  width: 1.3rem;
+  height: 1.3rem;
+  margin-top: 0.05rem;
+  accent-color: var(--color-accent, var(--color-sign));
+}
+/* The focus ring of a text field, on the box; the radio's own ring goes,
+   where the browser can tell the box holds the focus. */
+.wybor:has(:focus-visible) {
+  outline: 3px solid var(--color-yellow);
+  outline-offset: 0;
+  box-shadow: 0 0 0 5px var(--color-ink);
+}
+.wybor:has(:focus-visible) input {
+  outline: none;
 }
 /* The trap field: off-screen for people, still in the form for bots. */
 .hp {
@@ -1483,8 +1525,8 @@ input[type="date"].input::-webkit-date-and-time-value {
    next photo, not a pan. */
 .lightbox {
   width: fit-content;
-  max-width: 92vw;
-  max-height: 92vh;
+  max-width: 92dvw;
+  max-height: 92dvh;
   margin: auto;
   padding: 1rem;
   border: 0;
@@ -1504,14 +1546,14 @@ html:has(.lightbox[open]) {
 .lightbox::backdrop {
   background: color-mix(in srgb, var(--color-asphalt) 92%, transparent);
 }
-/* As large as fits the window, 72vh high at most, in the photo's own
+/* As large as fits the window, 72dvh high at most, in the photo's own
    proportions (`--proporcja`, set by the script), so the frame has its size
    before the photo arrives. Gallery.astro asks for the photo's file by the
    same width: change both together. */
 .lightbox img {
   display: block;
   background: var(--color-sand) center / cover no-repeat;
-  width: min(92vw - 2rem, 62rem, 72vh * var(--proporcja, 1.333));
+  width: min(92dvw - 2rem, 62rem, 72dvh * var(--proporcja, 1.333));
   height: auto;
   aspect-ratio: var(--proporcja, 4 / 3);
   object-fit: contain;

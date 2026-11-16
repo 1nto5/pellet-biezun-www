@@ -155,8 +155,9 @@ const ikonaMotywu = (zKsztaltami: boolean) => `<svg viewBox="0 0 24 24" fill="no
   // Light or dark. The page follows the system until the reader presses the
   // button; from then on the choice is kept (`motyw` in localStorage) and
   // set as `data-theme` on <html>, which the script in Base.astro restores
-  // before the first paint of every page. The browser's own bars follow it
-  // through the two `theme-color` metas.
+  // before the first paint of every page. A press that lands on the system's
+  // own theme drops the choice, so the page follows the system again. The
+  // browser's own bars follow it through the two `theme-color` metas.
   {
     const systemCiemny = window.matchMedia("(prefers-color-scheme: dark)");
     const ciemny = () => {
@@ -168,26 +169,35 @@ const ikonaMotywu = (zKsztaltami: boolean) => `<svg viewBox="0 0 24 24" fill="no
     };
     pokaz();
     systemCiemny.addEventListener("change", pokaz);
-    // Sets the theme (with no choice, the system's) and the page's colour,
-    // as the theme now paints it, for both metas.
+    // Sets the theme and the page's colour, as the theme now paints it, for
+    // both metas. With no choice: the system's theme, and each meta gets its
+    // own colour back (as in Base.astro), so the bars follow the system too.
     const ustaw = (motyw: string | null) => {
-      if (motyw === "light" || motyw === "dark") doc.setAttribute("data-theme", motyw);
-      else doc.removeAttribute("data-theme");
-      const kolor = getComputedStyle(doc).getPropertyValue("--color-page").trim();
-      for (const meta of document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')) meta.content = kolor;
+      const metas = document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]');
+      if (motyw === "light" || motyw === "dark") {
+        doc.setAttribute("data-theme", motyw);
+        const kolor = getComputedStyle(doc).getPropertyValue("--color-page").trim();
+        for (const meta of metas) meta.content = kolor;
+      } else {
+        doc.removeAttribute("data-theme");
+        for (const meta of metas) meta.content = meta.media.includes("dark") ? "#16181a" : "#ffffff";
+      }
       pokaz();
     };
     const przelacz = () => {
-      const nowy = ciemny() ? "light" : "dark";
+      const naCiemny = !ciemny();
+      const nowy = naCiemny === systemCiemny.matches ? null : naCiemny ? "dark" : "light";
       ustaw(nowy);
       try {
-        localStorage.setItem("motyw", nowy);
+        if (nowy) localStorage.setItem("motyw", nowy);
+        else localStorage.removeItem("motyw");
       } catch {
         // Storage blocked (a private window): the choice holds for this page.
       }
     };
     for (const b of motywy) b.addEventListener("click", przelacz);
-    // A choice made in another tab of the site applies here too.
+    // A choice made in another tab of the site applies here too, and so does
+    // a choice dropped there (`newValue` is then null).
     window.addEventListener("storage", (e) => {
       if (e.key === "motyw") ustaw(e.newValue);
     });

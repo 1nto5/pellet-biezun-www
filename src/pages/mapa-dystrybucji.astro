@@ -533,6 +533,12 @@ const dublety = [...new Set(miejsca.flatMap((m) => [nazwaWlasna(m), pelnaNazwa(m
     text-align: start;
     cursor: pointer;
   }
+  /* On a touch screen each town is at least a finger's height. */
+  @media (pointer: coarse) {
+    .miejscowosci :global(button) {
+      min-height: 44px;
+    }
+  }
   .miejscowosci :global(button:hover) {
     text-decoration: underline;
     text-decoration-thickness: 2px;

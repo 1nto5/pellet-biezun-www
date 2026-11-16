@@ -7,16 +7,19 @@
  * for it.
  *
  * The steps, in order:
- * 1. A filled trap field gets the same reply as a sent form, and nothing is
+ * 1. A post from another site's page is refused.
+ * 2. A filled trap field gets the same reply as a sent form, and nothing is
  *    sent: a bot learns nothing from it.
- * 2. The fields are checked again; the page's own checks can be skipped.
- * 3. Turnstile's token is checked with Cloudflare.
- * 4. The e-mails go out through Resend.
+ * 3. The fields are checked again; the page's own checks can be skipped.
+ * 4. Turnstile's token is checked with Cloudflare.
+ * 5. The e-mails go out through Resend.
  *
  * The reply comes in two forms. The page's script asks for JSON
  * (`Accept: application/json`) and gets `{ ok, redirect }` or `{ ok, blad }`.
  * A browser without scripts posts the form itself and gets a 303 redirect: to
- * the thank-you page, or back to the form with `?blad=<code>`.
+ * the thank-you page, or back to the form with `?blad=<code>`. A post from
+ * another site gets neither: a 403 with `{ ok: false, blad: "obca-strona" }`,
+ * since no page of ours could show it.
  */
 
 export interface Env {
@@ -185,6 +188,14 @@ async function wyslij(mail: Mail, env: { key: string; from: string }): Promise<b
 export async function obsluz<P extends string>(context: { request: Request; env: Env }, formularz: Formularz<P>): Promise<Response> {
   const { request, env } = context;
   const blad = (kod?: Blad) => odpowiedz(request, formularz.strona, kod);
+
+  // A post sent from another site's page (the browser says so in
+  // Sec-Fetch-Site) never comes from our forms. Without the header (an old
+  // browser, a script) it goes on to the other checks.
+  if (request.headers.get("Sec-Fetch-Site")?.toLowerCase() === "cross-site") {
+    console.warn(`A post from another site to ${formularz.strona}: nothing sent`);
+    return Response.json({ ok: false, blad: "obca-strona" }, { status: 403 });
+  }
 
   const form = await czytaj(request);
   if (!form) return blad("pola");

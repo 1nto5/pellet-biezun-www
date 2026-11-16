@@ -498,3 +498,33 @@ describe("edge cases", () => {
     expect(res.status).toBe(200);
   });
 });
+
+describe("Sec-Fetch-Site", () => {
+  for (const [nazwa, handler, pola] of [
+    ["zamówienie", zamowienie, zamowieniePola],
+    ["kontakt", kontakt, kontaktPola],
+  ] as const) {
+    test(`a cross-site post to ${nazwa} is a 403, before Turnstile, and nothing is sent`, async () => {
+      for (const json of [true, false]) {
+        const res = await wyslij(handler, pola, { json, headers: { "Sec-Fetch-Site": "cross-site" } });
+        await oczekujBledu(res, "obca-strona", 403);
+      }
+      expect(wywolania).toHaveLength(0);
+    });
+  }
+
+  for (const wartosc of ["same-origin", "same-site", "none"]) {
+    test(`${wartosc} goes through as before`, async () => {
+      const res = await wyslij(zamowienie, zamowieniePola, { headers: { "Sec-Fetch-Site": wartosc } });
+      expect(await res.json()).toEqual({ ok: true, redirect: "/zamowienie/dziekujemy/" });
+      expect(sprawdzeniaTurnstile()).toHaveLength(1);
+      expect(maile()).toHaveLength(2);
+    });
+  }
+
+  test("without the header the post goes through as before", async () => {
+    const res = await wyslij(kontakt, kontaktPola);
+    expect(await res.json()).toEqual({ ok: true, redirect: "/kontakt/dziekujemy/" });
+    expect(maile()).toHaveLength(1);
+  });
+});
