@@ -3,10 +3,9 @@
  * the local pages, the choices in the order form and llms.txt all read this
  * list. Prices live here and nowhere else; a page only prints them.
  *
- * Prices are the client's own, as of `cenyZDnia`: Wood Pellets IKEA
- * Wielbark per pallet, per tonne and per 15 kg bag as of 2026-11-13; HITON
- * per pallet and per tonne from the client's price list of 2026-11-03, per
- * 15 kg bag from the message of 2026-10-24 (corrected on 2026-10-25).
+ * Prices are the client's own, as of `cenyZDnia`: both products per pallet,
+ * per tonne and per 15 kg bag from the client's handwritten price list valid
+ * from 2026-11-16.
  * Whether they include VAT is not known, so no page says "brutto"
  * or "z VAT".
  *
@@ -29,7 +28,7 @@ import { href } from "../lib/url";
 
 /** The date the client gave the prices for. */
 // TODO(produkcja): ask the client whether the prices include VAT.
-export const cenyZDnia = "13.11.2026";
+export const cenyZDnia = "16.11.2026";
 
 export interface Parametr {
   nazwa: string;
@@ -109,9 +108,9 @@ export const produkty: Produkt[] = [
     workiKg: 15,
     workowNaPalecie: 65,
     kgNaPalecie: 975,
-    cenaPaleta: 2000,
-    cenaTona: 2052,
-    cenaWorek: 32.5,
+    cenaPaleta: 1950,
+    cenaTona: 2000,
+    cenaWorek: 30,
     certyfikat: "Certyfikat DINplus 7A433 i certyfikat ENplus A1 producenta, ID PL 078.",
     parametry: [
       { nazwa: "Wartość opałowa", wartosc: "≥ 18,0 MJ/kg (≥ 5,0 kWh/kg)" },
@@ -140,9 +139,9 @@ export const produkty: Produkt[] = [
     workiKg: 15,
     workowNaPalecie: 72,
     kgNaPalecie: 1080,
-    cenaPaleta: 2250,
-    cenaTona: 2084,
-    cenaWorek: 31,
+    cenaPaleta: 2200,
+    cenaTona: 2038,
+    cenaWorek: 30,
     certyfikat: "Certyfikat ENplus A1 producenta, ID PL 002.",
     parametry: [
       { nazwa: "Wartość opałowa", wartosc: "18,54 MJ/kg (5,15 kWh/kg)", wymaganie: "≥ 16,5 MJ/kg" },
