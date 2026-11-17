@@ -5,7 +5,7 @@
  *
  * Prices are the client's own, as of `cenyZDnia`: both products per pallet,
  * per tonne and per 15 kg bag from the client's handwritten price list valid
- * from 2026-11-16.
+ * from 2026-11-17.
  * Whether they include VAT is not known, so no page says "brutto"
  * or "z VAT".
  *
@@ -28,7 +28,7 @@ import { href } from "../lib/url";
 
 /** The date the client gave the prices for. */
 // TODO(produkcja): ask the client whether the prices include VAT.
-export const cenyZDnia = "16.11.2026";
+export const cenyZDnia = "17.11.2026";
 
 export interface Parametr {
   nazwa: string;
@@ -108,9 +108,9 @@ export const produkty: Produkt[] = [
     workiKg: 15,
     workowNaPalecie: 65,
     kgNaPalecie: 975,
-    cenaPaleta: 1950,
-    cenaTona: 2000,
-    cenaWorek: 30,
+    cenaPaleta: 1850,
+    cenaTona: 1898,
+    cenaWorek: 29,
     certyfikat: "Certyfikat DINplus 7A433 i certyfikat ENplus A1 producenta, ID PL 078.",
     parametry: [
       { nazwa: "Wartość opałowa", wartosc: "≥ 18,0 MJ/kg (≥ 5,0 kWh/kg)" },
@@ -139,9 +139,9 @@ export const produkty: Produkt[] = [
     workiKg: 15,
     workowNaPalecie: 72,
     kgNaPalecie: 1080,
-    cenaPaleta: 2200,
-    cenaTona: 2038,
-    cenaWorek: 30,
+    cenaPaleta: 2052,
+    cenaTona: 1900,
+    cenaWorek: 29,
     certyfikat: "Certyfikat ENplus A1 producenta, ID PL 002.",
     parametry: [
       { nazwa: "Wartość opałowa", wartosc: "18,54 MJ/kg (5,15 kWh/kg)", wymaganie: "≥ 16,5 MJ/kg" },
